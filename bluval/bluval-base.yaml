@@ -1,0 +1,77 @@
+---
+##############################################################################
+# Copyright (c) 2019 AT&T Intellectual Property.                             #
+# Copyright (c) 2019 Nokia.                                                  #
+#                                                                            #
+# Licensed under the Apache License, Version 2.0 (the "License"); you may    #
+# not use this file except in compliance with the License.                   #
+#                                                                            #
+# You may obtain a copy of the License at                                    #
+#       http://www.apache.org/licenses/LICENSE-2.0                           #
+#                                                                            #
+# Unless required by applicable law or agreed to in writing, software        #
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT  #
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.           #
+# See the License for the specific language governing permissions and        #
+# limitations under the License.                                             #
+##############################################################################
+blueprint:
+    name: base
+    sections:
+        - hw
+        - os
+        - networking
+        - k8s
+        - k8s_networking
+        - sds
+        - sdn
+        - vim
+    # Any hardware some basic tests
+    hw: &hw_base
+        -
+            name: bios_version
+            # something that can be evaluated to true or false
+            condition: true
+            what: /opt/akraino/validation/helloworld
+            # true or false, default is false
+            show_stopper: false
+    os: &os_base
+        -
+            name: os_version
+            what: /opt/akraino/validation/helloworld
+    networking: &networking
+        -
+            name: pxe_networking_test
+            what: /opt/akraino/validation/helloworld
+        -
+            name: routes_test
+            what: /opt/akraino/validation/helloworld
+    k8s: &k8s
+        -
+            name: conformance
+            what: /opt/akraino/validation/helloworld
+        -
+            name: e2e
+            what: /opt/akraino/validation/helloworld
+    k8s_networking: &k8s_networking
+        -
+            name: node_connectivity
+            what: /opt/akraino/validation/helloworld
+        -
+            name: pod_connectivity
+            what: /opt/akraino/validation/helloworld
+    # software defined storage
+    sds: &sds
+        -
+            name: sds
+            what: /opt/akraino/validation/helloworld
+    # software defined network
+    sdn: &sdn
+        -
+            name: sns
+            what: /opt/akraino/validation/helloworld
+    # Virtual Infrastructure Manager
+    vim: &vim
+        -
+            name: vim_basic
+            what: /opt/akraino/validation/helloworld
