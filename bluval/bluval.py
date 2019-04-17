@@ -34,7 +34,7 @@ def run_testcase(testcase):
     print('Invoking {}'.format(cmd))
     try:
         status = subprocess.call(cmd, shell=True)
-        if status != 0 and testcase['show_stopper']:
+        if status != 0 and show_stopper:
             print('Show stopper testcase failed')
             return status
     except OSError:
