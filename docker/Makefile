@@ -25,6 +25,9 @@ all: $(SUBDIRS_NAME)
 .PHONY: build-all
 build-all: $(SUBDIRS_BUILD)
 
+.PHONY: push-all
+push-all: $(SUBDIRS_PUSH)
+
 .PHONY: $(SUBDIRS_NAME)
 $(SUBDIRS_NAME):
 	$(MAKE) -C $@
@@ -32,5 +35,9 @@ $(SUBDIRS_NAME):
 .PHONY: $(SUBDIRS_BUILD)
 $(SUBDIRS_BUILD): $(SUBDIRS)
 	$(MAKE) -C $< build
+
+.PHONY: $(SUBDIRS_PUSH)
+$(SUBDIRS_PUSH): $(SUBDIRS)
+	$(MAKE) -C $< .push_image
 
 include build.mk

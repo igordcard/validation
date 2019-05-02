@@ -16,8 +16,8 @@
 
 
 # declare the variables
-REGISTRY ?= # TBD
-NAME ?= akraino_validation
+REGISTRY ?= akraino
+NAME ?= validation
 TAG_PRE ?= $(notdir $(CURDIR))
 TAG_VER ?= latest
 DOCKERFILE ?= Dockerfile
