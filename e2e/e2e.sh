@@ -18,7 +18,7 @@
 #!/bin/bash
 #
 echo "`date +%H:%M:%S` : Starting Kubetest build"
-cd /root/go/src/k8s.io/kubernetes
+cd /root/go/src/k8s.io/kubernetes || exit
 pwd
 kubetest --build
 echo "Build completed"
