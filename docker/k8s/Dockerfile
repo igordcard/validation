@@ -48,6 +48,7 @@ RUN if [ $(uname -m) == 'aarch64' ]; then HOST_ARCH=arm64; else HOST_ARCH=amd64;
     make kubectl ginkgo && \
     make WHAT=test/e2e/e2e.test ARCH=$HOST_ARCH
 RUN go get -u -v github.com/heptio/sonobuoy
+RUN git clone https://gerrit.akraino.org/r/validation /opt/akraino/validation/repo
 
 WORKDIR /wheels
 RUN pip3 install wheel
@@ -58,8 +59,14 @@ FROM python:3.6-alpine3.9
 COPY --from=build /src/k8s.io/kubernetes/_output/bin /usr/local/bin
 COPY --from=build /go/bin/sonobuoy /bin/sonobuoy
 COPY --from=build /wheels /wheels
+COPY --from=build /opt/akraino/validation/repo /opt/akraino/validation/repo
 
 RUN pip3 install -r /wheels/requirements/pip-requirements.txt \
                  -f /wheels && \
      rm -rf /wheels && \
      rm -rf /root/.cache/pip/*
+
+# Set the default command for running the tests
+CMD /usr/local/bin/robot --loglevel DEBUG \
+    --outputdir /opt/akraino/validation/results/conformance \
+    /opt/akraino/validation/repo/conformance/conformance.robot
