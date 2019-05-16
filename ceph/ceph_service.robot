@@ -17,6 +17,8 @@
 
 
 *** Settings ***
+Documentation     Tests to verify the availability and recovery of failed
+...               Ceph services
 Resource          ceph_service.resource
 Suite Setup       Open Connection And Log In
 Suite Teardown    Close All Connections
@@ -42,4 +44,28 @@ Failure Of Two Monitors And Managers
     Start Ceph Monitor  @{nodes}
     Start Ceph Manager  @{nodes}
     Sleep  10s
+    Ceph Should Be Healthy
+
+Failure Of Single Object Storage Daemon
+    @{nodes}  Create list  ${NODENAME}-1
+    ${num_up_osds}   Number Of OSDs Up
+    Kill Ceph OSD  @{nodes}
+    Sleep  5s
+    Number Of OSDs Up Should Be  ${num_up_osds-1}
+    Ceph Health Should Be Degraded
+    Start Ceph OSD  @{nodes}
+    Sleep  10s
+    Number Of OSDs Up Should Be  ${num_up_osds}
+    Ceph Should Be Healthy
+
+Failure Of Two Object Storage Daemons
+    @{nodes}  Create list  ${NODENAME}-1  ${NODENAME}-2
+    ${num_up_osds}   Number Of OSDs Up
+    Kill Ceph OSD  @{nodes}
+    Sleep  5s
+    Number Of OSDs Up Should Be  ${num_up_osds-2}
+    Ceph Health Should Be Degraded
+    Start Ceph OSD  @{nodes}
+    Sleep  10s
+    Number Of OSDs Up Should Be  ${num_up_osds}
     Ceph Should Be Healthy

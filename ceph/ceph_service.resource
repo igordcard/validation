@@ -37,6 +37,11 @@ Start Ceph Monitor
     :FOR  ${node}  IN  @{nodes}
     \   ${result}=           Run Monitor Start  ${node}
 
+Start Ceph OSD
+    [Arguments]              @{nodes}
+    :FOR  ${node}  IN  @{nodes}
+    \   ${result}=           Run Ceph OSD Start  ${node}
+
 Kill Ceph Manager
     [Arguments]              @{nodes}
     :FOR  ${node}  IN  @{nodes}
@@ -47,6 +52,11 @@ Kill Ceph Monitor
     :FOR  ${node}  IN  @{nodes}
     \   ${stdout}=           Execute Command  ${SSH_CMD} ${node} "sudo pkill -u ceph ceph-mon"
 
+Kill Ceph OSD
+    [Arguments]              @{nodes}
+    :FOR  ${node}  IN  @{nodes}
+    \   ${stdout}=           Execute Command  ${SSH_CMD} ${node} "sudo pkill -u ceph ceph-osd"
+
 Ceph Should Be Healthy
     ${stdout}=               Execute Command  ceph health --connect-timeout 20  sudo=True
     Should Contain  ${stdout}  HEALTH_OK
@@ -54,6 +64,16 @@ Ceph Should Be Healthy
 Ceph Health Should Be Degraded
     ${stdout}=               Execute Command  ceph health --connect-timeout 20  sudo=True
     Should Contain  ${stdout}  HEALTH_WARN
+
+Number Of OSDs Up
+    ${stdout}=               Execute Command  ceph -f json osd stat  sudo=True
+    ${stat}=                 Evaluate  json.loads($stdout)  json
+    [Return]                 ${stat["num_up_osds"]}
+
+Number Of OSDs Up Should Be
+    [Arguments]              ${num_expected}
+    ${num_up_osds}=          Number Of OSDs Up
+    Should Be Equal          ${num_up_osds}  ${num_expected}
 
 Run Manager Start
     [Arguments]              ${node}
@@ -73,4 +93,14 @@ Run Monitor Start
     Execute Command          ${SSH_CMD} ${node} "sudo systemctl reset-failed ceph-mon@${node}"
     Execute Command          ${SSH_CMD} ${node} "sudo systemctl start ceph-mon@${node}"
     ${stdout}=               Execute Command  ${SSH_CMD} ${node} "systemctl is-active ceph-mon@${node}"
+    Should Be Equal As Strings  ${stdout}  active
+
+Run Ceph OSD Start
+    [Arguments]              ${node}
+    Execute Command          ${SSH_CMD} ${node} "sudo systemctl -a start ceph-osd@*"
+    ${stdout}=               Execute Command  ${SSH_CMD} ${node} "systemctl -a is-active ceph-osd@*"
+    Return From Keyword If   '${stdout}' == 'active'
+    Execute Command          ${SSH_CMD} ${node} "sudo systemctl -a reset-failed ceph-osd@*"
+    Execute Command          ${SSH_CMD} ${node} "sudo systemctl -a start ceph-osd@*"
+    ${stdout}=               Execute Command  ${SSH_CMD} ${node} "systemctl -a is-active ceph-osd@*"
     Should Be Equal As Strings  ${stdout}  active
