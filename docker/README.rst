@@ -75,3 +75,61 @@ stored on the local server.
 
 By default, the container will run the k8s conformance test. If you want to
 enter the container, add */bin/sh* at the end of the command above
+
+
+The postgresql container
+=================
+
+Building and pushing the container
+----------------------------------
+
+To build just the postgresql container, use the command:
+
+.. code-block:: console
+
+   make postgresql-build [ REGISTRY=<dockerhub_registry> NAME=<image_name>]
+
+To both build and push the container, use the command:
+
+.. code-block:: console
+
+   make postgresql [ REGISTRY=<dockerhub_registry> NAME=<image_name>]
+
+Using the container
+-------------------
+If you want to deploy the container, you can run the corresponding deploy.sh script with the appropriate parameters.
+
+Example:
+
+.. code-block:: console
+    ./deploy.sh POSTGRES_PASSWORD=password
+
+
+The ui container
+=================
+
+Building and pushing the container
+----------------------------------
+
+To build just the ui container, you must first compile the ui project.
+Then use the command:
+
+.. code-block:: console
+
+   make ui-build [ REGISTRY=<dockerhub_registry> NAME=<image_name>]
+
+To both build and push the container, use the command:
+
+.. code-block:: console
+
+   make ui [ REGISTRY=<dockerhub_registry> NAME=<image_name>]
+
+Using the container
+-------------------
+If you want to deploy the container, you can run the corresponding deploy.sh script with the appropriate parameters.
+Note, that you must also build and run the postgresql container for a functional UI.
+
+Example:
+
+.. code-block:: console
+    ./deploy.sh postgres_db_user_pwd=password jenkins_url=http://192.168.2.2:8080 jenkins_user_name=name jenkins_user_pwd=jenkins_pwd jenkins_job_name=job1 nexus_results_url=https://nexus.akraino.org/content/sites/logs proxy_ip=172.28.40.9 proxy_port=3128

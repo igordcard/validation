@@ -1,0 +1,117 @@
+<!--
+Copyright (c) 2019 AT&T Intellectual Property. All rights reserved.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+-->
+
+<div>
+ <div class="header" style="width: 100%"
+  style="padding-top:5px; padding-bottom:5px;background-color:#000000;">
+  <a href="https://www.akraino.org/"> <img
+   src="./resources/images/logo_akraino_edge_stack.png" alt="Akraino"
+   width="200" height="57" border="0">
+  </a>
+  <p></p>
+  <p style="color: white;">
+   <b> <font size="14">&emsp;Blueprint Validation UI</font></b>
+  </p>
+  <div class="header-right">
+   <a class="active" href="#home">Home</a> <a href="#"
+    style="font-color: #FFFFFF">Documentation</a> <a href="#"
+    style="font-color: #FFFFFF"
+    ng-show="$state.current.name == 'undefined' || $state.current.name != 'login'"
+    ng-click="goLogout()">Sign Out</a>
+  </div>
+ </div>
+ <div id="wrapper" style="margin-top: 0.1px;">
+  <div id="sidebar-wrapper"
+   ng-show="$state.current.name == 'undefined' || $state.current.name != 'login'"
+   ng-cloak>
+   <ul class="sidebar-nav">
+    <li><a
+     ng-class="{example : $state.current.name == 'committedSubmissions'}"
+     ui-sref="committedSubmissions"> <i class="fa fa-home"></i> <span>Committed
+       Submissions</span>
+    </a></li>
+    <li><a
+     ng-class="{example : $state.current.name == 'newSubmission'}"
+     ui-sref="newSubmission"> <i class="fa fa-home"></i> <span>New
+       Submission</span>
+    </a></li>
+    <li class="dropdown"><a class="dropdown-toggle"
+     data-toggle="collapse" data-target="#configuracoes1" role="button"
+     aria-haspopup="true" aria-expanded="false"><i class="fa fa-cog"></i>Blueprint
+      Validation Results<span class="caret"> </span></a>
+     <ul id="configuracoes1" class="collapse">
+      <li><a
+       ng-class="{example : $state.current.name == 'eteTest'}"
+       ui-sref="eteTest"> <i class="fa fa-check"></i><span>Get
+         all</span>
+      </a></li>
+      <li><a
+       ng-class="{example : $state.current.name == 'eteChomp'}"
+       ui-sref="eteChomp"> <i class="fa fa-check"></i><span>Get
+         by blueprint name</span>
+      </a></li>
+      <li><a
+       ng-class="{example : $state.current.name == 'eteChomp'}"
+       ui-sref="eteChomp"> <i class="fa fa-check"></i><span>Get
+         by layer</span>
+      </a></li>
+      <li><a
+       ng-class="{example : $state.current.name == 'findBySubmission'}"
+       ui-sref="findBySubmissionId"> <i class="fa fa-check"></i><span>Get
+         by submission id</span>
+      </a></li>
+      <li><a
+       ng-class="{example : $state.current.name == 'eteChomp'}"
+       ui-sref="eteChomp"> <i class="fa fa-check"></i><span>Get
+         by execution dates</span>
+      </a></li>
+      <li><a
+       ng-class="{example : $state.current.name == 'eteChomp'}"
+       ui-sref="eteChomp"> <i class="fa fa-check"></i><span>Get
+         by # of successful runs</span>
+      </a></li>
+      <li><a
+       ng-class="{example : $state.current.name == 'eteChomp'}"
+       ui-sref="eteChomp"> <i class="fa fa-check"></i><span>Get
+         by # of successful last runs</span>
+      </a></li>
+      <li><a
+       ng-class="{example : $state.current.name == 'eteChomp'}"
+       ui-sref="eteChomp"> <i class="fa fa-check"></i><span>Get
+         by # of failed last runs</span>
+      </a></li>
+     </ul></li>
+   </ul>
+  </div>
+  <!-- /#sidebar-wrapper -->
+  <!-- Page Content -->
+  <div id="page-content-wrapper"
+   ng-show="$state.current.name == 'undefined' || $state.current.name != 'login'"
+   style="overflow: auto;" ng-cloak>
+   <div class="container-fluid">
+    <div class="row">
+     <div class="col-lg-12" style="padding-right: 0px;">
+      <div id="wrapper">
+       <!-- Carrega todas as p�ginas-->
+       <div ui-view="main"></div>
+      </div>
+     </div>
+    </div>
+   </div>
+  </div>
+  <!-- /#page-content-wrapper -->
+ </div>
+</div>
