@@ -16,18 +16,12 @@
 # limitations under the License.                                             #
 ##############################################################################
 blueprint:
-    name: base
+    name: dummy
     layers:
         - hardware
-        - os
-        - networking
-        - k8s
-        - k8s_networking
-        - sds
-        - sdn
         - vim
     # Any hardware some basic tests
-    hardware: &hardware_base
+    hardware: &hardware_dummy
         -
             name: bios_version
             # something that can be evaluated to true or false
