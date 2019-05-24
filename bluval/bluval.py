@@ -28,20 +28,21 @@ def run_testcase(testcase):
     """
     show_stopper = testcase.get('show_stopper', False)
     what = testcase.get('what')
+    variables = "variables.yaml"
     results = "results/"+testcase.get('layer')+"/"+what
     test_path = "tests/"+testcase.get('layer')+"/"+what
-    command = '{} {} {} {}'.format("robot", "-d", results, test_path)
+    args = ["robot", "-V", variables, "-d", results, test_path]
 
     print('Executing testcase {}'.format(testcase['name']))
     print('          show_stopper {}'.format(show_stopper))
-    print('Invoking {}'.format(command))
+    print('Invoking {}'.format(args))
     try:
-        status = subprocess.call(command, shell=True)
+        status = subprocess.call(args, shell=False)
         if status != 0 and show_stopper:
             print('Show stopper testcase failed')
             return status
     except OSError:
-        print('Error while executing {}'.format(command))
+        print('Error while executing {}'.format(args))
         return -1
     return status
 

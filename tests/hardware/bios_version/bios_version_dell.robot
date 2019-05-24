@@ -24,10 +24,11 @@ Suite Setup       Open Connection And Log In
 Suite Teardown    Close All Connections
 
 *** Variables ***
-${HOST}           localhost
-${USERNAME}       localadmin
+#${HOST}           localhost
+#${USERNAME}       localadmin
+#${SYSINFO}        PowerEdge R740xd
+#${BIOS_REVISION}   1.3
 ${LOG}            /opt/akraino/validation/bios_version/print_bios.txt
-${SYSINFO}        PowerEdge R740xd
 
 *** Test Cases ***
 Get HW Details
@@ -42,7 +43,7 @@ Verify BIOS Revision
         Start Command           dmidecode | more | grep 'BIOS Revision'    sudo=True
         ${stdout}=              Read Command Output
         Append To File          ${LOG}  ${stdout}${\n}
-        Should Contain          ${stdout}               BIOS Revision: 1.3
+        Should Contain          ${stdout}               BIOS Revision: ${BIOS_REVISION}
 
 Check NUMA and CPU
         [Documentation]         NUMAs and CPU components
