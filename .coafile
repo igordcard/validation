@@ -33,7 +33,7 @@ bears = YAMLLintBear
 files = **.yaml, **.yml
 use_spaces = true
 max_line_length = 120
-ignore = conformance/sonobuoy.yaml
+ignore = tests/k8s/conformance/sonobuoy.yaml
 
 [all.Python]
 bears = PyLintBear

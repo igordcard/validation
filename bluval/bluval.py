@@ -28,8 +28,9 @@ def run_testcase(testcase):
     """
     show_stopper = testcase.get('show_stopper', False)
     what = testcase.get('what')
-    results = "results/"+what
-    command = '{} {} {} {}'.format("robot", "-d", results, what)
+    results = "results/"+testcase.get('layer')+"/"+what
+    test_path = "tests/"+testcase.get('layer')+"/"+what
+    command = '{} {} {} {}'.format("robot", "-d", results, test_path)
 
     print('Executing testcase {}'.format(testcase['name']))
     print('          show_stopper {}'.format(show_stopper))
@@ -50,6 +51,7 @@ def validate_layer(blueprint, layer):
     """
     print('## Layer {}'.format(layer))
     for testcase in blueprint[layer]:
+        testcase['layer'] = layer
         run_testcase(testcase)
 
 
