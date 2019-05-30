@@ -33,11 +33,11 @@ $(SUBDIRS_NAME):
 	$(MAKE) -C $@
 
 .PHONY: $(SUBDIRS_BUILD)
-$(SUBDIRS_BUILD): $(SUBDIRS)
-	$(MAKE) -C $< build
+$(SUBDIRS_BUILD):
+	$(MAKE) -C $(@:-build=) build
 
 .PHONY: $(SUBDIRS_PUSH)
-$(SUBDIRS_PUSH): $(SUBDIRS)
-	$(MAKE) -C $< .push_image
+$(SUBDIRS_PUSH):
+	$(MAKE) -C $(@:-push=) .push_image
 
 include build.mk
