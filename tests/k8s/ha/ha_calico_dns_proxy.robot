@@ -27,7 +27,7 @@ Suite Teardown    Close All Connections
 *** Variables ***
 ${HOST}           localhost
 ${USERNAME}       localadmin
-${LOG}            /opt/akraino/validation/ha/print_calico_coredns_haproxy.txt
+${LOG}            ${LOG_PATH}${/}${SUITE_NAME.replace(' ','_')}.log
 
 
 

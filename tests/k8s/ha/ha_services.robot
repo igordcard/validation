@@ -27,7 +27,7 @@ Suite Teardown    Close All Connections
 *** Variables ***
 ${HOST}           localhost
 ${USERNAME}       localadmin
-${LOG}            /opt/akraino/validation/ha/print_docker_kubelet.txt
+${LOG}            ${LOG_PATH}${/}${SUITE_NAME.replace(' ','_')}.log
 
 
 ## Container Runtime

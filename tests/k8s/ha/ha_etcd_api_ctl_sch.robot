@@ -28,7 +28,7 @@ Suite Teardown    Close All Connections
 ${HOST}           localhost
 ${USERNAME}       localadmin
 ${NODENAME}       aknode109
-${LOG}            /opt/akraino/validation/ha/print_etcd_api_ctl-manager_sch.txt
+${LOG}            ${LOG_PATH}${/}${SUITE_NAME.replace(' ','_')}.log
 
 
 ## kubernetes-etcd

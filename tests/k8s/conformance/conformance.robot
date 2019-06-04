@@ -24,14 +24,12 @@ Test Setup        Check that k8s cluster is reachable
 Test Teardown     Cleanup Sonobuoy
 
 *** Variables ***
-${RESULT_PATH}    /opt/akraino/validation/results/conformance/
-${REPO_PATH}      /opt/akraino/validation/repo/conformance/
-${LOG}            ${RESULT_PATH}${/}conformance.log
+${LOG}            ${LOG_PATH}${/}${SUITE_NAME.replace(' ','_')}.log
 
 *** Test Cases ***
 Run Sonobuoy Conformance Test
         # Start the test
-        Run                     kubectl apply -f ${REPO_PATH}${/}sonobuoy.yaml
+        Run                     kubectl apply -f ${CURDIR}${/}sonobuoy.yaml
         Sleep                   5s
         ${rc}  ${output}=       Run And Return Rc And Output
                                 ...  kubectl describe pod/sonobuoy -n heptio-sonobuoy
@@ -43,7 +41,7 @@ Run Sonobuoy Conformance Test
 
         # Get the result and store the sonobuoy logs
         ${rc}  ${output}=       Run And Return Rc And Output
-                                ...  results=$(sonobuoy retrieve ${RESULT_PATH}) && sonobuoy e2e $results
+                                ...  results=$(sonobuoy retrieve ${LOG_PATH}) && sonobuoy e2e $results
         Append To File          ${LOG}  ${output}${\n}
         Should Contain          ${output}       failed tests: 0
 
@@ -60,7 +58,7 @@ Check that k8s cluster is reachable
 
 Cleanup Sonobuoy
         ${rc}  ${output}=       Run And Return Rc And Output
-                                ...  kubectl delete -f ${REPO_PATH}${/}sonobuoy.yaml
+                                ...  kubectl delete -f ${CURDIR}${/}sonobuoy.yaml
         Append To File          ${LOG}  ${output}${\n}
         Sleep                   3s
         Should Contain          ${output}      service "sonobuoy-master" deleted
