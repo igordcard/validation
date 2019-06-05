@@ -78,7 +78,8 @@ def main(blueprint, layer):
     yaml location from blueprint name. Invokes validate on blue print.
     """
     yaml_loc = 'bluval/bluval-{}.yaml'.format(blueprint)
-    layer = layer.lower()
+    if layer is not None:
+        layer = layer.lower()
     validate_blueprint(yaml_loc, layer)
 
 
