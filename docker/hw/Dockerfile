@@ -47,3 +47,7 @@ RUN pip3 install -r /wheels/requirements/pip-requirements.txt \
 
 # Install blueval dependencies
 RUN pip install -r /opt/akraino/validation/bluval/requirements.txt
+
+# Install curl
+RUN apk --no-cache add --update \
+        curl

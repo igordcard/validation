@@ -23,7 +23,34 @@
 # smallcase and Robot variables notation is UPPERCASE so industry is follwoing
 # this.
 
-host: aknode109
-username: localadmin
+### Input variables cluster's master host
+host: aknode109             # cluster's master host address
+username: mm747b            # user credentials
+home: /home/mm747b          # Public keys location
+
+### Input variables for bios_version_dell.robot
 sysinfo: PowerEdge R740xd
 bios_revision: 1.3
+
+### Input variables for bare metal hw test dell or hp
+base_uri: https://192.168.XX.XX/redfish/v1/   # OOB Redfish link address
+ipmiuser: ipmi_user                           # ipmi user
+ipmipwrd: ipmi_pwd                            # ipmi password
+host_mr: master_host_ip                       # cluster's master host address
+host_wr1: worker_host_ip                      # cluster's worker1 host address
+host_wr2: worker_host_ip                      # cluster's worker2 host address
+host_wr3: worker_host_ip                      # cluster's worker3 host address
+host_wr4: worker_host_ip                      # cluster's worker4 host address
+macaddr: mac_input                            # host mac address
+chassis: serial_number                        # host serial number
+idracip: idrac_ip                             # idrac ip address
+bootseq: boot_input                           # boot status
+biosver: bios_version                         # host bios version
+firmware: firmware_version                    # host firmware
+
+### Input variables for containerized ceph test
+nodename: targetnode                          # target node to test ceph
+
+### Input variables for ltp
+rootuser: rootuser       # Required root user to log in to the host
+rootpswd: rootpassword   # Required root password to log in to the host
