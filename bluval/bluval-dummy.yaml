@@ -25,14 +25,18 @@ blueprint:
     hardware: &hardware_dummy
         -
             name: bios_version
-            # something that can be evaluated to true or false
-            condition: true
+            # To skip this test case keep it as True
+            skip: "True"
             what: bios_version
-            # true or false, default is false
-            show_stopper: false
+            # True or False, default is False
+            show_stopper: "False"
         -
             name: hp_baremetal
             what: hp_baremetal
+            # To skip this test case keep it as False
+            skip: "False"
+            # True or False, default is False
+            show_stopper: "False"
     os: &os_base
         -
             name: cyclictest
