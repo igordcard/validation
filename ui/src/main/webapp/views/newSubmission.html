@@ -1,0 +1,68 @@
+<!--
+Copyright (c) 2019 AT&T Intellectual Property. All rights reserved.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+-->
+
+<!DOCTYPE script PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html ng-app="BlueprintValidationUIManagement">
+<head>
+</head>
+<body ng-controller="AECNewSubmissionController">
+ <div id="akrainonewsubmissionform"
+  style="padding-left: 20px; padding-right: 20px">
+  <div>
+   <h1>Submission form</h1>
+  </div>
+
+  <label>Select Blueprint: </label>
+  <div class="selectStyle">
+   <select class="exampleTable" ng-model="selectedBlueprintName"
+    ng-init="selectedBlueprintName=blueprintNames[0]"
+    ng-change="selectedBluePrintNameChange()"
+    ng-options="n for n in blueprintNames">
+   </select>
+  </div>
+
+  <label>Select Blueprint Version: </label>
+  <div class="selectStyle">
+   <select class="exampleTable" ng-model="selectedBlueprintVersion"
+    ng-change="selectedBluePrintVersionChange()"
+    ng-options="y for y in blueprintVersions">
+   </select>
+  </div>
+
+  <label>Select Blueprint Layer: </label>
+  <div class="selectStyle">
+   <select class="exampleTable" ng-model="selectedBlueprintLayer"
+    ng-change="selectedBluePrintLayerChange()"
+    ng-options="l for l in blueprintLayers">
+   </select>
+  </div>
+
+  <label>Select Blueprint Timeslot: </label>
+  <div class="selectStyle">
+   <select class="exampleTable" ng-model="selectedDeclerativeTimeslot"
+    ng-options="v for v in declerativeTimeslots">
+   </select>
+  </div>
+
+  <br>
+  <button class="refreshbutton" style="float: left" ng-click="submit();">Submit</button>
+ </div>
+</body>
+
+</html>
+
+
+

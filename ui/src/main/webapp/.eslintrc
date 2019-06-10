@@ -1,0 +1,9 @@
+{
+  "globals": {
+    "angular": 1,
+    "console": 1,
+    "confirm":1,
+    "localStorage":1,
+    "window":1
+  }
+}

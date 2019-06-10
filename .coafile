@@ -27,6 +27,7 @@ bears = ShellCheckBear,SpaceConsistencyBear
 files = **.sh
 shell = bash
 use_spaces = true
+ignore = pmd-bin-6.15.0/**
 
 [all.YAML]
 bears = YAMLLintBear
@@ -39,3 +40,19 @@ ignore = tests/k8s/conformance/sonobuoy.yaml
 bears = PyLintBear
 files = **.py
 use_spaces = true
+
+[all.Java]
+bears = SpaceConsistencyBear,JavaPMDBear
+files = ui/**.java
+language = java
+use_spaces = true
+
+[all.JS]
+bears = ESLintBear,JSComplexityBear
+files = ui/**.js
+language = javascript
+javascript_strictness = False
+use_spaces = true
+ignore = ui/src/main/webapp/reusable_chart.js,
+    ui/bin/**,
+    ui/target/**

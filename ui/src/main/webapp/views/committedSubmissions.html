@@ -1,0 +1,196 @@
+<!--
+Copyright (c) 2019 AT&T Intellectual Property. All rights reserved.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+-->
+
+<!DOCTYPE script PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html ng-app="BlueprintValidationUIManagement">
+<head>
+<style>
+.formfield * {
+	vertical-align: top;
+}
+
+.pagination {
+	display: inline-block;
+	float: right;
+}
+
+.pagination li {
+	list-style-type: none;
+	color: white;
+	float: left;
+	padding: 8px 16px;
+	text-decoration: none;
+	transition: background-color .3s;
+	border: 1px solid #ddd;
+}
+
+.pagination li.active {
+	background-color: #DCDCDC;
+	color: white;
+	border: 1px solid #ddd;
+}
+
+input[type="file"] {
+	display: inline-block;
+}
+
+.md-backdrop {
+	display: none;
+}
+/*.md-sidenav-right .md-theme-indigo, .md-sidenav-right .nav-theme {
+         background-color: #cccccc;
+         }*/
+/*.md-sidenav-backdrop md-opaque{
+         opacity:0;
+         }*/
+md-backdrop.md-opaque.md-default-theme, md-backdrop.md-opaque {
+	background-color: rgba(0, 0, 0, 0);
+}
+
+md-content.md-default-theme, md-content {
+	background-color: #cccccc;
+}
+
+md-sidenav.md-default-theme, md-sidenav {
+	background-color: #cccccc;
+}
+
+.vertical-menu {
+	width: 200px;
+	height: 150px;
+	overflow-y: auto;
+}
+
+input[type=text], select, textarea {
+	width: 40%;
+	padding: 3px;
+	border: 0.5px solid #ccc;
+	border-radius: 4px;
+	box-sizing: border-box;
+	margin-top: 3px;
+	margin-bottom: 3px;
+	resize: vertical;
+}
+
+pre {
+	font-size: 15px;
+	color: black;
+}
+</style>
+</head>
+<body ng-controller="AECCommittedSubmissionsController">
+ <div id="akrainocontent"
+  style="padding-left: 20px; padding-right: 20px; float: left; width: 90%;">
+  <div>
+   <h1>Committed Submissions</h1>
+  </div>
+  <!-- <label>Select Submissions: </label> -->
+  <br>
+  <div class="selectStyle">
+   <select class="exampleTable" style="width: 200px; height: 40px;">
+    <option value="">All submissions</option>
+   </select>
+  </div>
+  <div id="commandTable" style="padding-bottom: 1px; padding-top: 30px">
+   <form>
+    <div class="form-group">
+     <div class="input-group">
+      <div class="input-group-addon">
+       <i class="fa fa-search"> </i>
+      </div>
+      <input type="text" style="width: 300px" class="form-control"
+       placeholder="Search Committed Submissions" ng-model="q">
+      <div style="float: right;">
+       <a
+        style="padding-left: 5px; font-size: 16px; cursor: pointer; margin-top: 20px; color: #4d4d4d"
+        ng-click="refreshCommittedSubmissions()"> Refresh </a>
+       <button class="refreshbutton" style="margin-left: 5px;"
+        ng-click="deleteSubmissions()">Delete selected
+        submissions</button>
+       <button class="refreshbutton" style="margin-left: 5px;">Delete
+        all submissions</button>
+      </div>
+     </div>
+    </div>
+   </form>
+  </div>
+  <table cellspacing="0" cellpadding="10" class="siteStatusTable">
+   <thead>
+    <tr>
+     <th>&nbsp;</th>
+     <th>Id&nbsp;</th>
+     <th>Status&nbsp;</th>
+     <th>Blueprint&nbsp;</th>
+     <th>Version</th>
+     <th>Layer&nbsp;</th>
+     <th>Desired Timeslot&nbsp;</th>
+     <th>Url of result&nbsp;</th>
+    </tr>
+   </thead>
+   <tbody>
+    <tr class="border_bottom" ng-repeat="submission in submissions">
+     <td><input type="checkbox" name="name1" ng-model="temp"
+      ng-change="modifySubmissionIdList(submission.submissionId)" />&nbsp;</td>
+     <td style="padding-left: 10px; font-size: 15px; width: 13%;">{{
+      submission.submissionId }}</td>
+     <td style="padding-left: 10px; font-size: 15px; width: 13%;">{{
+      submission.submissionStatus }}</td>
+     <td style="padding-left: 10px; font-size: 15px; width: 13%;">{{
+      submission.blueprintInstance.blueprint.blueprintName }}</td>
+     <td style="padding-left: 10px; font-size: 15px; width: 13%;">{{
+      submission.blueprintInstance.version }}</td>
+     <td style="padding-left: 10px; font-size: 15px; width: 13%;">
+      <a href="#" data-toggle="tooltip"
+      title="{{submission.blueprintInstance.layer_description }}">{{
+       submission.blueprintInstance.layer }}</a>
+     </td>
+     <td style="padding-left: 10px; font-size: 15px; width: 13%;">Lab:
+      {{ submission.blueprintInstance.timeslot.lab }} Start date and
+      time: {{ submission.blueprintInstance.timeslot.startDateTime }}
+      duration(in sec) :
+      {{submission.blueprintInstance.timeslot.duration}}</td>
+     <td style="padding-left: 10px; font-size: 15px; width: 13%;">
+      <a href="{{submission.nexusResultUrl }}">{{
+       submission.nexusResultUrl }}</a>
+     </td>
+    </tr>
+   </tbody>
+  </table>
+  <p></p>
+  <div class="pagination">
+   <ul>
+    <li ng-class="{disabled: currentPage == 0}"><a href
+     ng-click="prevPage()"> Prev </a></li>
+    <li ng-repeat="n in range(pagedItems.length)"
+     ng-class="{active: n == currentPage}" ng-click="setPage()"><a
+     href ng-bind="n + 1">1 </a></li>
+    <li ng-class="{disabled: currentPage == pagedItems.length - 1}">
+     <a href ng-click="nextPage()">Next </a>
+    </li>
+   </ul>
+  </div>
+ </div>
+
+ <script>
+	$(document).ready(function(){
+		$('[data-toggle="tooltip"]').tooltip(); 
+	});
+	</script>
+
+</body>
+
+
+</html>
