@@ -26,7 +26,7 @@ Suite Teardown    Close All Connections
 ${HOST}           localhost
 ${USERNAME}       ipmi_admin_username
 ${PASSWORD}       ipmi_admin_password
-${LOG}            /opt/akraino/validation/ha/print_ha.txt
+${LOG}            ${LOG_PATH}${/}${SUITE_NAME.replace(' ','_')}.log
 
 *** Test Cases ***
 Power Status of Host

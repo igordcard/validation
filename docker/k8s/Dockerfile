@@ -22,6 +22,7 @@ ARG K8S_TAG=v1.13.0
 
 # Install dependencies
 COPY pip-requirements.txt /wheels/requirements/pip-requirements.txt
+
 RUN apk --no-cache add --update \
         openssl \
         python3 \
@@ -49,6 +50,8 @@ RUN if [ $(uname -m) == 'aarch64' ]; then HOST_ARCH=arm64; else HOST_ARCH=amd64;
     make WHAT=test/e2e/e2e.test ARCH=$HOST_ARCH
 RUN go get -u -v github.com/heptio/sonobuoy
 RUN git clone https://gerrit.akraino.org/r/validation /opt/akraino/validation/repo
+RUN cat /opt/akraino/validation/repo/bluval/requirements.txt >> \
+    /wheels/requirements/pip-requirements.txt
 
 WORKDIR /wheels
 RUN pip3 install wheel
@@ -67,6 +70,4 @@ RUN pip3 install -r /wheels/requirements/pip-requirements.txt \
      rm -rf /root/.cache/pip/*
 
 # Set the default command for running the tests
-CMD /usr/local/bin/robot --loglevel DEBUG \
-    --outputdir /opt/akraino/validation/results/conformance \
-    /opt/akraino/validation/repo/conformance/conformance.robot
+CMD python3 /opt/akraino/validation/repo/bluval/bluval.py base -l k8s

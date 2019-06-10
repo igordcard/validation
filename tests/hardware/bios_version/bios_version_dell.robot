@@ -28,7 +28,7 @@ Suite Teardown    Close All Connections
 #${USERNAME}       localadmin
 #${SYSINFO}        PowerEdge R740xd
 #${BIOS_REVISION}   1.3
-${LOG}            /opt/akraino/validation/bios_version/print_bios.txt
+${LOG}             ${LOG_PATH}${/}${SUITE_NAME.replace(' ','_')}.log
 
 *** Test Cases ***
 Get HW Details

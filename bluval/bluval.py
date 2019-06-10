@@ -20,6 +20,7 @@ testcase
 """
 
 import subprocess
+from pathlib import Path
 import click
 import yaml
 
@@ -28,10 +29,18 @@ def run_testcase(testcase):
     """
     show_stopper = testcase.get('show_stopper', False)
     what = testcase.get('what')
-    variables = "variables.yaml"
-    results = "results/"+testcase.get('layer')+"/"+what
-    test_path = "tests/"+testcase.get('layer')+"/"+what
-    args = ["robot", "-V", variables, "-d", results, test_path]
+    mypath = Path(__file__).absolute()
+    results_path = mypath.parents[2].joinpath("results/"+testcase.get('layer')+"/"+what)
+    test_path = mypath.parents[1].joinpath("tests/"+testcase.get('layer')+"/"+what)
+
+    # add to the variables file the path to where to sotre the logs
+    variables_file = mypath.parents[1].joinpath("tests/variables.yaml")
+    variables_dict = yaml.safe_load(variables_file.open())
+    variables_dict['log_path'] = str(results_path)
+    variables_file.write_text(str(variables_dict))
+
+    # run the test
+    args = ["robot", "-V", str(variables_file), "-d", str(results_path), str(test_path)]
 
     print('Executing testcase {}'.format(testcase['name']))
     print('          show_stopper {}'.format(show_stopper))
@@ -77,7 +86,8 @@ def main(blueprint, layer):
     """Takes blueprint name and optional layer. Validates inputs and derives
     yaml location from blueprint name. Invokes validate on blue print.
     """
-    yaml_loc = 'bluval/bluval-{}.yaml'.format(blueprint)
+    mypath = Path(__file__).absolute()
+    yaml_loc = mypath.parents[0].joinpath('bluval-{}.yaml'.format(blueprint))
     if layer is not None:
         layer = layer.lower()
     validate_blueprint(yaml_loc, layer)
