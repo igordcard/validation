@@ -19,6 +19,7 @@ blueprint:
     name: dummy
     layers:
         - hardware
+        - os
         - vim
     # Any hardware some basic tests
     hardware: &hardware_dummy
@@ -34,8 +35,8 @@ blueprint:
             what: baremetal_hw
     os: &os_base
         -
-            name: latency_cyclic
-            what: latency_cyclic
+            name: cyclictest
+            what: cyclictest
     networking: &networking
         -
             name: pxe_networking_test
