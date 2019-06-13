@@ -44,8 +44,5 @@ RUN pip3 install -r /wheels/requirements/pip-requirements.txt \
      rm -rf /wheels && \
      rm -rf /root/.cache/pip/*
 
-# Set the default command for running the tests
-CMD /usr/local/bin/robot --exitonfailure --loglevel DEBUG \
-    --outputdir /opt/akraino/validation/results/os \
-    /opt/akraino/validation/os/ltp.robot
-
+# Install blueval dependencies
+RUN pip install -r /opt/akraino/validation/bluval/requirements.txt
