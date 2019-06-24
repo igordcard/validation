@@ -16,7 +16,6 @@
 package org.akraino.validation.ui.service;
 
 import java.io.IOException;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
@@ -26,10 +25,12 @@ import org.akraino.validation.ui.client.jenkins.JenkinsExecutorClient;
 import org.akraino.validation.ui.client.jenkins.resources.QueueJobItem;
 import org.akraino.validation.ui.client.jenkins.resources.QueueJobItem.Executable;
 import org.akraino.validation.ui.client.nexus.NexusExecutorClient;
-import org.akraino.validation.ui.client.nexus.resources.RobotTestResult;
+import org.akraino.validation.ui.client.nexus.resources.WrapperRobotTestResult;
+import org.akraino.validation.ui.conf.UiUtils;
+import org.akraino.validation.ui.data.BlueprintLayer;
+import org.akraino.validation.ui.entity.LabSilo;
 import org.akraino.validation.ui.entity.Submission;
-import org.apache.commons.httpclient.HttpException;
-import org.apache.log4j.Logger;
+import org.onap.portalsdk.core.logging.logic.EELFLoggerDelegate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -41,19 +42,20 @@ import com.sun.jersey.api.client.UniformInterfaceException;
 @Service
 public class ResultService {
 
-    private static final Logger LOGGER = Logger.getLogger(ResultService.class);
+    private static final EELFLoggerDelegate LOGGER = EELFLoggerDelegate.getLogger(ResultService.class);
 
     @Autowired
     private SubmissionService submissionService;
 
-    @Deprecated
-    public URL getNexusResultUrl(Submission submission)
-            throws MalformedURLException, KeyManagementException, HttpException, ClientHandlerException,
-            UniformInterfaceException, NoSuchAlgorithmException, InterruptedException {
+    @Autowired
+    private SiloService siloService;
 
-        String url = System.getenv("jenkins_url");
-        String userName = System.getenv("jenkins_user_name");
-        String password = System.getenv("jenkins_user_pwd");
+    @Deprecated
+    public URL getNexusResultUrl(Submission submission) throws Exception {
+
+        String url = System.getenv("JENKINS_URL");
+        String userName = System.getenv("JENKINS_USERNAME");
+        String password = System.getenv("JENKINS_USER_PASSWORD");
 
         Executable executable = null;
         while (executable == null) {
@@ -63,22 +65,48 @@ public class ResultService {
             executable = queueJobItem.getExecutable();
             Thread.sleep(2000);
         }
-        return new URL(System.getenv("nexus_results_url") + "/"
-                + submission.getBlueprintInstance().getTimeslot().getLab().name().toLowerCase() + "-blu-val"
-                + "/job/validation/" + String.valueOf(executable.getNumber()));
+        String siloText = null;
+        for (LabSilo silo : siloService.getSilos()) {
+            if (silo.getLab().getLab().equals(submission.getTimeslot().getLab().getLab())) {
+                siloText = silo.getSilo();
+            }
+        }
+        if (siloText == null) {
+            throw new Exception("Could not retrieve silo of the selected lab : "
+                    + submission.getTimeslot().getLab().getLab().toString());
+        }
+        String nexusUrl = UiUtils.NEXUS_URL + "/" + siloText + "/job/" + System.getenv("JENKINS_JOB_NAME") + "/"
+                + String.valueOf(executable.getNumber() + "/results");
+        if (!submission.getBlueprintInstanceForValidation().getLayer().equals(BlueprintLayer.All)) {
+            nexusUrl = nexusUrl + "/" + submission.getBlueprintInstanceForValidation().getLayer().name().toLowerCase();
+        }
+        return new URL(nexusUrl);
     }
 
-    public List<RobotTestResult> getRobotTestResults(String submissionId)
+    public List<WrapperRobotTestResult> getRobotTestResults(String submissionId)
             throws JsonParseException, JsonMappingException, KeyManagementException, ClientHandlerException,
             UniformInterfaceException, NoSuchAlgorithmException, IOException {
         Submission submission = submissionService.getSubmission(submissionId);
         if (submission == null) {
-            LOGGER.info("Requested submission does not exist");
+            LOGGER.info(EELFLoggerDelegate.applicationLogger, "Requested submission does not exist");
             return null;
         }
         String nexusUrl = submission.getNexusResultUrl();
-        NexusExecutorClient client = new NexusExecutorClient(nexusUrl + "/results");
+        String urlLastpart = nexusUrl.substring(nexusUrl.lastIndexOf('/') + 1);
+        if (blueprintLayerContains(urlLastpart.substring(0, 1).toUpperCase() + urlLastpart.substring(1))) {
+            nexusUrl = nexusUrl.substring(0, nexusUrl.lastIndexOf(urlLastpart) - 1);
+        }
+        NexusExecutorClient client = new NexusExecutorClient(nexusUrl);
         return client.getRobotTestResults();
+    }
+
+    private boolean blueprintLayerContains(String layer) {
+        for (BlueprintLayer blueprintLayer : BlueprintLayer.values()) {
+            if (blueprintLayer.name().equals(layer)) {
+                return true;
+            }
+        }
+        return false;
     }
 
 }

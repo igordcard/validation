@@ -30,14 +30,15 @@ import java.util.concurrent.CompletableFuture;
 import org.akraino.validation.ui.client.jenkins.JenkinsExecutorClient;
 import org.akraino.validation.ui.client.jenkins.resources.Parameter;
 import org.akraino.validation.ui.client.jenkins.resources.Parameters;
-import org.akraino.validation.ui.config.AppInitializer;
+import org.akraino.validation.ui.conf.UiUtils;
 import org.akraino.validation.ui.dao.SubmissionDAO;
 import org.akraino.validation.ui.data.SubmissionStatus;
 import org.akraino.validation.ui.entity.Submission;
 import org.akraino.validation.ui.service.utils.PrioritySupplier;
 import org.akraino.validation.ui.service.utils.SubmissionHelper;
 import org.apache.commons.httpclient.HttpException;
-import org.apache.log4j.Logger;
+import org.onap.portalsdk.core.logging.logic.EELFLoggerDelegate;
+import org.onap.portalsdk.core.web.support.UserUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -49,7 +50,7 @@ import com.sun.jersey.api.client.UniformInterfaceException;
 @Transactional
 public class SubmissionService {
 
-    private static final Logger LOGGER = Logger.getLogger(SubmissionService.class);
+    private static final EELFLoggerDelegate LOGGER = EELFLoggerDelegate.getLogger(SubmissionService.class);
 
     @Autowired
     private SubmissionDAO submissionDAO;
@@ -63,7 +64,7 @@ public class SubmissionService {
 
         JenkinsTriggerSubmissionJob task = new JenkinsTriggerSubmissionJob(submission);
         CompletableFuture<Submission> completableFuture =
-                CompletableFuture.supplyAsync(new PrioritySupplier<>(1, task::execute), AppInitializer.executorService);
+                CompletableFuture.supplyAsync(new PrioritySupplier<>(1, task::execute), UiUtils.executorService);
         completableFuture.thenAcceptAsync(result -> this.callbackNotify(result));
 
         return submission;
@@ -102,10 +103,10 @@ public class SubmissionService {
         }
 
         public Submission execute() {
-            String url = System.getenv("jenkins_url");
-            String userName = System.getenv("jenkins_user_name");
-            String userPassword = System.getenv("jenkins_user_pwd");
-            String jobName = System.getenv("jenkins_job_name");
+            String url = System.getenv("JENKINS_URL");
+            String userName = System.getenv("JENKINS_USERNAME");
+            String userPassword = System.getenv("JENKINS_USER_PASSWORD");
+            String jobName = System.getenv("JENKINS_JOB_NAME");
             List<Parameter> listOfParameters = new ArrayList<Parameter>();
             Parameters parameters = new Parameters();
             Parameter parameter = new Parameter();
@@ -114,11 +115,16 @@ public class SubmissionService {
             listOfParameters.add(parameter);
             parameter = new Parameter();
             parameter.setName("BLUEPRINT");
-            parameter.setValue(submission.getBlueprintInstance().getBlueprint().getBlueprintName());
+            parameter.setValue(
+                    submission.getBlueprintInstanceForValidation().getBlueprint().getBlueprintName().toLowerCase());
             listOfParameters.add(parameter);
             parameter = new Parameter();
             parameter.setName("LAYER");
-            parameter.setValue(submission.getBlueprintInstance().getLayer().name());
+            parameter.setValue(submission.getBlueprintInstanceForValidation().getLayer().name().toLowerCase());
+            listOfParameters.add(parameter);
+            parameter = new Parameter();
+            parameter.setName("VERSION");
+            parameter.setValue(submission.getBlueprintInstanceForValidation().getVersion().toLowerCase());
             listOfParameters.add(parameter);
             parameter = new Parameter();
             parameter.setName("UI_IP");
@@ -128,23 +134,20 @@ public class SubmissionService {
                 socket.connect(InetAddress.getByName(random.nextInt(256) + "." + random.nextInt(256) + "."
                         + random.nextInt(256) + "." + random.nextInt(256)), 10002);
                 localIP = socket.getLocalAddress().getHostAddress();
-            } catch (SocketException | UnknownHostException e1) {
-                LOGGER.error(e1);
-                return null;
-            }
-            parameter.setValue(localIP);
-            listOfParameters.add(parameter);
-            parameters.setParameter(listOfParameters);
-            JenkinsExecutorClient client;
-            try {
+                parameter.setValue(localIP);
+                listOfParameters.add(parameter);
+                parameters.setParameter(listOfParameters);
+                JenkinsExecutorClient client;
                 client = JenkinsExecutorClient.getInstance(userName, userPassword, url);
                 submission.setJnksQueueJobItemUrl(client.postJobWithQueryParams(jobName, parameters).toString());
-            } catch (MalformedURLException | KeyManagementException | HttpException | ClientHandlerException
-                    | UniformInterfaceException | NoSuchAlgorithmException e) {
-                LOGGER.error(e);
+                return submission;
+            } catch (SocketException | UnknownHostException | KeyManagementException | HttpException
+                    | ClientHandlerException | UniformInterfaceException | MalformedURLException
+                    | NoSuchAlgorithmException e) {
+                LOGGER.error(EELFLoggerDelegate.errorLogger,
+                        "Error when triggering Jenkins job. " + UserUtils.getStackTrace(e));
                 return null;
             }
-            return submission;
         }
     }
 
