@@ -1,0 +1,55 @@
+From: Alexandru Avadanii <Alexandru.Avadanii@enea.com>
+Date: Tue, 25 Jun 2019 17:59:13 +0200
+Subject: [PATCH] Dockerfile, Makefile: Add AArch64 support
+
+Signed-off-by: Alexandru Avadanii <Alexandru.Avadanii@enea.com>
+---
+ Dockerfile | 6 ++++--
+ Makefile   | 8 +++++---
+ 2 files changed, 9 insertions(+), 5 deletions(-)
+
+diff --git a/Dockerfile b/Dockerfile
+index 289ac88..102685d 100644
+--- a/Dockerfile
++++ b/Dockerfile
+@@ -13,10 +13,12 @@
+ # See the License for the specific language governing permissions and
+ # limitations under the License.
+
+-FROM buildpack-deps:jessie-scm
++FROM arm64v8/buildpack-deps:jessie-scm
+ MAINTAINER Timothy St. Clair "tstclair@heptio.com"
+
+-RUN apt-get update && apt-get -y --no-install-recommends install \
++RUN echo 'Acquire::Check-Valid-Until "0";' > /etc/apt/apt.conf.d/10no--check-valid-until \
++    && sed -i -e '/security/s/^/#/g' -e 's|deb.debian.org/debian|snapshot.debian.org/archive/debian/20190301T035241Z|g' /etc/apt/sources.list \
++    && apt-get update && apt-get -y --no-install-recommends install \
+     ca-certificates \
+     && rm -rf /var/cache/apt/* \
+     && rm -rf /var/lib/apt/lists/*
+diff --git a/Makefile b/Makefile
+index 4335cfd..bdaa52c 100644
+--- a/Makefile
++++ b/Makefile
+@@ -29,6 +29,8 @@ is_root=$(filter 0,$(shell id -u))
+ DOCKER?=$(if $(or $(in_docker_group),$(is_root)),docker,sudo docker)
+ DIR := ${CURDIR}
+
++export KUBERNETES_SERVER_ARCH=arm64
++
+ .PHONY: all container getbins clean
+
+ all: container
+@@ -47,9 +49,9 @@ _cache/.getbins.$(kube_version_full).timestamp:
+ 	                                  KUBERNETES_DOWNLOAD_TESTS=true \
+ 					  KUBERNETES_SKIP_CONFIRM=true ./kubernetes/cluster/get-kube-binaries.sh
+ 	mv _cache/$(kube_version_full)/kubernetes/cluster ./
+-	mv _cache/$(kube_version_full)/kubernetes/platforms/linux/amd64/e2e.test ./
+-	mv _cache/$(kube_version_full)/kubernetes/platforms/linux/amd64/ginkgo ./
+-	mv _cache/$(kube_version_full)/kubernetes/platforms/linux/amd64/kubectl ./
++	mv _cache/$(kube_version_full)/kubernetes/platforms/linux/arm64/e2e.test ./
++	mv _cache/$(kube_version_full)/kubernetes/platforms/linux/arm64/ginkgo ./
++	mv _cache/$(kube_version_full)/kubernetes/platforms/linux/arm64/kubectl ./
+ 	touch $@
+
+ container: e2e.test kubectl ginkgo

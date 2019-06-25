@@ -78,7 +78,7 @@ enter the container, add */bin/sh* at the end of the command above
 
 
 The postgresql container
-=================
+========================
 
 Building and pushing the container
 ----------------------------------
@@ -87,26 +87,28 @@ To build just the postgresql container, use the command:
 
 .. code-block:: console
 
-   make postgresql-build [ REGISTRY=<dockerhub_registry> NAME=<image_name>]
+    make postgresql-build [ REGISTRY=<dockerhub_registry> NAME=<image_name>]
 
 To both build and push the container, use the command:
 
 .. code-block:: console
 
-   make postgresql [ REGISTRY=<dockerhub_registry> NAME=<image_name>]
+    make postgresql [ REGISTRY=<dockerhub_registry> NAME=<image_name>]
 
 Using the container
 -------------------
+
 If you want to deploy the container, you can run the corresponding deploy.sh script with the appropriate parameters.
 
 Example:
 
 .. code-block:: console
+
     ./deploy.sh POSTGRES_PASSWORD=password
 
 
 The ui container
-=================
+================
 
 Building and pushing the container
 ----------------------------------
@@ -116,20 +118,104 @@ Then use the command:
 
 .. code-block:: console
 
-   make ui-build [ REGISTRY=<dockerhub_registry> NAME=<image_name>]
+    make ui-build [ REGISTRY=<dockerhub_registry> NAME=<image_name>]
 
 To both build and push the container, use the command:
 
 .. code-block:: console
 
-   make ui [ REGISTRY=<dockerhub_registry> NAME=<image_name>]
+    make ui [ REGISTRY=<dockerhub_registry> NAME=<image_name>]
 
 Using the container
 -------------------
+
 If you want to deploy the container, you can run the corresponding deploy.sh script with the appropriate parameters.
 Note, that you must also build and run the postgresql container for a functional UI.
 
 Example:
 
 .. code-block:: console
+
     ./deploy.sh postgres_db_user_pwd=password jenkins_url=http://192.168.2.2:8080 jenkins_user_name=name jenkins_user_pwd=jenkins_pwd jenkins_job_name=job1 nexus_results_url=https://nexus.akraino.org/content/sites/logs proxy_ip=172.28.40.9 proxy_port=3128
+
+The kube-conformance container
+==============================
+
+Building and pushing the container
+----------------------------------
+
+To build just the kube-conformance container, use the command:
+
+.. code-block:: console
+
+    make kube-conformance-build [ REGISTRY=<dockerhub_registry> NAME=<image_name>]
+
+To both build and push the container, use the command:
+
+.. code-block:: console
+
+    make kube-conformance [ REGISTRY=<dockerhub_registry> NAME=<image_name>]
+
+Using the container
+-------------------
+
+This is a standalone container able to launch Kubernetes end-to-end tests,
+for the purposes of conformance testing.
+
+It is a thin wrapper around the `e2e.test` binary in the upstream Kubernetes
+distribution, which drops results in a predetermined location for use as a
+[Heptio Sonobuoy](https://github.com/heptio/sonobuoy) plugin.
+
+To learn more about conformance testing and its Sonobuoy integration, read the
+[conformance guide](https://github.com/heptio/sonobuoy/blob/master/docs/conformance-testing.md).
+
+Example:
+
+.. code-block:: console
+
+    docker run -ti akraino/validation:kube-conformance-v1.11
+
+By default, the container will run the `run_e2e.sh` script. If you want to
+enter the container, add */bin/sh* at the end of the command above
+
+Normally, this conainer is not used directly, but instead leveraged via
+sonobuoy.
+
+The sonobuoy-plugin-systemd-logs container
+==========================================
+
+Building and pushing the container
+----------------------------------
+
+To build just the sonobuoy-plugin-systemd-logs container, use the command:
+
+.. code-block:: console
+
+    make sonobuoy-plugin-systemd-logs-build [ REGISTRY=<dockerhub_registry> NAME=<image_name>]
+
+To both build and push the container, use the command:
+
+.. code-block:: console
+
+    make sonobuoy-plugin-systemd-logs [ REGISTRY=<dockerhub_registry> NAME=<image_name>]
+
+Using the container
+-------------------
+
+This is a simple standalone container that gathers log information from
+systemd, by chrooting into the node's filesystem and running `journalctl`.
+
+This container is used by [Heptio Sonobuoy](https://github.com/heptio/sonobuoy)
+for gathering host logs in a Kubernetes cluster.
+
+Example:
+
+.. code-block:: console
+
+    docker run -ti akraino/validation:sonobuoy-plugin-systemd-logs-latest
+
+By default, the container will run the `get_systemd_logs.sh` script. If you
+want to enter the container, add */bin/sh* at the end of the command above.
+
+Normally, this conainer is not used directly, but instead leveraged via
+sonobuoy.

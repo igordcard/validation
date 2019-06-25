@@ -1,0 +1,28 @@
+From: Alexandru Avadanii <Alexandru.Avadanii@enea.com>
+Date: Tue, 25 Jun 2019 17:45:29 +0200
+Subject: [PATCH] Dockerfile: AArch64 support
+
+Signed-off-by: Alexandru Avadanii <Alexandru.Avadanii@enea.com>
+---
+ Dockerfile | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
+
+diff --git a/Dockerfile b/Dockerfile
+index 06d872c..687d541 100644
+--- a/Dockerfile
++++ b/Dockerfile
+@@ -13,10 +13,12 @@
+ # See the License for the specific language governing permissions and
+ # limitations under the License.
+
+-FROM buildpack-deps:jessie-scm
++FROM arm64v8/buildpack-deps:jessie-scm
+ MAINTAINER Ken Simon "ken@heptio.com"
+
+-RUN apt-get update && apt-get -y --no-install-recommends install \
++RUN echo 'Acquire::Check-Valid-Until "0";' > /etc/apt/apt.conf.d/10no--check-valid-until \
++    && sed -i -e '/security/s/^/#/g' -e 's|deb.debian.org/debian|snapshot.debian.org/archive/debian/20190301T035241Z|g' /etc/apt/sources.list \
++    && apt-get update && apt-get -y --no-install-recommends install \
+     ca-certificates \
+     && rm -rf /var/cache/apt/* \
+     && rm -rf /var/lib/apt/lists/*
