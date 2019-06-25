@@ -32,7 +32,7 @@ Verify cluster connectivity
     FOR  ${node}  IN  @{nodes}
          ${output}=        Run    ping ${node} -c 3
          Append To File    ${LOGHWHP}  ${output}${\n}
-         Should Contain    ${output}    3 packets transmitted, 3 received
+         Should Contain    ${output}    3 packets transmitted, 3 packets received
     END
 
 Verify hw health status
