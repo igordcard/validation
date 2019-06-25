@@ -36,7 +36,7 @@ Run Sonobuoy Conformance Test
         Append To File          ${LOG}  ${output}${\n}
 
         # Wait until the test finishes execution
-        Run                     until sonobuoy status | grep "Sonobuoy has completed"; do sleep 120; done
+        Run                     while sonobuoy status | grep "Sonobuoy is still running"; do sleep 120; done
         Append To File          ${LOG}  "Sonobuoy has completed"${\n}
 
         # Get the result and store the sonobuoy logs
