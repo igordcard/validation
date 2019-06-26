@@ -14,5 +14,9 @@
 # limitations under the License.
 #
 
+FROM maven:3.6.1-jdk-11 as build
+RUN git clone https://gerrit.akraino.org/r/validation /opt/akraino/validation/repo
+RUN cd /opt/akraino/validation/repo/ui && mvn clean install
+
 FROM tomcat:8.5.37
-COPY ./AECBlueprintValidationUI.war /usr/local/tomcat/webapps
+COPY  --from=build /opt/akraino/validation/repo/ui/target/AECBlueprintValidationUI.war /usr/local/tomcat/webapps

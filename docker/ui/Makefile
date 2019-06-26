@@ -14,14 +14,10 @@
 # limitations under the License.                                             #
 ##############################################################################
 
-.PHONY: prepare
-prepare:
-	ln -f ../../ui/target/AECBlueprintValidationUI.war AECBlueprintValidationUI.war
-
 .PHONY: all
-all: prepare .push_image .push_manifest
+all: .push_image .push_manifest
 
 .PHONY: build
-build: prepare .build
+build: .build
 
 include ../build.mk
