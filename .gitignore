@@ -49,3 +49,5 @@ pmd-bin-6.15.0*
 !/.coafile
 !/ui/src/main/webapp/.eslintrc
 
+# git submodule patching mechanism local artifacts
+.submodules_*

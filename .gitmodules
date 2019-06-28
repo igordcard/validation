@@ -1,0 +1,8 @@
+[submodule "sonobuoy-plugin-systemd-logs"]
+	path = docker/sonobuoy-plugin-systemd-logs/sonobuoy-plugin-systemd-logs
+	url = https://github.com/heptio/sonobuoy-plugin-systemd-logs
+	branch = master
+[submodule "kube-conformance"]
+	path = docker/kube-conformance/kube-conformance
+	url = https://github.com/heptio/kube-conformance
+	branch = master

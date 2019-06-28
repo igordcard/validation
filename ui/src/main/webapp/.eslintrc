@@ -1,6 +1,6 @@
 {
   "globals": {
-    "angular": 1,
+    "angular": writable,
     "console": 1,
     "confirm":1,
     "localStorage":1,
