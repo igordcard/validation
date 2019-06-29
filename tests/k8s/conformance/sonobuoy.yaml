@@ -91,7 +91,7 @@ data:
       - name: E2E_PARALLEL
         value: '1'
       command: ["/run_e2e.sh"]
-      image: gcr.io/heptio-images/kube-conformance:v1.11
+      image: akraino/validation:kube-conformance-v1.11
       imagePullPolicy: Always
       name: e2e
       volumeMounts:
@@ -116,7 +116,7 @@ data:
         value: /tmp/results
       - name: CHROOT_DIR
         value: /node
-      image: gcr.io/heptio-images/sonobuoy-plugin-systemd-logs:latest
+      image: akraino/validation:sonobuoy-plugin-systemd-logs-latest
       imagePullPolicy: Always
       name: sonobuoy-systemd-logs-config
       securityContext:
