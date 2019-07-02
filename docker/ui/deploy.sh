@@ -14,26 +14,22 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-CONTAINER_NAME="validation-ui"
+# Container name
+CONTAINER_NAME="akraino-validation-ui"
+# Image data
 REGISTRY=akraino
 NAME=validation
-TAG_PRE=`echo "${PWD##*/}"`
+TAG_PRE=ui
 TAG_VER=latest
-HOST_ARCH=amd64
-postgres_db_user_pwd=""
-jenkins_url=""
-jenkins_user_name=""
-jenkins_user_pwd=""
-jenkins_job_name=""
-nexus_results_url=""
-proxy_ip=""
-proxy_port=""
-
-# get the architecture of the host
-if [ "`uname -m`" = "aarch64" ]
-  then
-    HOST_ARCH=arm64
-fi
+# Container input parameters
+MARIADB_ROOT_PASSWORD=""
+JENKINS_URL=""
+JENKINS_USERNAME=""
+JENKINS_USER_PASSWORD=""
+JENKINS_JOB_NAME=""
+DB_CONNECTION_URL=""
+NEXUS_PROXY=""
+JENKINS_PROXY=""
 
 for ARGUMENT in "$@"
 do
@@ -42,55 +38,57 @@ do
     case "$KEY" in
             REGISTRY)              REGISTRY=${VALUE} ;;
             NAME)    NAME=${VALUE} ;;
+            TAG_PRE)    TAG_PRE=${VALUE} ;;
             TAG_VER)    TAG_VER=${VALUE} ;;
-            postgres_db_user_pwd)    postgres_db_user_pwd=${VALUE} ;;
-            jenkins_url)    jenkins_url=${VALUE} ;;
-            jenkins_user_name)    jenkins_user_name=${VALUE} ;;
-            jenkins_user_pwd)    jenkins_user_pwd=${VALUE} ;;
-            jenkins_job_name)    jenkins_job_name=${VALUE} ;;
-            nexus_results_url)    nexus_results_url=${VALUE} ;;
-            proxy_ip)    proxy_ip=${VALUE} ;;
-            proxy_port)    proxy_port=${VALUE} ;;
+            MARIADB_ROOT_PASSWORD)    MARIADB_ROOT_PASSWORD=${VALUE} ;;
+            JENKINS_URL)    JENKINS_URL=${VALUE} ;;
+            JENKINS_USERNAME)    JENKINS_USERNAME=${VALUE} ;;
+            JENKINS_USER_PASSWORD)    JENKINS_USER_PASSWORD=${VALUE} ;;
+            JENKINS_JOB_NAME)    JENKINS_JOB_NAME=${VALUE} ;;
+            DB_CONNECTION_URL)    DB_CONNECTION_URL=${VALUE} ;;
+            CONTAINER_NAME)    CONTAINER_NAME=${VALUE} ;;
+            NEXUS_PROXY) NEXUS_PROXY=${VALUE} ;;
+            JENKINS_PROXY) JENKINS_PROXY=${VALUE} ;;
             *)
     esac
 done
 
-if [ -z "$postgres_db_user_pwd" ]
+if [ -z "$DB_CONNECTION_URL" ]
   then
-    echo "ERROR: You must specify the postgresql root user password"
+    echo "ERROR: You must specify the database connection url"
     exit 1
 fi
 
-if [ -z "$jenkins_url" ]
+if [ -z "$MARIADB_ROOT_PASSWORD" ]
+  then
+    echo "ERROR: You must specify the mariadb root user password"
+    exit 1
+fi
+
+if [ -z "$JENKINS_URL" ]
   then
     echo "ERROR: You must specify the Jenkins Url"
     exit 1
 fi
 
-if [ -z "$jenkins_user_name" ]
+if [ -z "$JENKINS_USERNAME" ]
   then
     echo "ERROR: You must specify the Jenkins username"
     exit 1
 fi
 
-if [ -z "$jenkins_user_pwd" ]
+if [ -z "$JENKINS_USER_PASSWORD" ]
   then
     echo "ERROR: You must specify the Jenkins user password"
     exit 1
 fi
 
-if [ -z "$jenkins_job_name" ]
+if [ -z "$JENKINS_JOB_NAME" ]
   then
     echo "ERROR: You must specify the Jenkins job name"
     exit 1
 fi
 
-if [ -z "$nexus_results_url" ]
-  then
-    echo "ERROR: You must specify the Nexus Url"
-    exit 1
-fi
-
-IMAGE="$REGISTRY"/"$NAME":"$TAG_PRE"-"$HOST_ARCH"-"$TAG_VER"
-docker run --name $CONTAINER_NAME --network="host" -it --rm -e postgres_db_user_pwd="$postgres_db_user_pwd" -e jenkins_url="$jenkins_url" -e jenkins_user_name="$jenkins_user_name" -e jenkins_user_pwd="$jenkins_user_pwd" -e jenkins_job_name="$jenkins_job_name" -e nexus_results_url="$nexus_results_url" -e proxy_ip="$proxy_ip" -e proxy_port="$proxy_port" $IMAGE
+IMAGE="$REGISTRY"/"$NAME":"$TAG_PRE"-"$TAG_VER"
+docker run --name $CONTAINER_NAME --network="host" -it --rm -e DB_CONNECTION_URL="$DB_CONNECTION_URL" -e MARIADB_ROOT_PASSWORD="$MARIADB_ROOT_PASSWORD" -e JENKINS_URL="$JENKINS_URL" -e JENKINS_USERNAME="$JENKINS_USERNAME" -e JENKINS_USER_PASSWORD="$JENKINS_USER_PASSWORD" -e JENKINS_JOB_NAME="$JENKINS_JOB_NAME" -e NEXUS_PROXY="$NEXUS_PROXY" -e JENKINS_PROXY="$JENKINS_PROXY" $IMAGE
 sleep 10

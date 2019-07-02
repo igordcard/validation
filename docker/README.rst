@@ -76,9 +76,8 @@ stored on the local server.
 By default, the container will run the k8s conformance test. If you want to
 enter the container, add */bin/sh* at the end of the command above
 
-
-The postgresql container
-========================
+The mariadb container
+=====================
 
 Building and pushing the container
 ----------------------------------
@@ -87,25 +86,35 @@ To build just the postgresql container, use the command:
 
 .. code-block:: console
 
-    make postgresql-build [ REGISTRY=<dockerhub_registry> NAME=<image_name>]
+   make mariadb-build [ REGISTRY=<dockerhub_registry> NAME=<image_name>]
 
 To both build and push the container, use the command:
 
 .. code-block:: console
 
-    make postgresql [ REGISTRY=<dockerhub_registry> NAME=<image_name>]
+   make mariadb [ REGISTRY=<dockerhub_registry> NAME=<image_name>]
 
 Using the container
 -------------------
+In order for the container to be easily created, the deploy.sh script has been developed. This script accepts the following as input parameters:
 
-If you want to deploy the container, you can run the corresponding deploy.sh script with the appropriate parameters.
+CONTAINER_NAME, name of the container, default value is akraino-validation-mariadb
+MARIADB_ROOT_PASSWORD, the desired mariadb root user password, this variable is required
+UI_ADMIN_PASSWORD, the desired Blueprint Validation UI password for the admin user, this variable is required
+UI_AKRAINO_PASSWORD, the desired Blueprint Validation UI password for the akraino user, this variable is required
+REGISTRY, registry of the mariadb image, default value is akraino
+NAME, name of the mariadb image, default value is validation
+TAG_PRE, first part of the image version, default value is mariadb
+TAG_VER, last part of the image version, default value is latest
+MARIADB_HOST_PORT, port on which mariadb is exposed on host, default value is 3307
 
-Example:
+If you want to deploy the container, you can run this script with the appropriate parameters.
+
+Example (assuming you have used the default variables for building the image using the make command):
 
 .. code-block:: console
 
-    ./deploy.sh POSTGRES_PASSWORD=password
-
+    ./deploy.sh MARIADB_ROOT_PASSWORD=password UI_ADMIN_PASSWORD=admin UI_AKRAINO_PASSWORD=akraino
 
 The ui container
 ================
@@ -113,8 +122,7 @@ The ui container
 Building and pushing the container
 ----------------------------------
 
-To build just the ui container, you must first compile the ui project.
-Then use the command:
+To build just the UI container, use the command:
 
 .. code-block:: console
 
@@ -128,15 +136,37 @@ To both build and push the container, use the command:
 
 Using the container
 -------------------
+In order for the container to be easily created, the deploy.sh script has been developed. This script accepts the following as input parameters:
 
-If you want to deploy the container, you can run the corresponding deploy.sh script with the appropriate parameters.
-Note, that you must also build and run the postgresql container for a functional UI.
+CONTAINER_NAME, name of the contaner, default value is akraino-validation-ui
+DB_CONNECTION_URL, the URL connection with the akraino database of the maridb instance, this variable is required
+MARIADB_ROOT_PASSWORD, mariadb root user password, this variable is required
+REGISTRY, registry of the mariadb image, default value is akraino
+NAME, name of the mariadb image, default value is validation
+TAG_PRE, first part of the image version, default value is ui
+TAG_VER, last part of the image version, default value is latest
+JENKINS_URL, the URL of the Jenkins instance, this variable is required
+JENKINS_USERNAME, the Jenkins user name, this variable is required
+JENKINS_USER_PASSWORD, the Jenkins user password, this variable is required
+JENKINS_JOB_NAME, the name of Jenkins job capable of executing the blueprint validation tests, this variable is required
+NEXUS_PROXY, the proxy needed in order for the Nexus server to be reachable, default value is none
+JENKINS_PROXY, the proxy needed in order for the Jenkins server to be reachable, default value is none
 
-Example:
+Note that, for a functional UI, the following prerequisites are needed:
+
+- The mariadb container in up and running state
+- A Jenkins instance capable of running the blueprint validation test
+- A Nexus repo in which all the test results are stored.
+
+Look at the UI README file for more info.
+
+If you want to deploy the container, you can run the aforementioned script with the appropriate parameters.
+
+Example (assuming you have used the default variables for building the image using the make command):
 
 .. code-block:: console
 
-    ./deploy.sh postgres_db_user_pwd=password jenkins_url=http://192.168.2.2:8080 jenkins_user_name=name jenkins_user_pwd=jenkins_pwd jenkins_job_name=job1 nexus_results_url=https://nexus.akraino.org/content/sites/logs proxy_ip=172.28.40.9 proxy_port=3128
+    ./deploy.sh DB_CONNECTION_URL=172.17.0.3:3306/akraino MARIADB_ROOT_PASSWORD=password JENKINS_URL=http://192.168.2.2:8080 JENKINS_USERNAME=name JENKINS_USER_PASSWORD=jenkins_pwd JENKINS_JOB_NAME=job1
 
 The kube-conformance container
 ==============================

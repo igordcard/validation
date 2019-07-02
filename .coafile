@@ -46,6 +46,12 @@ bears = SpaceConsistencyBear,JavaPMDBear
 files = ui/**.java
 language = java
 use_spaces = true
+ignore = ui/target/**,
+    ui/src/main/java/org/akraino/validation/ui/login/LoginStrategyImpl.java,
+    ui/src/main/java/org/akraino/validation/ui/conf/ExternalAppInitializer.java,
+    ui/src/main/java/org/akraino/validation/ui/scheduler/RegistryAdapter.java,
+    ui/src/main/java/org/akraino/validation/ui/conf/ExternalAppConfig.java,
+    ui/src/main/java/org/akraino/validation/ui/filter/SecurityXssFilter.java
 
 [all.JS]
 bears = ESLintBear,JSComplexityBear
@@ -53,6 +59,10 @@ files = ui/**.js
 language = javascript
 javascript_strictness = False
 use_spaces = true
-ignore = ui/src/main/webapp/reusable_chart.js,
+ignore = ui/src/main/webapp/app/fusion/**,
+    ui/src/main/webapp/static/**,
     ui/bin/**,
-    ui/target/**
+    ui/target/**,
+    ui/src/main/webapp/app/AECBlueprintValidationUI/NewSubmission/AECNewSubmission.js,
+    ui/src/main/webapp/app/AECBlueprintValidationUI/CommittedSubmissions/AECCommittedSubmissions.js,
+    ui/src/main/webapp/app/AECBlueprintValidationUI/GetBySubmissionId/AECGetBySubmissionId.js

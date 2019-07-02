@@ -13,37 +13,44 @@
  * implied. See the License for the specific language governing
  * permissions and limitations under the License.
  */
+
 package org.akraino.validation.ui.controller;
 
 import java.util.List;
 
 import org.akraino.validation.ui.entity.Blueprint;
 import org.akraino.validation.ui.service.BlueprintService;
-import org.apache.log4j.Logger;
+import org.onap.portalsdk.core.controller.RestrictedBaseController;
+import org.onap.portalsdk.core.logging.logic.EELFLoggerDelegate;
+import org.onap.portalsdk.core.web.support.UserUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.RequestMethod;
 
-@RestController
+@Controller
 @RequestMapping("/api/blueprint")
-public class BlueprintController {
+public class BlueprintController extends RestrictedBaseController {
+
+    private static final EELFLoggerDelegate LOGGER = EELFLoggerDelegate.getLogger(BlueprintController.class);
 
     @Autowired
     BlueprintService service;
 
-    private static final Logger LOGGER = Logger.getLogger(BlueprintController.class);
+    public BlueprintController() {
+        super();
+    }
 
-    @GetMapping("/")
+    @RequestMapping(value = {"/"}, method = RequestMethod.GET)
     public ResponseEntity<List<Blueprint>> getBlueprints() {
         try {
             return new ResponseEntity<>(service.getBlueprints(), HttpStatus.OK);
         } catch (Exception e) {
-            LOGGER.error(e);
+            LOGGER.error(EELFLoggerDelegate.errorLogger,
+                    "Error when trying to get blueprints. " + UserUtils.getStackTrace(e));
         }
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
     }
-
 }

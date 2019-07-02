@@ -1,21 +1,25 @@
 /*
  * Copyright (c) 2019 AT&T Intellectual Property. All rights reserved.
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may
+ * not use this file except in compliance with the License. You may obtain
+ * a copy of the License at
  *
- *        http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
+ * implied. See the License for the specific language governing
+ * permissions and limitations under the License.
  */
 package org.akraino.validation.ui.client.jenkins;
 
+import java.io.IOException;
+import java.net.HttpURLConnection;
+import java.net.InetSocketAddress;
 import java.net.MalformedURLException;
+import java.net.Proxy;
 import java.net.URL;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
@@ -39,7 +43,7 @@ import org.akraino.validation.ui.client.jenkins.resources.Parameter;
 import org.akraino.validation.ui.client.jenkins.resources.Parameters;
 import org.akraino.validation.ui.client.jenkins.resources.QueueJobItem;
 import org.apache.commons.httpclient.HttpException;
-import org.apache.log4j.Logger;
+import org.onap.portalsdk.core.logging.logic.EELFLoggerDelegate;
 
 import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.ClientHandlerException;
@@ -51,10 +55,12 @@ import com.sun.jersey.api.client.config.DefaultClientConfig;
 import com.sun.jersey.api.client.filter.HTTPBasicAuthFilter;
 import com.sun.jersey.api.json.JSONConfiguration;
 import com.sun.jersey.client.urlconnection.HTTPSProperties;
+import com.sun.jersey.client.urlconnection.HttpURLConnectionFactory;
+import com.sun.jersey.client.urlconnection.URLConnectionClientHandler;
 
 public final class JenkinsExecutorClient {
 
-    private static final Logger LOGGER = Logger.getLogger(JenkinsExecutorClient.class);
+    private static final EELFLoggerDelegate LOGGER = EELFLoggerDelegate.getLogger(JenkinsExecutorClient.class);
 
     private static final List<JenkinsExecutorClient> JENKINS_CLIENTS = new ArrayList<>();
     private static final Object LOCK = new Object();
@@ -73,7 +79,23 @@ public final class JenkinsExecutorClient {
         this.baseurl = newBaseurl;
         ClientConfig clientConfig = new DefaultClientConfig();
         clientConfig.getFeatures().put(JSONConfiguration.FEATURE_POJO_MAPPING, Boolean.TRUE);
-        this.client = Client.create(clientConfig);
+        this.client = new Client(new URLConnectionClientHandler(new HttpURLConnectionFactory() {
+            Proxy proxy = null;
+
+            @Override
+            public HttpURLConnection getHttpURLConnection(URL url) throws IOException {
+                try {
+                    String proxyIp = System.getenv("JENKINS_PROXY").substring(0,
+                            System.getenv("JENKINS_PROXY").lastIndexOf(":"));
+                    String proxyPort = System.getenv("JENKINS_PROXY")
+                            .substring(System.getenv("JENKINS_PROXY").lastIndexOf(":") + 1);
+                    proxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress(proxyIp, Integer.parseInt(proxyPort)));
+                    return (HttpURLConnection) url.openConnection(proxy);
+                } catch (Exception ex) {
+                    return (HttpURLConnection) url.openConnection();
+                }
+            }
+        }), clientConfig);
         this.client.addFilter(new HTTPBasicAuthFilter(user, password));
         // Create all-trusting host name verifier
         hostnameVerifier = new HostnameVerifier() {
@@ -130,11 +152,11 @@ public final class JenkinsExecutorClient {
     public QueueJobItem getQueueJobItem(URL queueJobItemUrl) throws HttpException, ClientHandlerException,
             UniformInterfaceException, KeyManagementException, NoSuchAlgorithmException {
         synchronized (LOCK) {
-            LOGGER.info("Trying to get a Jenkins resource");
+            LOGGER.info(EELFLoggerDelegate.applicationLogger, "Trying to get a Jenkins resource");
             String crumb = this.getCrumb();
-            LOGGER.debug("Jenkins crumb is: " + crumb);
+            LOGGER.debug(EELFLoggerDelegate.debugLogger, "Jenkins crumb is: " + crumb);
             WebResource webResource = this.client.resource(queueJobItemUrl + "/api/json");
-            LOGGER.debug("Request URI of get: " + webResource.getURI().toString());
+            LOGGER.debug(EELFLoggerDelegate.debugLogger, "Request URI of get: " + webResource.getURI().toString());
             WebResource.Builder builder = webResource.getRequestBuilder();
             builder.header("Jenkins-Crumb", crumb);
             ClientResponse response =
@@ -143,7 +165,7 @@ public final class JenkinsExecutorClient {
                 throw new HttpException("Get on Jenkins failed. HTTP error code : " + response.getStatus()
                         + " and message: " + response.getEntity(String.class));
             }
-            LOGGER.info("Get of Jenkins resource succeeded");
+            LOGGER.info(EELFLoggerDelegate.applicationLogger, "Get of Jenkins resource succeeded");
             return response.getEntity(QueueJobItem.class);
         }
     }
@@ -164,9 +186,9 @@ public final class JenkinsExecutorClient {
             throws HttpException, ClientHandlerException, UniformInterfaceException, MalformedURLException,
             KeyManagementException, NoSuchAlgorithmException {
         synchronized (LOCK) {
-            LOGGER.info("Trying to trigger a job to Jenkins");
+            LOGGER.info(EELFLoggerDelegate.applicationLogger, "Trying to trigger a job in Jenkins");
             String crumb = this.getCrumb();
-            LOGGER.debug("Jenkins crumb is: " + crumb);
+            LOGGER.debug(EELFLoggerDelegate.debugLogger, "Jenkins crumb is: " + crumb);
             String queryParams = "?";
             for (Parameter parameter : parameters.getParameter()) {
                 queryParams = queryParams + parameter.getName() + "=" + parameter.getValue() + "&";
@@ -174,7 +196,7 @@ public final class JenkinsExecutorClient {
             queryParams = queryParams.substring(0, queryParams.length() - 1);
             WebResource webResource =
                     this.client.resource(this.getBaseUrl() + "/job/" + jobName + "/buildWithParameters" + queryParams);
-            LOGGER.debug("Request URI of post: " + webResource.getURI().toString());
+            LOGGER.debug(EELFLoggerDelegate.debugLogger, "Request URI of post: " + webResource.getURI().toString());
             WebResource.Builder builder = webResource.getRequestBuilder();
             builder.header("Jenkins-Crumb", crumb);
             ClientResponse response = builder.type("application/json").post(ClientResponse.class, String.class);
@@ -182,7 +204,7 @@ public final class JenkinsExecutorClient {
                 throw new HttpException("Post of Jenkins job failed. HTTP error code : " + response.getStatus()
                         + " and message: " + response.getEntity(String.class));
             }
-            LOGGER.info("Jenkins job has been successfully triggered");
+            LOGGER.info(EELFLoggerDelegate.applicationLogger, "Jenkins job has been successfully triggered");
             URL buildQueueUrl = null;
             MultivaluedMap<String, String> responseValues = response.getHeaders();
             Iterator<String> iter = responseValues.keySet().iterator();
@@ -198,7 +220,7 @@ public final class JenkinsExecutorClient {
 
     private String getCrumb() throws HttpException, ClientHandlerException, UniformInterfaceException,
             KeyManagementException, NoSuchAlgorithmException {
-        LOGGER.info("Get crumb attempt");
+        LOGGER.info(EELFLoggerDelegate.applicationLogger, "Attempting to get the crumb");
         setProperties();
         String crumbUri = baseurl + "/crumbIssuer/api/json";
         WebResource webResource = this.client.resource(crumbUri);
@@ -206,7 +228,7 @@ public final class JenkinsExecutorClient {
                 webResource.accept("application/json").type("application/json").get(ClientResponse.class);
         if (response.getStatus() == 201 || response.getStatus() == 200) {
             CrumbResponse crumbResponse = response.getEntity(CrumbResponse.class);
-            LOGGER.info("Successful crumb retrieval.");
+            LOGGER.info(EELFLoggerDelegate.applicationLogger, "Successful crumb retrieval");
             return crumbResponse.getCrumb();
         }
         throw new HttpException("Get crumb attempt towards Jenkins failed. HTTP error code: " + response.getStatus()

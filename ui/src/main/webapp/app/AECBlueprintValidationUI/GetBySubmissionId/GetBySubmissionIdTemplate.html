@@ -1,0 +1,206 @@
+<!--
+Copyright (c) 2019 AT&T Intellectual Property. All rights reserved.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+-->
+
+<div id="page-content" class="content" style="padding: 25px;">
+ <style>
+.graph, .empty-graph {
+    border: 1px solid #ccc;
+    width: auto;
+    height: 7px;
+    padding: 0;
+    background: #f33;
+}
+
+.pass-bar {
+    background: #1d4;
+}
+
+.pass-bar, .fail-bar {
+    float: left;
+    height: 100%;
+}
+</style>
+
+ <h1 class="heading-page">Get results by submission</h1>
+
+ <h2 class="heading-small">Select Submission:</h2>
+
+ <div>
+  <select ng-model="selectedSubmission"
+   ng-init="selectedSubmission=submissionsForDisplay[0]"
+   ng-change="selectedSubmissionChange(selectedSubmission)"
+   ng-options="n for n in submissionsForDisplay">
+  </select>
+ </div>
+
+ <h2 class="heading-small">Select a blueprint layer of the selected
+  submission:</h2>
+ <div>
+  <select ng-model="selectedLayer" ng-init="resultsLayers[0]"
+   ng-change="selectedResultsLayerChange(selectedLayer)"
+   ng-options="n for n in resultsLayers">
+  </select>
+ </div>
+
+ <h2 class="heading-small">Select a test suite of the selected
+  (submission, layer) pair in order to be displayed:</h2>
+ <div>
+  <select ng-model="selectedTestSuiteName"
+   ng-init="resultsLayerTestSuitesNames[0]"
+   ng-change="selectedTestSuitesNameChange(selectedTestSuiteName)"
+   ng-options="n for n in resultsLayerTestSuitesNames">
+  </select>
+ </div>
+
+
+ <br> <br> <br>
+
+ <div>
+
+  <h2>
+   <u>Test info</u>
+  </h2>
+
+  <p></p>
+  <p>Name: {{selectedRobotTestResult.name}}</p>
+  <p>Generated: {{selectedRobotTestResult.robot.generated}}</p>
+  <p>Generator: {{selectedRobotTestResult.robot.generator}}</p>
+  <p>Errors: {{selectedRobotTestResult.robot.errors}}</p>
+
+  <h2 class="heading-small"></h2>
+  <h3 class="heading-small">
+   <u>Test Statistics</u>
+  </h3>
+  <p></p>
+  <table class="striped" cellspacing="0" cellpadding="10">
+   <caption>
+    <h3></h3>
+   </caption>
+   <thead>
+    <th><p>&nbsp;Total statistics&nbsp;</p></th>
+    <th><p>Total&nbsp;</p></th>
+    <th><p>Pass&nbsp;</p></th>
+    <th><p>Fail&nbsp;</p></th>
+    <th><p>Pass / Fail&nbsp;</p></th>
+    </tr>
+   </thead>
+   <tbody>
+    <tr
+     ng-repeat="stat in selectedRobotTestResult.robot.statistics.total.stat">
+     <td style="padding-left: 10px; font-size: 15px; width: 13%;">{{
+      stat.content }}</td>
+     <td style="padding-left: 10px; font-size: 15px; width: 13%;">{{
+      (stat.fail * 1) + (stat.pass*1) }}</td>
+     <td style="padding-left: 10px; font-size: 15px; width: 13%;">{{
+      stat.pass }}</td>
+     <td style="padding-left: 10px; font-size: 15px; width: 13%;">{{
+      stat.fail}}</td>
+     <td style="padding-left: 10px; font-size: 15px; width: 13%;">
+      <div class="graph">
+       <div class="pass-bar"
+        ng-style="{ 'width': {{(100* stat.pass/((stat.fail * 1) + (stat.pass*1)) )| number:0}} + '%' }"
+        title="100%"></div>
+       <div class="fail-bar"
+        ng-style="{ 'width': {{(100* stat.fail/((stat.fail * 1) + (stat.pass*1)) )| number:0}} + '%' }"
+        title="0%"></div>
+      </div>
+     </td>
+    </tr>
+   </tbody>
+  </table>
+
+  <br>
+
+  <h3 class="heading-small"></h3>
+  <table class="striped" cellspacing="0" cellpadding="10">
+   <caption>
+    <h3></h3>
+   </caption>
+   <thead>
+    <th><p>&nbsp;Statistics by Tag&nbsp;</p></th>
+    <th><p>Total&nbsp;</p></th>
+    <th><p>Pass&nbsp;</p></th>
+    <th><p>Fail&nbsp;</p></th>
+    <th><p>Pass / Fail&nbsp;</p></th>
+    </tr>
+   </thead>
+   <tbody>
+    <tr
+     ng-repeat="stat in selectedRobotTestResult.robot.statistics.tag.stat">
+     <td style="padding-left: 10px; font-size: 15px; width: 13%;">{{
+      stat.content }}</td>
+     <td style="padding-left: 10px; font-size: 15px; width: 13%;">{{
+      (stat.fail * 1) + (stat.pass*1) }}</td>
+     <td style="padding-left: 10px; font-size: 15px; width: 13%;">{{
+      stat.pass }}</td>
+     <td style="padding-left: 10px; font-size: 15px; width: 13%;">{{
+      stat.fail}}</td>
+     <td style="padding-left: 10px; font-size: 15px; width: 13%;">
+      <div class="graph">
+       <div class="pass-bar"
+        ng-style="{ 'width': {{(100* stat.pass/((stat.fail * 1) + (stat.pass*1)) )| number:0}} + '%' }"
+        title="100%"></div>
+       <div class="fail-bar"
+        ng-style="{ 'width': {{(100* stat.fail/((stat.fail * 1) + (stat.pass*1)) )| number:0}} + '%' }"
+        title="0%"></div>
+      </div>
+     </td>
+    </tr>
+   </tbody>
+  </table>
+
+  <br>
+
+  <h3 class="heading-small"></h3>
+  <table class="striped" cellspacing="0" cellpadding="10">
+   <caption>
+    <h3></h3>
+   </caption>
+   <thead>
+    <th><p>&nbsp;Statistics by Suite&nbsp;</p></th>
+    <th><p>Total&nbsp;</p></th>
+    <th><p>Pass&nbsp;</p></th>
+    <th><p>Fail&nbsp;</p></th>
+    <th><p>Pass / Fail&nbsp;</p></th>
+    </tr>
+   </thead>
+   <tbody>
+    <tr
+     ng-repeat="stat in selectedRobotTestResult.robot.statistics.suite.stat">
+     <td style="padding-left: 10px; font-size: 15px; width: 13%;">{{
+      stat.content }}</td>
+     <td style="padding-left: 10px; font-size: 15px; width: 13%;">{{
+      (stat.fail * 1) + (stat.pass*1) }}</td>
+     <td style="padding-left: 10px; font-size: 15px; width: 13%;">{{
+      stat.pass }}</td>
+     <td style="padding-left: 10px; font-size: 15px; width: 13%;">{{
+      stat.fail}}</td>
+     <td style="padding-left: 10px; font-size: 15px; width: 13%;">
+      <div class="graph">
+       <div class="pass-bar"
+        ng-style="{ 'width': {{(100* stat.pass/((stat.fail * 1) + (stat.pass*1)) )| number:0}} + '%' }"
+        title="100%"></div>
+       <div class="fail-bar"
+        ng-style="{ 'width': {{(100* stat.fail/((stat.fail * 1) + (stat.pass*1)) )| number:0}} + '%' }"
+        title="0%"></div>
+      </div>
+     </td>
+    </tr>
+   </tbody>
+  </table>
+
+ </div>
+</div>

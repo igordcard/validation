@@ -60,3 +60,38 @@ All notable changes to this project will be documented in this file.
 - README file is updated.
 
 ### Removed
+
+## [0.1.0-SNAPSHOT] - 24 June 2019
+### Added
+- The following database initialization scripts of ONAP portal SDK project have been added (but modified in order to support the Akraino database) : epsdk-app-common/db-scripts/EcompSdkDDLMySql_2_4_Common.sql, epsdk-app-os/db-scripts/EcompSdkDDLMySql_2_4_OS.sql, epsdk-app-common/db-scripts/EcompSdkDMLMySql_2_4_Common.sql and epsdk-app-os/db-scripts/EcompSdkDMLMySql_2_4_OS.sql. The copyrights of these files have not been changed.
+- Proxies for connecting with Nexus and Jenkins are now supported.
+- io.fabric8/docker-maven-plugin can now be used for creating UI container for development purposes
+
+### Changed
+- Adaptation to ONAP portal SDK completed. Version 2.4.0 (Casablanca) has been used.
+- The new URL of the results stored in Nexus is now used.
+- Jenkins API is used by utilizing lower case for blueprint names and layers
+- README file is updated
+- Bug fixed when test suite is selected
+- Jenkins job name is dynamically defined in the Nexus result URL
+- Shell script input variables are now declared using capital letters
+
+### Removed
+
+## [0.1.0-SNAPSHOT] - 2 Jule 2019
+### Added
+- "All" blueprint layers is now supported.
+- Pop up windows inform UI user about the status of result retrieval
+- Blueprint version is now passed as a parameter to the Jenkins validation job
+- Database tables have been added, namely 'lab' and 'silo'
+
+### Changed
+- Start date time and duration are initialized to 'now' and null respectively, as they are not taken into account
+- As the blueprint, bluprint_instance_for_validation and timeslot tables must be initialized differently for each lab use case, the previous initialization data was extracted from the db-scripts/akraino-blueprint_validation_db_example.sql file and was placed inside a new file, namely db-scripts/examples/initialize_db_example.sql.
+- The table 'blueprint_instance' has been renamed to 'blueprint_instance_for_validation'
+- DB scripts are now copied to the /docker-entrypoint-initdb.d directory
+- Lab field has been removed from timeslot table and placed in the submission table.
+- README file has been updated
+- Definition of system architecture removed from the pom.xml
+
+### Removed

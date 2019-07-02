@@ -22,11 +22,10 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
 
 @Entity
-@Table(name = "akraino.blueprint")
+@Table(name = "blueprint")
 public class Blueprint implements Serializable {
 
     /**
@@ -35,9 +34,8 @@ public class Blueprint implements Serializable {
     private static final long serialVersionUID = 1L;
 
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "blueprint_id_generator")
-    @SequenceGenerator(name = "blueprint_id_generator", sequenceName = "akraino.seq_blueprint", allocationSize = 1)
-    @Column(name = "blueprint_id")
+    @GeneratedValue(strategy=GenerationType.IDENTITY)
+    @Column(name = "id")
     private int blueprintId;
 
     @Column(name = "blueprint_name")
