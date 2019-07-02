@@ -70,7 +70,7 @@ stored on the local server.
 .. code-block:: console
 
     docker run -ti -v /home/jenkins/k8s_access:/root/.kube/ \
-    -v /home/jenkins/k8s_results:/opt/akraino/validation/results/ \
+    -v /home/jenkins/k8s_results:/opt/akraino/results/ \
     akraino/validation:k8s-latest
 
 By default, the container will run the k8s conformance test. If you want to
