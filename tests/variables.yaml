@@ -27,6 +27,7 @@
 host: aknode109             # cluster's master host address
 username: mm747b            # user credentials
 home: /home/mm747b          # Public keys location
+ssh_keyfile: ~/.ssh/id_rsa  # Identity file for authentication
 
 ### Input variables for bios_version_dell.robot
 sysinfo: PowerEdge R740xd
