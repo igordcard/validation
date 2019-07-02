@@ -35,7 +35,7 @@ Verify cluster connectivity
          Should Contain    ${output}    3 packets transmitted, 3 packets received
     END
 
-Verify hw health status
+Verify hardware health status
     [Documentation]   HW health should be ok
     ${output}=        Run    curl ${BASE_URI} -k | python -m json.tool | grep -A4 '"System":'
     Append To File    ${LOGHWHP}  ${output}${\n}
