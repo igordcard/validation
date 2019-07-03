@@ -95,3 +95,24 @@ All notable changes to this project will be documented in this file.
 - Definition of system architecture removed from the pom.xml
 
 ### Removed
+
+## [0.1.0-SNAPSHOT] - 8 Jule 2019
+### Added
+- Declarative info of the results is now displayed
+- README enhanced in order to display instructions regarding how each docker image can be built independently.
+- A new script, namely validation/docker/mariadb/deploy_with_existing_persistent_storage.sh has been developed in order to deploy the mariadb container when the persistent storage already exists. README files have been updated accordingly.
+- Searching matching fields have been added to the angularJS application
+- The angularJS application displays the submission id received from the back-end system
+- Whenever a new blueprint instance for validation is submitted, the corresponding labels are deleted
+- Scroll up/down feature is supported for the committed submissions
+- Loading gif is displayed while the angularJS application is trying to fetch results
+- Sanity checks in angularJS app
+
+### Changed
+- /db-scripts/akraino-blueprint_validation_db.sql has been renamed to /db-scripts/akraino_blueprint_validation_db.sql
+- User info declaration has been moved from the /db-scripts/akraino-blueprint_validation_db.sql and placed into /db-scripts/EcompSdkDMLMySql_2_4_Common.sql and /db-scripts/EcompSdkDMLMySql_2_4_OS.sql
+- Results can be retrieved only for submissions whose state is 'Completed'
+- README file has been updated to use impersonal phrases
+
+### Removed
+- Deletion of submissions

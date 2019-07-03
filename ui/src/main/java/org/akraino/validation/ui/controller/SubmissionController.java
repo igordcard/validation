@@ -63,16 +63,4 @@ public class SubmissionController extends RestrictedBaseController {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
     }
 
-    @RequestMapping(value = {"/"}, method = RequestMethod.DELETE)
-    public ResponseEntity<Boolean> deleteSubmission(@RequestBody Submission submission) {
-        try {
-            service.deleteSubmission(submission.getSubmissionId());
-            return new ResponseEntity<>(true, HttpStatus.OK);
-        } catch (Exception e) {
-            LOGGER.error(EELFLoggerDelegate.errorLogger,
-                    "Deletion of submission failed. " + UserUtils.getStackTrace(e));
-        }
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
-    }
-
 }

@@ -51,7 +51,9 @@ ignore = ui/target/**,
     ui/src/main/java/org/akraino/validation/ui/conf/ExternalAppInitializer.java,
     ui/src/main/java/org/akraino/validation/ui/scheduler/RegistryAdapter.java,
     ui/src/main/java/org/akraino/validation/ui/conf/ExternalAppConfig.java,
-    ui/src/main/java/org/akraino/validation/ui/filter/SecurityXssFilter.java
+    ui/src/main/java/org/akraino/validation/ui/filter/SecurityXssFilter.java,
+    ui/src/main/java/org/akraino/validation/ui/client/jenkins/resources/**.java,
+    ui/src/main/java/org/akraino/validation/ui/client/nexus/resources/**.java
 
 [all.JS]
 bears = ESLintBear,JSComplexityBear

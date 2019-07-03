@@ -23,6 +23,8 @@ app
                     initialize();
 
                     function initialize() {
+                        $scope.loading = false;
+                        $scope.showResults = false;
                         $scope.results = [];
                         $scope.resultsLayers = [];
                         $scope.resultsLayerTestSuitesNames = [];
@@ -38,24 +40,27 @@ app
                                                             $scope.submissions,
                                                             function(
                                                                     submissionData) {
-                                                                var temp = "id: "
-                                                                        + submissionData.submissionId
-                                                                        + " blueprint: "
-                                                                        + submissionData.blueprintInstanceForValidation.blueprint.blueprintName
-                                                                        + " version: "
-                                                                        + submissionData.blueprintInstanceForValidation.version
-                                                                        + " layer: "
-                                                                        + submissionData.blueprintInstanceForValidation.layer
-                                                                        + " lab: "
-                                                                        + submissionData.timeslot.lab.lab
-                                                                        + " Start date and time: "
-                                                                        + submissionData.timeslot.startDateTime
-                                                                /*
-                                                                 * + " duration: " +
-                                                                 * submissionData.blueprintInstanceForValidation.timeslot.duration
-                                                                 */;
-                                                                $scope.submissionsForDisplay
-                                                                        .push(temp);
+                                                                if (submissionData.submissionStatus === "Completed") {
+                                                                    var temp = "id: "
+                                                                            + submissionData.submissionId
+                                                                            + " blueprint: "
+                                                                            + submissionData.blueprintInstanceForValidation.blueprint.blueprintName
+                                                                            + " version: "
+                                                                            + submissionData.blueprintInstanceForValidation.version
+                                                                            + " layer: "
+                                                                            + submissionData.blueprintInstanceForValidation.layer
+                                                                            + " lab: "
+                                                                            + submissionData.timeslot.lab.lab
+                                                                            + " Start date and time: "
+                                                                            + submissionData.timeslot.startDateTime
+                                                                    /*
+                                                                     * + "
+                                                                     * duration: " +
+                                                                     * submissionData.blueprintInstanceForValidation.timeslot.duration
+                                                                     */;
+                                                                    $scope.submissionsForDisplay
+                                                                            .push(temp);
+                                                                }
                                                             });
                                         });
                     }
@@ -65,6 +70,8 @@ app
                         $scope.resultsLayers = [];
                         $scope.resultsLayerTestSuitesNames = [];
                         $scope.selectedRobotTestResult = [];
+                        $scope.loading = true;
+                        $scope.showResults = false;
                         var id = selectedSubmission.substring(
                                 selectedSubmission.indexOf("id:") + 4,
                                 selectedSubmission.indexOf("blueprint") - 1);
@@ -72,6 +79,7 @@ app
                                 .getRestAPI(
                                         "/api/results/getBySubmissionId/" + id,
                                         function(data) {
+                                            $scope.loading = false;
                                             if (data !== undefined) {
                                                 $scope.results = data;
                                                 angular
@@ -81,6 +89,7 @@ app
                                                                     $scope.resultsLayers
                                                                             .push(result.blueprintLayer);
                                                                 });
+                                                $scope.showResults = true;
                                             } else {
                                                 confirm("Error when committing the submission");
                                             }

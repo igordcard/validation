@@ -168,6 +168,7 @@ INSERT INTO fn_restricted_url VALUES('report/wizard/retrieve_data/true','menu_re
 -- fn_role
 Insert into fn_role (ROLE_ID,ROLE_NAME,ACTIVE_YN,PRIORITY) values (16,'Standard User','Y',5);
 Insert into fn_role (ROLE_ID,ROLE_NAME,ACTIVE_YN,PRIORITY) values (1,'System Administrator','Y',1);
+Insert into fn_role (ROLE_ID,ROLE_NAME,ACTIVE_YN,PRIORITY) values (17,'Blueprint Validation UI user','Y',5);
 
 -- fn_role_composite
 Insert into fn_role_composite (PARENT_ROLE_ID,CHILD_ROLE_ID) values (1,16);
@@ -202,6 +203,9 @@ Insert into fn_role_function (ROLE_ID,FUNCTION_CD) values (16,'menu_map');
 Insert into fn_role_function (ROLE_ID,FUNCTION_CD) values (16,'menu_profile');
 Insert into fn_role_function (ROLE_ID,FUNCTION_CD) values (16,'menu_reports');
 Insert into fn_role_function (ROLE_ID,FUNCTION_CD) values (16,'menu_tab');
+Insert into fn_role_function (ROLE_ID,FUNCTION_CD) values (17,'menu_home');
+Insert into fn_role_function (ROLE_ID,FUNCTION_CD) values (17,'menu_tab');
+
 
 -- fn_tab
 Insert into fn_tab (TAB_CD,TAB_NAME,TAB_DESCR,ACTION,FUNCTION_CD,ACTIVE_YN,SORT_ORDER,PARENT_TAB_CD,TAB_SET_CD) values ('TAB2_SUB1_S1','Left Tab 1','Sub - Sub Tab 1 Information','tab2_sub1.htm','menu_tab','Y',10,'TAB2_SUB1','APP');

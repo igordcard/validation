@@ -45,6 +45,7 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.onap.portalsdk.core.logging.logic.EELFLoggerDelegate;
 
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonMappingException;
@@ -178,6 +179,8 @@ public final class NexusExecutorClient {
             JSONObject xmlJSONObj = XML.toJSONObject(result);
             ObjectMapper mapper = new ObjectMapper();
             mapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
+            mapper.configure(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY, true);
+            mapper.setSerializationInclusion(Include.NON_NULL);
             RobotTestResult robotTestResult = mapper.readValue(xmlJSONObj.toString(), RobotTestResult.class);
             robotTestResult.setName(testSuiteName);
             robotTestResults.add(robotTestResult);
