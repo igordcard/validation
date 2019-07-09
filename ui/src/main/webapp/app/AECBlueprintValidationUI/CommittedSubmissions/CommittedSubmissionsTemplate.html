@@ -47,33 +47,24 @@ body {
    Id:</label>
   <div class="form-field form-field__glued pull-left size-onefifth"
    style="float: left; width: 220px; margin-right: 20px;">
-   <input ng-model="submissionId" type="text"
+   <input ng-model="filterSubmission.submissionId" type="text"
     placeholder="Search for submission id?"
     style="margin-top: 5px; width: 220px;">
   </div>
 
-  <label style="float: left; margin-top: 10px; margin-right: 10px;">Blueprint
-   Name:</label>
+  <label style="float: left; margin-top: 10px; margin-right: 10px;">General
+   matching string:</label>
   <div class="form-field form-field__glued pull-left size-onefifth"
    style="float: left; width: 260px; margin-right: 40px;">
-   <input ng-model="blueprintName" type="text"
-    placeholder="Search for a blueprint name?"
+   <input ng-model="filterGeneralMatch" type="text" placeholder="?"
     style="margin-top: 5px; width: 260px;">
-
   </div>
 
   <div style="float: right;">
    <button style="margin-left: 25px; margin-top: 4px;" type="submit"
     class="btn btn-alt btn-small"
     ng-click="refreshCommittedSubmissions();">Refresh</button>
-   <button style="margin-left: 25px; margin-top: 4px;" type="submit"
-    class="btn btn-alt btn-small" ng-click="deleteSubmissions()">Delete
-    selected submissions</button>
-   <button style="margin-left: 25px; margin-top: 4px;" type="submit"
-    class="btn btn-alt btn-small" ng-click="deleteSubmissions()">Delete
-    all submissions</button>
   </div>
-
 
   <div ui-i18n="en"
    class="grid ui-grid ng-isolate-scope grid1560525896761" id="grid1"
@@ -231,12 +222,61 @@ body {
     min-width: 118px;
     max-width: 118px;
 }
+
+.table-container {
+    display: inline-block;
+    height: 400px;
+    padding-top: 1.875em;
+    position: relative;
+}
+
+.table-container>div {
+    border-color: #888;
+    border-style: solid;
+    border-width: 1px 1px 2px 1px;
+    height: 1.7em;
+    left: 0;
+    position: absolute;
+    right: 0;
+    top: 0;
+}
+
+table {
+    display: block;
+    height: 400px;
+    overflow-y: auto;
+}
+
+th {
+    padding: 0 5px;
+    text-align: center;
+}
+
+th:first-child>div {
+    border-left: none;
+    padding-left: 7px;
+}
+
+th>div {
+    border-left: 2px solid #888;
+    line-height: 1.875em;
+    margin-left: -6px;
+    padding-left: 5px;
+    position: absolute;
+    top: 0;
+}
+
+td {
+    border-color: #888;
+    border-style: solid;
+    border-width: 0 1px 2px 1px;
+    padding: 5px;
+}
 </style>
-   <div class="ui-grid-contents-wrapper">
-    <table cellspacing="0" cellpadding="10" class="siteStatusTable">
+   <div class="table-container">
+    <table cellspacing="0">
      <thead>
       <tr>
-       <th>&nbsp;</th>
        <th>Id&nbsp;</th>
        <th>Status&nbsp;</th>
        <th>Blueprint&nbsp;</th>
@@ -247,12 +287,8 @@ body {
       </tr>
      </thead>
      <tbody>
-      <tr class="border_bottom" ng-repeat="submission in submissions">
-       <td><label class="checkbox"> <input type="checkbox"
-         name="name1" ng-model="temp"
-         ng-change="modifySubmissionIdList(submission.submissionId)"
-         class="ng-valid ng-dirty ng-valid-parse ng-touched"><i
-         class="skin"></i><span>&nbsp;</span></label></td>
+      <tr class="border_bottom"
+       ng-repeat="submission in submissions | filter:filterGeneralMatch | filter:filterSubmission">
        <td style="padding-left: 10px; font-size: 15px; width: 13%;">{{
         submission.submissionId }}</td>
        <td style="padding-left: 10px; font-size: 15px; width: 13%;">{{
@@ -277,20 +313,6 @@ body {
       </tr>
      </tbody>
     </table>
-
-    <div class="well" style="padding-bottom: 35px;">
-     <div class="row ddh-page short">
-      <div class="b2b-pager ng-isolate-scope" b2b-pagination=""
-       total-pages="totalPages1" current-page="currentPage1"
-       click-handler="customHandler1" role="navigation"
-       aria-label="Customer Data Pages">
-       <div ng-if="notMobile &amp;&amp; totalPages > 1" class="ng-scope">
-
-       </div>
-      </div>
-     </div>
-
-    </div>
 
    </div>
   </div>

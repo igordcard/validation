@@ -87,7 +87,7 @@ A mariadb database instance is needed for both modes of the UI with the appropri
 
 The pom.xml file supports the creation of an appropriate docker image for development purposes. The initialization scripts reside under the db-scripts directory.
 
-Also, a script has been developed, namely validation/docker/mariadb/deploy.sh which easily deploys the container. This script accepts the following as input parameters:
+Also, a script has been developed, namely validation/docker/mariadb/deploy.sh which easily deploys the container. This script accepts the following items as input parameters:
 
 CONTAINER_NAME, name of the container, default value is akraino-validation-mariadb
 MARIADB_ROOT_PASSWORD, the desired mariadb root user password, this variable is required
@@ -101,33 +101,57 @@ MARIADB_HOST_PORT, port on which mariadb is exposed on host, default value is 33
 
 Currently, two users are supported for the UI, namely admin (full privileges) and akraino (limited privileges). Their passwords must be defined in the database.
 
-Let's build and deploy the image using only the required parameters.
+In order to build and deploy the image using only the required parameters, the below instructions should be followed:
 
-Configure the mariadb root user password (currently the UI connects to the database using root privileges), the UI admin password and the UI akraino password in the appropriate variables and execute the following commands in order to build and deploy this database container:
+The mariadb root user password (currently the UI connects to the database using root privileges), the UI admin password and the UI akraino password should be configured using the appropriate variables and the following commands should be executed:
 
 .. code-block:: console
 
     cd validation/ui
-    mvn docker:build
+    mvn docker:build -Ddocker.filter=akraino/validation:dev-mariadb-latest
     cd ../docker/mariadb
     ./deploy.sh TAG_PRE=dev-mariadb MARIADB_ROOT_PASSWORD=<root user password> UI_ADMIN_PASSWORD=<UI admin user password> UI_AKRAINO_PASSWORD=<UI akraino user password>
     mysql -p<MARIADB_ROOT_PASSWORD> -uroot -h <IP of the mariadb container> < ../../ui/db-scripts/examples/initialize_db_example.sql
 
-In order to retrieve the IP of the mariadb container, execute the following command:
+In order to retrieve the IP of the mariadb container, the following command should be executed:
 
 .. code-block:: console
 
     docker inspect <name of the mariadb container>
 
-It should be noted that, currently, both images (UI and mariadb) are built using the mvn docker:build command.
+Furthermore, the TAG_PRE variable should be defined because the default value is 'mariadb' (note that the 'dev-mariadb' is used for development purposes - look at pom.xml file).
 
-Furthermore, the TAG_PRE variable should be defined as the default value is 'mariadb' (note that the 'dev-mariadb' is used for development purposes - look at pom.xml file).
+If the database must be re-deployed (it is assumed that the corresponding mariadb container has been stopped and deleted) while the persistent storage already exists (currently, the directory /var/lib/mariadb of the host is used), a different approach should be used after the image build process.
 
-If you want to re-deploy the database, you must first delete the container and the directory on the host machine where data are stored. To this end, execute the following command:
+To this end, another script has been developed, namely validation/docker/mariadb/deploy_with_existing_storage.sh which easily deploys the container. This script accepts the following as input parameters:
+
+CONTAINER_NAME, the name of the container, default value is akraino-validation-mariadb
+MARIADB_ROOT_PASSWORD, the desired mariadb root user password, this variable is required
+REGISTRY, the registry of the mariadb image, default value is akraino
+NAME, the name of the mariadb image, default value is validation
+TAG_PRE, the first part of the image version, default value is mariadb
+TAG_VER, the last part of the image version, default value is latest
+MARIADB_HOST_PORT, the port on which mariadb is exposed on host, default value is 3307
+
+In order to deploy the image using only the required parameters and the existing persistent storage, the below instructions should be followed:
+
+The mariadb root user password (currently the UI connects to the database using root privileges) should be configured using the appropriate variable and the following commands should be executed:
 
 .. code-block:: console
 
-    docker stop <name of the mariadb container> ; docker rm <name of the mariadb container> ; sudo rm -rf /var/lib/mariadb
+    cd validation/docker/mariadb
+    ./deploy_with_existing_persistent_storage.sh TAG_PRE=dev-mariadb MARIADB_ROOT_PASSWORD=<root user password>
+
+Finally, if the database must be re-deployed (it is assumed that the corresponding mariadb container has been stopped and deleted) and the old persistent storage must be deleted, the directory on the host machine where data is stored should be first deleted (note that all database's data will be lost).
+
+To this end, after the image build process, the following commands should be executed:
+
+.. code-block:: console
+
+    sudo rm -rf /var/lib/mariadb
+    cd validation/docker/mariadb
+    ./deploy.sh TAG_PRE=dev-mariadb MARIADB_ROOT_PASSWORD=<root user password> UI_ADMIN_PASSWORD=<UI admin user password> UI_AKRAINO_PASSWORD=<UI akraino user password>
+    mysql -p<MARIADB_ROOT_PASSWORD> -uroot -h <IP of the mariadb container> < ../../ui/db-scripts/examples/initialize_db_example.sql
 
 In the context of the full control loop mode, the following tables must be initialized with appropriate data:
 
@@ -137,7 +161,7 @@ In the context of the full control loop mode, the following tables must be initi
 - blueprint (here every blueprint owner should register the name of the blueprint)
 - blueprint_instance_for_validation (here every blueprint owner should register the blueprint instances for validation, i.e. version, layer and description of a layer)
 
-The following file can be used for initializing the aforementioned data (as we did in the above example using the 'mysql -p<MARIADB_ROOT_PASSWORD> -uroot -h <IP of the mariadb container> < ../../ui/db-scripts/examples/initialize_db_example.sql' command):
+The following file can be used for initializing the aforementioned data (as it was performed in the above example using the 'mysql -p<MARIADB_ROOT_PASSWORD> -uroot -h <IP of the mariadb container> < ../../ui/db-scripts/examples/initialize_db_example.sql' command):
 
     db-scripts/examples/initialize_db_example.sql
 
@@ -305,21 +329,21 @@ The pom.xml file supports the building of an appropriate container image using t
 
 This script accepts the following as input parameters:
 
-CONTAINER_NAME, name of the contaner, default value is akraino-validation-ui
+CONTAINER_NAME, the name of the contaner, default value is akraino-validation-ui
 DB_CONNECTION_URL, the URL connection with the akraino database of the maridb instance, this variable is required
-MARIADB_ROOT_PASSWORD, mariadb root user password, this variable is required
-REGISTRY, registry of the mariadb image, default value is akraino
-NAME, name of the mariadb image, default value is validation
-TAG_PRE, first part of the image version, default value is ui
-TAG_VER, last part of the image version, default value is latest
+MARIADB_ROOT_PASSWORD, the mariadb root user password, this variable is required
+REGISTRY, the registry of the mariadb image, default value is akraino
+NAME, the name of the mariadb image, default value is validation
+TAG_PRE, the first part of the image version, default value is ui
+TAG_VER, the last part of the image version, default value is latest
 JENKINS_URL, the URL of the Jenkins instance, this variable is required
 JENKINS_USERNAME, the Jenkins user name, this variable is required
 JENKINS_USER_PASSWORD, the Jenkins user password, this variable is required
 JENKINS_JOB_NAME, the name of Jenkins job capable of executing the blueprint validation tests, this variable is required
-NEXUS_PROXY, the proxy needed in order for the Nexus server to be reachable, default value is none
-JENKINS_PROXY, the proxy needed in order for the Jenkins server to be reachable, default value is none
+NEXUS_PROXY, the needed proxy in order for the Nexus server to be reachable, default value is none
+JENKINS_PROXY, the needed proxy in order for the Jenkins server to be reachable, default value is none
 
-Let's build the image using only the required parameters. To this end, the following data is needed:
+In order to build the image using only the required parameters, the following data is needed:
 
 - The mariadb root user password (look at the Database subsection)
 - The URL for connecting to the akraino database of the mariadb
@@ -327,12 +351,12 @@ Let's build the image using only the required parameters. To this end, the follo
 - The Jenkins username and password
 - The name of Jenkins Job
 
-Execute the following commands in order to build and deploy the UI container:
+Then, the following commands can be executed in order to build and deploy the UI container:
 
 .. code-block:: console
 
     cd validation/ui
-    mvn docker:build
+    mvn docker:build -Ddocker.filter=akraino/validation:dev-ui-latest
     cd ../docker/ui
     ./deploy.sh TAG_PRE=dev-ui DB_CONNECTION_URL=<Url in order to connect to akraino database of the mariadb> MARIADB_ROOT_PASSWORD=<mariadb root password> JENKINS_URL=<http://jenkinsIP:port> JENKINS_USERNAME=<Jenkins user> JENKINS_USER_PASSWORD=<Jenkins password> JENKINS_JOB_NAME=<Jenkins job name>
 
@@ -340,7 +364,7 @@ The content of the DB_CONNECTION_URL can be for example 172.17.0.3:3306/akraino 
 
 Furthermore, the TAG_PRE variable should be defined as the default value is 'ui' (note that the 'dev-ui' is used for development purposes - look at pom.xml file).
 
-If no proxy exists, just do not define proxy ip and port variables.
+If no proxy exists, the proxy ip and port variables should not be defined.
 
 The UI should be available in the following url:
 

@@ -114,22 +114,28 @@ public class RobotTestResult implements IResource {
             @JsonProperty("status")
             private Suite.Status status;
 
-            @JsonProperty("_id")
-            private String suiteId;
+            @JsonProperty("suite")
+            private Suite.NestedSuite suite;
 
-            @JsonProperty("_name")
+            @JsonProperty("id")
+            private String id;
+
+            @JsonProperty("name")
             private String name;
+
+            @JsonProperty("source")
+            private String source;
 
             public Suite() {
 
             }
 
-            public String getSuiteId() {
-                return this.suiteId;
+            public String getId() {
+                return this.id;
             }
 
-            public void setSuiteId(String suiteId) {
-                this.suiteId = suiteId;
+            public void setId(String id) {
+                this.id = id;
             }
 
             public String getName() {
@@ -140,6 +146,14 @@ public class RobotTestResult implements IResource {
                 this.name = name;
             }
 
+            public String getSource() {
+                return this.source;
+            }
+
+            public void setSource(String source) {
+                this.source = source;
+            }
+
             public Suite.Status getStatus() {
                 return this.status;
             }
@@ -148,45 +162,175 @@ public class RobotTestResult implements IResource {
                 this.status = status;
             }
 
+            public Suite.NestedSuite getSuite() {
+                return this.suite;
+            }
+
+            public void setSuite(Suite.NestedSuite suite) {
+                this.suite = suite;
+            }
+
             public class Status {
-                @JsonProperty("_status")
-                private String statusValue;
+                @JsonProperty("status")
+                private String status;
 
-                @JsonProperty("_starttime")
-                private String startTime;
+                @JsonProperty("starttime")
+                private String starttime;
 
-                @JsonProperty("_endtime")
-                private String endTime;
+                @JsonProperty("endtime")
+                private String endtime;
 
                 public Status() {
 
                 }
 
-                public String getStatusValue() {
-                    return this.statusValue;
+                public String getStatus() {
+                    return this.status;
                 }
 
-                public void setStatusValue(String statusValue) {
-                    this.statusValue = statusValue;
+                public void setStatus(String status) {
+                    this.status = status;
                 }
 
-                public String getStartTime() {
-                    return this.startTime;
+                public String getStarttime() {
+                    return this.starttime;
                 }
 
-                public void setStartTime(String startTime) {
-                    this.startTime = startTime;
+                public void setStarttime(String starttime) {
+                    this.starttime = starttime;
                 }
 
-                public String getEndTime() {
-                    return this.endTime;
+                public String getEndtime() {
+                    return this.endtime;
                 }
 
-                public void setEndTime(String endTime) {
-                    this.endTime = endTime;
+                public void setEndtime(String endtime) {
+                    this.endtime = endtime;
                 }
             }
 
+            public class NestedSuite {
+                @JsonProperty("doc")
+                private String doc;
+
+                @JsonProperty("id")
+                private String id;
+
+                @JsonProperty("name")
+                private String name;
+
+                @JsonProperty("source")
+                private String source;
+
+                @JsonProperty("test")
+                private List<Test> test;
+
+                @JsonProperty("kw")
+                private List<Kw> kw;
+
+                @JsonProperty("status")
+                private NestedSuite.Status status;
+
+                public NestedSuite() {
+
+                }
+
+                public String getDoc() {
+                    return this.doc;
+                }
+
+                public void setDoc(String doc) {
+                    this.doc = doc;
+                }
+
+                public String getId() {
+                    return this.id;
+                }
+
+                public void setId(String id) {
+                    this.id = id;
+                }
+
+                public String getName() {
+                    return this.name;
+                }
+
+                public void setName(String name) {
+                    this.name = name;
+                }
+
+                public String getSource() {
+                    return this.source;
+                }
+
+                public void setSource(String source) {
+                    this.source = source;
+                }
+
+                public List<Test> getTest() {
+                    return this.test;
+                }
+
+                public void setTest(List<Test> test) {
+                    this.test = test;
+                }
+
+                public List<Kw> getKw() {
+                    return this.kw;
+                }
+
+                public void setKw(List<Kw> kw) {
+                    this.kw = kw;
+                }
+
+                public NestedSuite.Status getStatus() {
+                    return this.status;
+                }
+
+                public void setStatus(NestedSuite.Status status) {
+                    this.status = status;
+                }
+
+                public class Status {
+                    @JsonProperty("status")
+                    private String status;
+
+                    @JsonProperty("starttime")
+                    private String starttime;
+
+                    @JsonProperty("endtime")
+                    private String endtime;
+
+                    public Status() {
+
+                    }
+
+                    public String getStatus() {
+                        return this.status;
+                    }
+
+                    public void setStatus(String status) {
+                        this.status = status;
+                    }
+
+                    public String getStarttime() {
+                        return this.starttime;
+                    }
+
+                    public void setStarttime(String starttime) {
+                        this.starttime = starttime;
+                    }
+
+                    public String getEndtime() {
+                        return this.endtime;
+                    }
+
+                    public void setEndtime(String endtime) {
+                        this.endtime = endtime;
+                    }
+
+                }
+            }
         }
 
         public class Statistics {

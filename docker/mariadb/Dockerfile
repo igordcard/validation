@@ -23,4 +23,4 @@ COPY --from=0 /opt/akraino/validation/ui/db-scripts/EcompSdkDDLMySql_2_4_Common.
 COPY --from=0 /opt/akraino/validation/ui/db-scripts/EcompSdkDDLMySql_2_4_OS.sql /docker-entrypoint-initdb.d
 COPY --from=0 /opt/akraino/validation/ui/db-scripts/EcompSdkDMLMySql_2_4_Common.sql /docker-entrypoint-initdb.d
 COPY --from=0 /opt/akraino/validation/ui/db-scripts/EcompSdkDMLMySql_2_4_OS.sql /docker-entrypoint-initdb.d
-COPY --from=0 /opt/akraino/validation/ui/db-scripts/akraino-blueprint_validation_db.sql /docker-entrypoint-initdb.d
+COPY --from=0 /opt/akraino/validation/ui/db-scripts/akraino_blueprint_validation_db.sql /docker-entrypoint-initdb.d

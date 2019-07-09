@@ -35,7 +35,7 @@
         <maven-war-plugin-version>2.0.2</maven-war-plugin-version>
         <maven-deploy-plugin-version>2.8</maven-deploy-plugin-version>
         <eelf-core-version>1.0.0</eelf-core-version>
-        <jackson.version>2.8.10</jackson.version>
+        <jackson.version>2.9.9</jackson.version>
         <c3p0.version>0.9.5.2</c3p0.version>
         <io.searchbox.jest.version>2.0.0</io.searchbox.jest.version>
         <javax.servlet-api.version>3.1.0</javax.servlet-api.version>
@@ -144,6 +144,7 @@
                 </configuration>
             </plugin>
 
+            <!-- Currently, the docker-maven-plugin is used only for the development mode -->
             <plugin>
                 <groupId>io.fabric8</groupId>
                 <artifactId>docker-maven-plugin</artifactId>
@@ -175,7 +176,7 @@
                                 <runCmds>
                                     <!-- must be all on one line; use CDATA
                                         to turn off the Eclipse formatter -->
-                                    <run><![CDATA[mv /maven/db-scripts/EcompSdkDDLMySql_2_4_Common.sql /docker-entrypoint-initdb.d ; mv /maven/db-scripts/EcompSdkDDLMySql_2_4_OS.sql /docker-entrypoint-initdb.d ; mv /maven/db-scripts/EcompSdkDMLMySql_2_4_Common.sql /docker-entrypoint-initdb.d ; mv /maven/db-scripts/EcompSdkDMLMySql_2_4_OS.sql /docker-entrypoint-initdb.d ; mv /maven/db-scripts/akraino-blueprint_validation_db.sql /docker-entrypoint-initdb.d ; rm -fr /maven]]></run>
+                                    <run><![CDATA[mv /maven/db-scripts/EcompSdkDDLMySql_2_4_Common.sql /docker-entrypoint-initdb.d ; mv /maven/db-scripts/EcompSdkDDLMySql_2_4_OS.sql /docker-entrypoint-initdb.d ; mv /maven/db-scripts/EcompSdkDMLMySql_2_4_Common.sql /docker-entrypoint-initdb.d ; mv /maven/db-scripts/EcompSdkDMLMySql_2_4_OS.sql /docker-entrypoint-initdb.d ; mv /maven/db-scripts/akraino_blueprint_validation_db.sql /docker-entrypoint-initdb.d ; rm -fr /maven]]></run>
                                 </runCmds>
                             </build>
                         </image>

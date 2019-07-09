@@ -19,8 +19,6 @@ var app = angular.module('AECCommittedSubmissions');
 app.controller('AECCommittedSubmissionsController', function($scope,
         restAPISvc, $interval, refreshPeriod) {
 
-    $scope.submissionIdList = [];
-
     restAPISvc.getRestAPI("/api/submission/", function(data) {
         $scope.submissions = data;
     });
@@ -29,27 +27,6 @@ app.controller('AECCommittedSubmissionsController', function($scope,
         restAPISvc.getRestAPI("/api/submission/", function(data) {
             $scope.submissions = data;
         });
-    }
-
-    $scope.modifySubmissionIdList = function(id) {
-        if ($scope.submissionIdList.indexOf(id) === -1) {
-            $scope.submissionIdList.push(id);
-        } else {
-            $scope.submissionIdList.splice($scope.submissionIdList.indexOf(id),
-                    1);
-        }
-    }
-
-    $scope.deleteSubmissions = function() {
-        var confirmation = confirm("Are you sure?");
-        if (confirmation == true) {
-            angular.forEach($scope.submissionIdList, function(id) {
-                var submission = {
-                    "submissionId" : id
-                };
-                restAPISvc.deleteRestAPI("/api/submission/", submission);
-            });
-        }
     }
 
     $interval(function() {

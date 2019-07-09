@@ -94,6 +94,13 @@ app
                     }
 
                     $scope.submit = function() {
+                        if (!$scope.selectedBlueprintName
+                                || !$scope.selectedBlueprintVersion
+                                || !$scope.selectedBlueprintLayer
+                                || !$scope.selectedDeclerativeTimeslot) {
+                            confirm("You must specify all data fields");
+                            return;
+                        }
                         var finalBlueprint;
                         var finalTimeslot;
                         angular
@@ -134,11 +141,17 @@ app
                                         submission,
                                         function(data) {
                                             if (data !== undefined) {
-                                                confirm("Submission committed successfully");
+                                                var confirmText = "The blueprint instance for validation has been submitted successfully. Submissionn id:"
+                                                        + data.submissionId;
+                                                confirm(confirmText);
                                             } else {
                                                 confirm("Error when committing the submission");
                                             }
                                         });
+                        $scope.selectedBlueprintName = {};
+                        $scope.selectedBlueprintVersion = {};
+                        $scope.selectedBlueprintLayer = {};
+                        $scope.selectedDeclerativeTimeslot = {};
                     }
 
                 });
