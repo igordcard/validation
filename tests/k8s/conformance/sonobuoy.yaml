@@ -91,7 +91,7 @@ data:
       - name: E2E_PARALLEL
         value: '1'
       command: ["/run_e2e.sh"]
-      image: akraino/validation:kube-conformance-v1.11
+      image: akraino/validation:kube-conformance-v1.15
       imagePullPolicy: Always
       name: e2e
       volumeMounts:

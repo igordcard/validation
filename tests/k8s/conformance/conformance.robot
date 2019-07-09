@@ -30,13 +30,13 @@ ${LOG}            ${LOG_PATH}${/}${SUITE_NAME.replace(' ','_')}.log
 Run Sonobuoy Conformance Test
         # Start the test
         Run                     kubectl apply -f ${CURDIR}${/}sonobuoy.yaml
-        Sleep                   5s
+        Sleep                   10s
         ${rc}  ${output}=       Run And Return Rc And Output
                                 ...  kubectl describe pod/sonobuoy -n heptio-sonobuoy
         Append To File          ${LOG}  ${output}${\n}
 
         # Wait until the test finishes execution
-        Run                     while sonobuoy status | grep "Sonobuoy is still running"; do sleep 120; done
+        Run                     while sonobuoy status | grep "Sonobuoy is still running"; do sleep 180; done
         Append To File          ${LOG}  "Sonobuoy has completed"${\n}
 
         # Get the result and store the sonobuoy logs

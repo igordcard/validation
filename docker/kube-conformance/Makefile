@@ -15,7 +15,8 @@
 ##############################################################################
 
 export WORK_DIR?=$(TAG_PRE)
-export TAG_VER?=v1.11
+export KUBE_VERSION=1.15
+export TAG_VER?=v$(KUBE_VERSION)
 
 .PHONY: .build
 .build:: .submodules_patched

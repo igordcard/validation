@@ -18,12 +18,15 @@
 FROM golang:alpine3.9 as build
 
 # Sonobuoy supports Kubernetes versions 1.11, 1.12 and 1.13
-ARG K8S_TAG=v1.13.0
+ARG SB_TAG=v0.14.3
+# Determine the latest stable git tag at build time based on stable major version
+ARG K8S_VER=1.15
 
 # Install dependencies
 COPY pip-requirements.txt /wheels/requirements/pip-requirements.txt
 
 RUN apk --no-cache add --update \
+        curl \
         openssl \
         python3 \
         bash \
@@ -45,10 +48,14 @@ RUN git clone https://github.com/kubernetes/kubernetes /src/k8s.io/kubernetes
 RUN if [ $(uname -m) == 'aarch64' ]; then HOST_ARCH=arm64; else HOST_ARCH=amd64; fi && \
     echo "Building docker on $HOST_ARCH" && \
     cd /src/k8s.io/kubernetes && \
-    git checkout $K8S_TAG && \
+    git checkout $(curl \
+        https://storage.googleapis.com/kubernetes-release/release/stable-$K8S_VER.txt) && \
     make kubectl ginkgo && \
     make WHAT=test/e2e/e2e.test ARCH=$HOST_ARCH
-RUN go get -u -v github.com/heptio/sonobuoy
+RUN go get -d github.com/heptio/sonobuoy && \
+    cd /go/src/github.com/heptio/sonobuoy && \
+    git checkout $SB_TAG && \
+    go install
 RUN git clone https://gerrit.akraino.org/r/validation /opt/akraino/validation
 RUN cat /opt/akraino/validation/bluval/requirements.txt >> \
     /wheels/requirements/pip-requirements.txt
