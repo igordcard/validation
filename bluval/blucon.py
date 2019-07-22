@@ -15,8 +15,7 @@
 # See the License for the specific language governing permissions and        #
 # limitations under the License.                                             #
 ##############################################################################
-"""This module parses yaml file, reads layers, testcases and executes each
-testcase
+"""This module parses yaml file, reads layers runs container for each layer.
 """
 
 import subprocess
@@ -30,63 +29,39 @@ import yaml
 from bluutil import BluvalError
 from bluutil import ShowStopperError
 
-
-def run_testcase(testcase):
-    """Runs a single testcase
+def invoke_docker(bluprint, layer):
+    """Start docker container for given layer
     """
-    name = testcase.get('name')
-    skip = testcase.get('skip', "False")
-    if skip.lower() == "true":
-        # skip is mentioned and true.
-        print('Skipping {}'.format(name))
-        return
-    show_stopper = testcase.get('show_stopper', "False")
-    what = testcase.get('what')
-    mypath = Path(__file__).absolute()
-    results_path = mypath.parents[2].joinpath(
-        "results/"+testcase.get('layer')+"/"+what)
-    test_path = mypath.parents[1].joinpath(
-        "tests/"+testcase.get('layer')+"/"+what)
-
-    # add to the variables file the path to where to sotre the logs
-    variables_file = mypath.parents[1].joinpath("tests/variables.yaml")
-    variables_dict = yaml.safe_load(variables_file.open())
-    variables_dict['log_path'] = str(results_path)
-    variables_file.write_text(str(variables_dict))
-
-    # run the test
-    args = ["robot", "-V", str(variables_file), "-d",
-            str(results_path), str(test_path)]
-
-    print('Executing testcase {}'.format(name))
-    print('show_stopper {}'.format(show_stopper))
-    print('Invoking {}'.format(args))
+    cmd = ("docker run"
+           " -v $HOME/.ssh:/root/.ssh"
+           " -v $HOME/.kube/config:/root/.kube/config"
+           " -v $VALIDATION_HOME/tests/variables.yaml:"
+           "/opt/akraino/validation/tests/variables.yaml"
+           " -v $AKRAINO_HOME/results:/opt/akraino/results"
+           " akraino/validation:{0}-latest"
+           " bin/sh -c"
+           " 'cd /opt/akraino/validation "
+           "&& python bluval/bluval.py -l {0} {1}'").format(layer, bluprint)
+    args = [cmd]
     try:
-        status = subprocess.call(args, shell=False)
-        if status != 0 and show_stopper.lower() == "true":
-            raise ShowStopperError(name)
+        print('Invoking {}'.format(args))
+        subprocess.call(args, shell=True)
     except OSError:
         #print('Error while executing {}'.format(args))
         raise BluvalError(OSError)
 
 
-def validate_layer(blueprint, layer):
-    """validates a layer by validating all testcases under that layer
-    """
-    print('## Layer {}'.format(layer))
-    for testcase in blueprint[layer]:
-        testcase['layer'] = layer
-        run_testcase(testcase)
-
-
-def validate_blueprint(yaml_loc, layer):
-    """Parse yaml file and validates given layer. If no layer given all layers
-    validated
+def invoke_dockers(yaml_loc, layer, blueprint_name):
+    """Parses yaml file and starts docker container for one/all layers
     """
     with open(str(yaml_loc)) as yaml_file:
         yamldoc = yaml.safe_load(yaml_file)
     blueprint = yamldoc['blueprint']
-    validate_layer(blueprint, layer)
+    if layer is None or layer == "all":
+        for each_layer in blueprint['layers']:
+            invoke_docker(blueprint_name, each_layer)
+    else:
+        invoke_docker(blueprint_name, layer)
 
 
 @click.command()
@@ -101,7 +76,7 @@ def main(blueprint, layer):
     if layer is not None:
         layer = layer.lower()
     try:
-        validate_blueprint(yaml_loc, layer)
+        invoke_dockers(yaml_loc, layer, blueprint)
     except ShowStopperError as err:
         print('ShowStopperError:', err)
     except BluvalError as err:
