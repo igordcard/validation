@@ -31,15 +31,11 @@ public class TimeslotService {
     private TimeslotDAO timeslotDAO;
 
     public void saveTimeslot(Timeslot timeslot) {
-
         timeslotDAO.saveOrUpdate(timeslot);
-
     }
 
     public List<Timeslot> getTimeslots() {
-
         return timeslotDAO.getTimeslots();
-
     }
 
     public void deleteAll() {

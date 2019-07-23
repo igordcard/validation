@@ -31,15 +31,11 @@ public class SiloService {
     private SiloDAO siloDAO;
 
     public void saveSilo(LabSilo silo) {
-
         siloDAO.saveOrUpdate(silo);
-
     }
 
     public List<LabSilo> getSilos() {
-
         return siloDAO.getSilos();
-
     }
 
     public void deleteAll() {

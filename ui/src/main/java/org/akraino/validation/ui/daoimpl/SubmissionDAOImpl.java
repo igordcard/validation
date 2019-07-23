@@ -17,6 +17,8 @@ package org.akraino.validation.ui.daoimpl;
 
 import java.util.List;
 
+import javax.annotation.Nonnull;
+
 import org.akraino.validation.ui.dao.SubmissionDAO;
 import org.akraino.validation.ui.entity.Submission;
 import org.hibernate.Criteria;
@@ -46,36 +48,41 @@ public class SubmissionDAOImpl implements SubmissionDAO {
     }
 
     @Override
-    public Submission getSubmission(Integer submissionId) {
+    public Submission getSubmission(@Nonnull Integer submissionId) {
         Criteria criteria = getSession().createCriteria(Submission.class);
         criteria.add(Restrictions.eq("id", submissionId));
         return criteria.list() == null || criteria.list().size() < 1 ? null : (Submission) criteria.list().get(0);
     }
 
     @Override
-    public void saveOrUpdate(Submission submission) {
+    public void saveOrUpdate(@Nonnull Submission submission) {
         getSession().saveOrUpdate(submission);
+        getSession().flush();
     }
 
     @Override
-    public void merge(Submission submission) {
+    public void merge(@Nonnull Submission submission) {
         getSession().merge(submission);
+        getSession().flush();
     }
 
     @Override
-    public void deleteSubmission(Submission submission) {
+    public void deleteSubmission(@Nonnull Submission submission) {
         getSession().delete(submission);
+        getSession().flush();
     }
 
     @Override
-    public void deleteSubmission(Integer submissionId) {
+    public void deleteSubmission(@Nonnull Integer submissionId) {
         getSession().delete(this.getSubmission(submissionId));
+        getSession().flush();
     }
 
     @Override
     public void deleteAll() {
         if (getSession().createQuery("delete from Submission").executeUpdate() > 0) {
             LOGGER.info(EELFLoggerDelegate.applicationLogger, "All submission entries are cleaned up");
+            getSession().flush();
         }
     }
 

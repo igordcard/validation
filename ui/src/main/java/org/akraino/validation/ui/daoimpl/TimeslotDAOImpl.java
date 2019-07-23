@@ -17,6 +17,8 @@ package org.akraino.validation.ui.daoimpl;
 
 import java.util.List;
 
+import javax.annotation.Nonnull;
+
 import org.akraino.validation.ui.dao.TimeslotDAO;
 import org.akraino.validation.ui.entity.Timeslot;
 import org.hibernate.Criteria;
@@ -46,31 +48,35 @@ public class TimeslotDAOImpl implements TimeslotDAO {
     }
 
     @Override
-    public Timeslot getTimeslot(Integer timeslotId) {
+    public Timeslot getTimeslot(@Nonnull Integer timeslotId) {
         Criteria criteria = getSession().createCriteria(Timeslot.class);
         criteria.add(Restrictions.eq("id", String.valueOf(timeslotId)));
         return criteria.list() == null ? null : (Timeslot) criteria.list().get(0);
     }
 
     @Override
-    public void saveOrUpdate(Timeslot timeslot) {
+    public void saveOrUpdate(@Nonnull Timeslot timeslot) {
         getSession().saveOrUpdate(timeslot);
+        getSession().flush();
     }
 
     @Override
-    public void merge(Timeslot timeslot) {
+    public void merge(@Nonnull Timeslot timeslot) {
         getSession().merge(timeslot);
+        getSession().flush();
     }
 
     @Override
-    public void deleteTimeslot(Timeslot timeslot) {
+    public void deleteTimeslot(@Nonnull Timeslot timeslot) {
         getSession().delete(timeslot);
+        getSession().flush();
     }
 
     @Override
     public void deleteAll() {
         if (getSession().createQuery("delete from Timeslot").executeUpdate() > 0) {
             LOGGER.info(EELFLoggerDelegate.applicationLogger, "All timeslot entries are cleaned up");
+            getSession().flush();
         }
     }
 

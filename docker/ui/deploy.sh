@@ -22,12 +22,12 @@ NAME=validation
 TAG_PRE=ui
 TAG_VER=latest
 # Container input parameters
-MARIADB_ROOT_PASSWORD=""
+MARIADB_AKRAINO_PASSWORD=""
 JENKINS_URL=""
 JENKINS_USERNAME=""
 JENKINS_USER_PASSWORD=""
 JENKINS_JOB_NAME=""
-DB_CONNECTION_URL=""
+DB_IP_PORT=""
 NEXUS_PROXY=""
 JENKINS_PROXY=""
 
@@ -40,12 +40,12 @@ do
             NAME)    NAME=${VALUE} ;;
             TAG_PRE)    TAG_PRE=${VALUE} ;;
             TAG_VER)    TAG_VER=${VALUE} ;;
-            MARIADB_ROOT_PASSWORD)    MARIADB_ROOT_PASSWORD=${VALUE} ;;
+            MARIADB_AKRAINO_PASSWORD)    MARIADB_AKRAINO_PASSWORD=${VALUE} ;;
             JENKINS_URL)    JENKINS_URL=${VALUE} ;;
             JENKINS_USERNAME)    JENKINS_USERNAME=${VALUE} ;;
             JENKINS_USER_PASSWORD)    JENKINS_USER_PASSWORD=${VALUE} ;;
             JENKINS_JOB_NAME)    JENKINS_JOB_NAME=${VALUE} ;;
-            DB_CONNECTION_URL)    DB_CONNECTION_URL=${VALUE} ;;
+            DB_IP_PORT)    DB_IP_PORT=${VALUE} ;;
             CONTAINER_NAME)    CONTAINER_NAME=${VALUE} ;;
             NEXUS_PROXY) NEXUS_PROXY=${VALUE} ;;
             JENKINS_PROXY) JENKINS_PROXY=${VALUE} ;;
@@ -53,15 +53,15 @@ do
     esac
 done
 
-if [ -z "$DB_CONNECTION_URL" ]
+if [ -z "$DB_IP_PORT" ]
   then
-    echo "ERROR: You must specify the database connection url"
+    echo "ERROR: You must specify the database IP and port"
     exit 1
 fi
 
-if [ -z "$MARIADB_ROOT_PASSWORD" ]
+if [ -z "$MARIADB_AKRAINO_PASSWORD" ]
   then
-    echo "ERROR: You must specify the mariadb root user password"
+    echo "ERROR: You must specify the mariadb akraino user password"
     exit 1
 fi
 
@@ -90,5 +90,5 @@ if [ -z "$JENKINS_JOB_NAME" ]
 fi
 
 IMAGE="$REGISTRY"/"$NAME":"$TAG_PRE"-"$TAG_VER"
-docker run --name $CONTAINER_NAME --network="host" -it --rm -e DB_CONNECTION_URL="$DB_CONNECTION_URL" -e MARIADB_ROOT_PASSWORD="$MARIADB_ROOT_PASSWORD" -e JENKINS_URL="$JENKINS_URL" -e JENKINS_USERNAME="$JENKINS_USERNAME" -e JENKINS_USER_PASSWORD="$JENKINS_USER_PASSWORD" -e JENKINS_JOB_NAME="$JENKINS_JOB_NAME" -e NEXUS_PROXY="$NEXUS_PROXY" -e JENKINS_PROXY="$JENKINS_PROXY" $IMAGE
+docker run --detach --name $CONTAINER_NAME --network="host" -e DB_IP_PORT="$DB_IP_PORT" -e MARIADB_AKRAINO_PASSWORD="$MARIADB_AKRAINO_PASSWORD" -e JENKINS_URL="$JENKINS_URL" -e JENKINS_USERNAME="$JENKINS_USERNAME" -e JENKINS_USER_PASSWORD="$JENKINS_USER_PASSWORD" -e JENKINS_JOB_NAME="$JENKINS_JOB_NAME" -e NEXUS_PROXY="$NEXUS_PROXY" -e JENKINS_PROXY="$JENKINS_PROXY" $IMAGE
 sleep 10

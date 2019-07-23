@@ -17,8 +17,8 @@ package org.akraino.validation.ui.controller;
 
 import java.util.List;
 
-import org.akraino.validation.ui.entity.Submission;
-import org.akraino.validation.ui.service.SubmissionService;
+import org.akraino.validation.ui.data.SubmissionData;
+import org.akraino.validation.ui.service.DbSubmissionAdapter;
 import org.onap.portalsdk.core.controller.RestrictedBaseController;
 import org.onap.portalsdk.core.logging.logic.EELFLoggerDelegate;
 import org.onap.portalsdk.core.web.support.UserUtils;
@@ -26,16 +26,17 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 
 @Controller
-@RequestMapping("/api/submission")
+@RequestMapping("/api/v1/submission")
 public class SubmissionController extends RestrictedBaseController {
 
     @Autowired
-    SubmissionService service;
+    DbSubmissionAdapter service;
 
     private static final EELFLoggerDelegate LOGGER = EELFLoggerDelegate.getLogger(SubmissionController.class);
 
@@ -43,20 +44,30 @@ public class SubmissionController extends RestrictedBaseController {
         super();
     }
 
-    @RequestMapping(value = {"/"}, method = RequestMethod.GET)
-    public ResponseEntity<List<Submission>> getSubmissions() {
+    @RequestMapping(value = { "/" }, method = RequestMethod.GET)
+    public ResponseEntity<List<SubmissionData>> getSubmissions() {
         try {
-            return new ResponseEntity<>(service.getSubmissions(), HttpStatus.OK);
+            return new ResponseEntity<>(service.getSubmissionDatas(), HttpStatus.OK);
         } catch (Exception e) {
             LOGGER.error(EELFLoggerDelegate.errorLogger, "Get of submissions failed. " + UserUtils.getStackTrace(e));
         }
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
     }
 
-    @RequestMapping(value = {"/"}, method = RequestMethod.POST)
-    public ResponseEntity<Submission> postSubmission(@RequestBody Submission newSubmission) {
+    @RequestMapping(value = { "/{id}" }, method = RequestMethod.GET)
+    public ResponseEntity<SubmissionData> getSubmission(@PathVariable("id") String submissionId) {
         try {
-            return new ResponseEntity<>(service.saveSubmission(newSubmission), HttpStatus.OK);
+            return new ResponseEntity<>(service.getSubmissionData(submissionId), HttpStatus.OK);
+        } catch (Exception e) {
+            LOGGER.error(EELFLoggerDelegate.errorLogger, "Get of submission failed. " + UserUtils.getStackTrace(e));
+        }
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+    }
+
+    @RequestMapping(value = { "/" }, method = RequestMethod.POST)
+    public ResponseEntity<SubmissionData> postSubmission(@RequestBody SubmissionData submissionData) {
+        try {
+            return new ResponseEntity<>(service.saveSubmission(submissionData), HttpStatus.OK);
         } catch (Exception e) {
             LOGGER.error(EELFLoggerDelegate.errorLogger, "Post of submission failed. " + UserUtils.getStackTrace(e));
         }

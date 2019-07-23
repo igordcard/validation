@@ -12,7 +12,7 @@
     xmlns:web="http://xmlns.jcp.org/xml/ns/javaee/web-app_3_1.xsd"
     version="3.1" xmlns="http://xmlns.jcp.org/xml/ns/javaee">
 
-    <display-name>AECBlueprintValidationUI</display-name>
+    <display-name>bluvalui</display-name>
 
     <!-- The app can function on a HA cluster -->
     <distributable />

@@ -1,0 +1,239 @@
+<!--
+Copyright (c) 2019 AT&T Intellectual Property. All rights reserved.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+-->
+<div id="page-content" class="content" style="padding: 25px;">
+
+    <style>
+.grid {
+    width: 100%;
+    height: 400px;
+}
+
+.grid .ui-grid-header-cell {
+    text-align: center;
+}
+
+.icon-add-widget:before {
+    content: "\e717";
+}
+
+.ui-grid-icon-angle-down {
+    margin-top: 5px;
+}
+
+body {
+    font-size: 13px;
+}
+
+.Row {
+    display: table;
+    width: 100%;
+}
+
+.Column {
+    display: table-cell;
+}
+
+.table-bordered, .table-bordered>tbody>tr>td, .table-bordered>tbody>tr>th,
+    .table-bordered>tfoot>tr>td, .table-bordered>tfoot>tr>th,
+    .table-bordered>thead>tr>td, .table-bordered>thead>tr>th {
+    border: 1px solid #d1d1d1;
+}
+
+.table {
+    width: 100%;
+    max-width: 100%;
+    margin-bottom: 20px;
+}
+
+table {
+    background-color: transparent;
+    border-collapse: collapse;
+    border-spacing: 0;
+    display: table;
+}
+
+.table>tbody>tr>th, .table>tfoot>tr>th, .table>thead>tr>th {
+    font-family: Open Sans;
+    font-style: normal;
+    font-weight: 600;
+}
+
+.table>caption+thead>tr:first-child>td, .table>caption+thead>tr:first-child>th,
+    .table>colgroup+thead>tr:first-child>td, .table>colgroup+thead>tr:first-child>th,
+    .table>thead:first-child>tr:first-child>td, .table>thead:first-child>tr:first-child>th
+    {
+    border-top: 0;
+}
+
+.table>tbody>tr>td, .table>tbody>tr>th, .table>tfoot>tr>td, .table>tfoot>tr>th,
+    .table>thead>tr>td, .table>thead>tr>th {
+    padding: 2px 10px 3px;
+}
+
+.table>tbody>tr.success>td, .table>tbody>tr.success>th, .table>tbody>tr>td.success,
+    .table>tbody>tr>th.success, .table>tfoot>tr.success>td, .table>tfoot>tr.success>th,
+    .table>tfoot>tr>td.success, .table>tfoot>tr>th.success, .table>thead>tr.success>td,
+    .table>thead>tr.success>th, .table>thead>tr>td.success, .table>thead>tr>th.success
+    {
+    background-color: #dff0d8;
+}
+
+.table>tbody>tr.warning>td, .table>tbody>tr.warning>th, .table>tbody>tr>td.warning,
+    .table>tbody>tr>th.warning, .table>tfoot>tr.warning>td, .table>tfoot>tr.warning>th,
+    .table>tfoot>tr>td.warning, .table>tfoot>tr>th.warning, .table>thead>tr.warning>td,
+    .table>thead>tr.warning>th, .table>thead>tr>td.warning, .table>thead>tr>th.warning
+    {
+    background-color: #fcf8e3;
+}
+
+.ilocal {
+    border: solid black;
+    border-width: 0 3px 3px 0;
+    display: inline-block;
+    padding: 3px;
+}
+
+.up {
+    transform: rotate(-135deg);
+    -webkit-transform: rotate(-135deg);
+}
+
+.down {
+    transform: rotate(45deg);
+    -webkit-transform: rotate(45deg);
+}
+</style>
+
+    <h1 class="heading-page">Blueprint Validation Results</h1>
+
+    <div ng-show="loadingResults">
+        <img src=" static/fusion/images/giphy.gif" />
+    </div>
+
+    <h2 class="heading-small"></h2>
+    <div ng-show="!loadingResults">
+        <label
+            style="float: left; margin-top: 10px; margin-right: 10px;">Blueprint
+            layer:</label>
+        <div
+            class="form-field form-field__glued pull-left size-onefifth"
+            style="float: left; width: 220px; margin-right: 20px;">
+            <input ng-model="filterLayer" type="text"
+                placeholder="Search for layer?"
+                style="margin-top: 5px; width: 220px;">
+        </div>
+
+        <label
+            style="float: left; margin-top: 10px; margin-right: 10px;">Result:</label>
+        <div
+            class="form-field form-field__glued pull-left size-onefifth"
+            style="float: left; width: 260px; margin-right: 40px;">
+            <input ng-model="filterResult" type="text"
+                placeholder="Search for result?"
+                style="margin-top: 5px; width: 260px;">
+        </div>
+
+        <label
+            style="float: left; margin-top: 10px; margin-right: 10px;">Timestamp:</label>
+        <div
+            class="form-field form-field__glued pull-left size-onefifth"
+            style="float: left; width: 260px; margin-right: 40px;">
+            <input ng-model="filtertimestamp.timestamp" type="text"
+                placeholder="Search for timestamp?"
+                style="margin-top: 5px; width: 260px;">
+        </div>
+
+        <div style="float: right;">
+            <button style="margin-left: 25px; margin-top: 4px;"
+                type="submit" class="btn btn-alt btn-small"
+                ng-click="refreshValidationResults();">Refresh</button>
+        </div>
+
+        <h2 class="heading-small"></h2>
+        <table class="table table-striped table-bordered">
+            <thead>
+                <tr style="background-color: grey;">
+                    <th class>Lab&nbsp;</th>
+                    <th class>Blueprint&nbsp;</th>
+                    <th class>Version</th>
+                    <th class>Timestamp&nbsp;</th>
+                    <th class>
+                        <p>Date/Time of result</p>
+                        <p>
+                            storage&nbsp; <i class="up ilocal"
+                                ng-click="descendingOrder()"></i> <i
+                                class="down ilocal"
+                                ng-click="ascendingOrder()"></i>
+                        </p>
+                    </th>
+                    <th class>Optional test cases&nbsp;</th>
+                    <th class>All layers&nbsp;</th>
+                    <th class>Layer(s)&nbsp;</th>
+                    <th class>Submission Id&nbsp;</th>
+                    <th class>Result&nbsp;</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr class="border_bottom"
+                    ng-repeat="validationNexusTestResult in filterWithResult(filterWithLayer(validationNexusTestResults,filterLayer), filterResult) | filter:filtertimestamp | orderBy:dateTimeSort:descending"
+                    ng-class="{success: (validationNexusTestResult.result===true), warning: (validationNexusTestResult.result===false)}">
+                    <td class
+                        style="padding-left: 10px; font-size: 15px; width: 13%;">
+                        {{ getLab(validationNexusTestResult.silo, silos)
+                        }}</td>
+                    <td class
+                        style="padding-left: 10px; font-size: 15px; width: 13%;">{{
+                        validationNexusTestResult.blueprintName }}</td>
+                    <td class
+                        style="padding-left: 10px; font-size: 15px; width: 13%;">{{
+                        validationNexusTestResult.version }}</td>
+                    <td class
+                        style="padding-left: 10px; font-size: 15px; width: 13%;">{{
+                        validationNexusTestResult.timestamp }}</td>
+                    <td class
+                        style="padding-left: 10px; font-size: 15px; width: 13%;">{{
+                        validationNexusTestResult.dateOfStorage }}</td>
+                    <td class
+                        style="padding-left: 10px; font-size: 15px; width: 13%;">{{
+                        validationNexusTestResult.optional }}</td>
+                    <td class
+                        style="padding-left: 10px; font-size: 15px; width: 13%;">{{
+                        validationNexusTestResult.allLayers }}</td>
+                    <td class
+                        style="padding-left: 10px; font-size: 15px; width: 13%;">
+                        <div
+                            ng-repeat="layer in  getBlueprintLayers(validationNexusTestResult.wRobotNexusTestResults)">
+                            {{layer}}</div>
+                    </td>
+                    <td class
+                        style="padding-left: 10px; font-size: 15px; width: 13%;">{{
+                        validationNexusTestResult.submissionId }}</td>
+                    <td class
+                        style="padding-left: 10px; font-size: 15px; width: 13%;">
+                        <button
+                            style="margin-left: 25px; margin-top: 4px;"
+                            type="submit" class="btn btn-alt btn-small"
+                            ng-click="getTestSuiteResults(validationNexusTestResult);">{{
+                            mapResult(validationNexusTestResult)}}</button>
+                        </button>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
+    </div>
+
+</div>

@@ -16,6 +16,9 @@
 
 package org.akraino.validation.ui.controller;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import javax.servlet.http.HttpServletRequest;
 
 import org.onap.portalsdk.core.controller.RestrictedBaseController;
@@ -32,21 +35,52 @@ public class ModelsViewsController extends RestrictedBaseController {
         super();
     }
 
-    @RequestMapping(value = {"/newSubmission"}, method = RequestMethod.GET)
+    @RequestMapping(value = { "/newsubmission" }, method = RequestMethod.GET)
     public ModelAndView newSubmission(HttpServletRequest request) {
         final String defaultViewName = null;
         return new ModelAndView(defaultViewName);
     }
 
-    @RequestMapping(value = {"/committedSubmissions"}, method = RequestMethod.GET)
+    @RequestMapping(value = { "/committedsubmissions" }, method = RequestMethod.GET)
     public ModelAndView committedSubmissions(HttpServletRequest request) {
         final String defaultViewName = null;
         return new ModelAndView(defaultViewName);
     }
 
-    @RequestMapping(value = {"/getBySubmissionId"}, method = RequestMethod.GET)
-    public ModelAndView getBySubmissionId(HttpServletRequest request) {
+    @RequestMapping(value = { "/getmostrecent" }, method = RequestMethod.GET)
+    public ModelAndView getMostrecent(HttpServletRequest request) {
         final String defaultViewName = null;
         return new ModelAndView(defaultViewName);
     }
+
+    @RequestMapping(value = { "/getbytimestamp" }, method = RequestMethod.GET)
+    public ModelAndView getByTimestamp(HttpServletRequest request) {
+        final String defaultViewName = null;
+        return new ModelAndView(defaultViewName);
+    }
+
+    @RequestMapping(value = { "/getlastrun" }, method = RequestMethod.GET)
+    public ModelAndView getLastRun(HttpServletRequest request) {
+        final String defaultViewName = null;
+        return new ModelAndView(defaultViewName);
+    }
+
+    @RequestMapping(value = { "/getbasedondate" }, method = RequestMethod.GET)
+    public ModelAndView getBasedOnDate(HttpServletRequest request) {
+        final String defaultViewName = null;
+        return new ModelAndView(defaultViewName);
+    }
+
+    @RequestMapping(value = { "/validationresults" }, method = RequestMethod.GET)
+    public ModelAndView validationResults(HttpServletRequest request) {
+        final String defaultViewName = null;
+        return new ModelAndView(defaultViewName);
+    }
+
+    @RequestMapping(value = { "/logout.htm" }, method = RequestMethod.GET)
+    public ModelAndView login() {
+        Map<String, Object> model = new HashMap<>();
+        return new ModelAndView("logout", "model", model);
+    }
+
 }

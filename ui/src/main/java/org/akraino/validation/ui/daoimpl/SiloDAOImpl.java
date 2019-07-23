@@ -17,6 +17,8 @@ package org.akraino.validation.ui.daoimpl;
 
 import java.util.List;
 
+import javax.annotation.Nonnull;
+
 import org.akraino.validation.ui.dao.SiloDAO;
 import org.akraino.validation.ui.entity.LabSilo;
 import org.hibernate.Criteria;
@@ -46,31 +48,35 @@ public class SiloDAOImpl implements SiloDAO {
     }
 
     @Override
-    public LabSilo getSilo(Integer siloId) {
+    public LabSilo getSilo(@Nonnull Integer siloId) {
         Criteria criteria = getSession().createCriteria(LabSilo.class);
         criteria.add(Restrictions.eq("id", String.valueOf(siloId)));
         return criteria.list() == null ? null : (LabSilo) criteria.list().get(0);
     }
 
     @Override
-    public void saveOrUpdate(LabSilo silo) {
+    public void saveOrUpdate(@Nonnull LabSilo silo) {
         getSession().saveOrUpdate(silo);
+        getSession().flush();
     }
 
     @Override
-    public void merge(LabSilo silo) {
+    public void merge(@Nonnull LabSilo silo) {
         getSession().merge(silo);
+        getSession().flush();
     }
 
     @Override
-    public void deleteSilo(LabSilo silo) {
+    public void deleteSilo(@Nonnull LabSilo silo) {
         getSession().delete(silo);
+        getSession().flush();
     }
 
     @Override
     public void deleteAll() {
         if (getSession().createQuery("delete from Silo").executeUpdate() > 0) {
             LOGGER.info(EELFLoggerDelegate.applicationLogger, "All silo entries are cleaned up");
+            getSession().flush();
         }
     }
 

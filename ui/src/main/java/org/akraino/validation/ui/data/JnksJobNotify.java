@@ -32,6 +32,9 @@ public class JnksJobNotify {
     @JsonProperty("submissionId")
     private Integer submissionId;
 
+    @JsonProperty("timestamp")
+    private String timestamp;
+
     public JnksJobNotify() {
 
     }
@@ -58,6 +61,14 @@ public class JnksJobNotify {
 
     public void setSubmissionId(Integer submissionId) {
         this.submissionId = submissionId;
+    }
+
+    public String getTimestamp() {
+        return this.timestamp;
+    }
+
+    public void setTimeStamp(String timestamp) {
+        this.timestamp = timestamp;
     }
 
 }

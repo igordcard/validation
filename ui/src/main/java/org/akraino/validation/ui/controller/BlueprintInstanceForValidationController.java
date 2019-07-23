@@ -31,11 +31,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 
 @Controller
-@RequestMapping("/api/blueprintInstanceForValidation")
+@RequestMapping("/api/v1/blueprintinstanceforvalidation")
 public class BlueprintInstanceForValidationController extends RestrictedBaseController {
 
-    private static final EELFLoggerDelegate LOGGER =
-            EELFLoggerDelegate.getLogger(BlueprintInstanceForValidationController.class);
+    private static final EELFLoggerDelegate LOGGER = EELFLoggerDelegate
+            .getLogger(BlueprintInstanceForValidationController.class);
 
     @Autowired
     BlueprintInstanceForValidationService service;
@@ -44,7 +44,7 @@ public class BlueprintInstanceForValidationController extends RestrictedBaseCont
         super();
     }
 
-    @RequestMapping(value = {"/"}, method = RequestMethod.GET)
+    @RequestMapping(value = { "/" }, method = RequestMethod.GET)
     public ResponseEntity<List<BlueprintInstanceForValidation>> getBlueprintInstancesForValidation() {
         try {
             return new ResponseEntity<>(service.getBlueprintInstancesForValidation(), HttpStatus.OK);

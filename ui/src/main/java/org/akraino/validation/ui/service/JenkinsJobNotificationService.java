@@ -15,12 +15,16 @@
  */
 package org.akraino.validation.ui.service;
 
-import org.akraino.validation.ui.conf.UiUtils;
-import org.akraino.validation.ui.data.BlueprintLayer;
+import java.util.ArrayList;
+import java.util.List;
+
+import org.akraino.validation.ui.client.nexus.resources.ValidationNexusTestResult;
+import org.akraino.validation.ui.dao.ValidationTestResultDAO;
 import org.akraino.validation.ui.data.JnksJobNotify;
 import org.akraino.validation.ui.data.SubmissionStatus;
 import org.akraino.validation.ui.entity.LabSilo;
 import org.akraino.validation.ui.entity.Submission;
+import org.akraino.validation.ui.entity.ValidationDbTestResult;
 import org.akraino.validation.ui.service.utils.SubmissionHelper;
 import org.onap.portalsdk.core.logging.logic.EELFLoggerDelegate;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,10 +41,19 @@ public class JenkinsJobNotificationService {
     private SubmissionHelper submissionHelper;
 
     @Autowired
-    private SubmissionService submissionService;
+    private DbSubmissionAdapter submissionService;
 
     @Autowired
     private SiloService siloService;
+
+    @Autowired
+    private DbResultAdapter dbAdapter;
+
+    @Autowired
+    private IntegratedResultService iService;
+
+    @Autowired
+    private ValidationTestResultDAO vTestResultDAO;
 
     public void handle(JnksJobNotify jnksJobNotify) throws Exception {
         String jenkinsJobName = System.getenv("JENKINS_JOB_NAME");
@@ -59,20 +72,24 @@ public class JenkinsJobNotificationService {
             }
         }
         if (siloText == null) {
-            throw new Exception("Could not retrieve silo of the selected lab : "
+            throw new IllegalArgumentException("Could not retrieve silo of the selected lab : "
                     + submission.getTimeslot().getLab().getLab().toString());
         }
-
-        String nexusUrl = UiUtils.NEXUS_URL + "/" + siloText + "/job/" + System.getenv("JENKINS_JOB_NAME") + "/"
-                + String.valueOf(jnksJobNotify.getbuildNumber() + "/results");
-        if (!submission.getBlueprintInstanceForValidation().getLayer().equals(BlueprintLayer.All)) {
-            nexusUrl = nexusUrl + "/" + submission.getBlueprintInstanceForValidation().getLayer().name().toLowerCase();
-        }
-        submission.setNexusResultUrl(nexusUrl);
         LOGGER.info(EELFLoggerDelegate.applicationLogger,
                 "Updating submission with id: " + submission.getSubmissionId());
         submission.setSubmissionStatus(SubmissionStatus.Completed);
         submissionHelper.saveSubmission(submission);
+        ValidationDbTestResult vDbResult = vTestResultDAO.getValidationTestResult(submission);
+        if (vDbResult != null) {
+            ValidationNexusTestResult vNexusResult = iService.getResult(vDbResult.getBlueprintName(),
+                    vDbResult.getVersion(), vDbResult.getLab().getLab(), jnksJobNotify.getTimestamp());
+            if (vNexusResult != null) {
+                List<ValidationNexusTestResult> vNexusResults = new ArrayList<ValidationNexusTestResult>();
+                vNexusResults.add(vNexusResult);
+                dbAdapter.storeResultInDb(vNexusResults);
+            }
+        }
+        dbAdapter.updateTimestamp(jnksJobNotify);
     }
 
 }

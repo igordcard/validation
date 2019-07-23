@@ -31,8 +31,6 @@ In specific, the purpose of the UI is twofold:
 2) Partial control of producing results. In this mode, the UI must be connected with a mariadb instance and the Nexus server where the results are stored.
    Every blueprint owner is responsible of executing tests and storing results in Nexus using his/her own Jenkins instance. The UI only retrieves results from Nexus and displays them.
 
-Currently, the partial control loop is not supported.
-
 In both modes, user authentication, authorization and accounting (AAA) will be supported in order to control access to resources, enforce policies on these resources and audit their usage.
 
 Prerequisites:
@@ -81,6 +79,89 @@ Download the project
 Prerequisites
 ~~~~~~~~~~~~~
 
+- Tools
+
+In order to setup the development environment, the following tools are needed:
+- JDK 1.8
+- Maven
+- docker
+- MySQL client
+
+Execute the commands below in order to install these tools (note that the PROXY_IP and PROXY_PORT variables must be substituted with the ones that are used by the hosting operating system)
+
+If the host is behind a proxy, define this proxy using the following commands:
+
+.. code-block:: console
+    sudo touch /etc/apt/apt.conf.d/proxy.conf
+    sudo sh -c 'echo "Acquire::http::proxy \"http://<PROXY_IP>:<PROXY_PORT>/\";" >> /etc/apt/apt.conf.d/proxy.conf'
+    sudo sh -c 'echo "Acquire::https::proxy \"https://<PROXY_IP>:<PROXY_PORT>/\";" >> /etc/apt/apt.conf.d/proxy.conf'
+    sudo sh -c 'echo "Acquire::ftp::proxy \"ftp://<PROXY_IP>:<PROXY_PORT>/\";" >> /etc/apt/apt.conf.d/proxy.conf'
+    sudo apt-get update
+    export http_proxy=http://<PROXY_IP>:<PROXY_PORT>
+    export https_proxy=http://<PROXY_IP>:<PROXY_PORT>
+
+Install jdk and maven using the following commands:
+
+.. code-block:: console
+    sudo apt install default-jdk
+    sudo apt install maven
+
+If the host is behind a proxy, configure this proxy for maven:
+
+.. code-block:: console
+    nano ~/.m2/settings.xml
+    <Paste the following lines>
+
+    <settings xmlns="http://maven.apache.org/SETTINGS/1.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.0.0 http://maven.apache.org/xsd/settings-1.0.0.xsd">
+     <proxies>
+      <proxy>
+       <active>true</active>
+       <protocol>http</protocol>
+       <host><PROXY_IP></host>
+       <port><PROXY_PORT></port>
+       <nonProxyHosts>127.0.0.1|localhost</nonProxyHosts>
+      </proxy>
+      <proxy>
+       <id>https</id>
+       <active>true</active>
+       <protocol>https</protocol>
+       <host><PROXY_IP></host>
+       <port><PROXY_PORT></port>
+       <nonProxyHosts>127.0.0.1|localhost</nonProxyHosts>
+      </proxy>
+     </proxies>
+    </settings>
+
+    <Save and exit from nano>
+
+Install docker using the following commands:
+
+.. code-block:: console
+    sudo apt install docker.io
+    sudo groupadd docker
+    sudo gpasswd -a $USER docker
+    newgrp docker
+
+If the host is behind a proxy, configure docker to use this proxy:
+
+.. code-block:: console
+    mkdir /etc/systemd/system/docker.service.d
+    sudo nano /etc/systemd/system/docker.service.d/http-proxy.conf
+    <Paste the following lines>
+
+    [Service]
+    Environment="HTTP_PROXY=http://<PROXY_IP>:<PROXY_PORT>/"
+
+    <Save and exit from nano>
+
+    sudo systemctl daemon-reload
+    sudo systemctl restart docker
+
+Install mySQL client:
+
+.. code-block:: console
+    sudo apt install mysql-client
+
 - Database
 
 A mariadb database instance is needed for both modes of the UI with the appropriate databases and tables in order for the back-end system to store and retrieve data.
@@ -91,6 +172,7 @@ Also, a script has been developed, namely validation/docker/mariadb/deploy.sh wh
 
 CONTAINER_NAME, name of the container, default value is akraino-validation-mariadb
 MARIADB_ROOT_PASSWORD, the desired mariadb root user password, this variable is required
+MARIADB_AKRAINO_PASSWORD, the desired mariadb akraino user password, this variable is required
 UI_ADMIN_PASSWORD, the desired Blueprint Validation UI password for the admin user, this variable is required
 UI_AKRAINO_PASSWORD, the desired Blueprint Validation UI password for the akraino user, this variable is required
 REGISTRY, registry of the mariadb image, default value is akraino
@@ -99,19 +181,19 @@ TAG_PRE, first part of the image version, default value is mariadb
 TAG_VER, last part of the image version, default value is latest
 MARIADB_HOST_PORT, port on which mariadb is exposed on host, default value is 3307
 
-Currently, two users are supported for the UI, namely admin (full privileges) and akraino (limited privileges). Their passwords must be defined in the database.
+Currently, two users are supported by the UI, namely admin (full privileges) and akraino (limited privileges). Their passwords must be defined in the database.
 
 In order to build and deploy the image using only the required parameters, the below instructions should be followed:
 
-The mariadb root user password (currently the UI connects to the database using root privileges), the UI admin password and the UI akraino password should be configured using the appropriate variables and the following commands should be executed:
+The mariadb root password, mariadb akraino user password (currently the UI connects to the database using the akraino user), the UI admin password and the UI akraino password should be configured using the appropriate variables and the following commands should be executed:
 
 .. code-block:: console
 
     cd validation/ui
     mvn docker:build -Ddocker.filter=akraino/validation:dev-mariadb-latest
     cd ../docker/mariadb
-    ./deploy.sh TAG_PRE=dev-mariadb MARIADB_ROOT_PASSWORD=<root user password> UI_ADMIN_PASSWORD=<UI admin user password> UI_AKRAINO_PASSWORD=<UI akraino user password>
-    mysql -p<MARIADB_ROOT_PASSWORD> -uroot -h <IP of the mariadb container> < ../../ui/db-scripts/examples/initialize_db_example.sql
+    ./deploy.sh TAG_PRE=dev-mariadb MARIADB_ROOT_PASSWORD=<mariadb root user password> MARIADB_AKRAINO_PASSWORD=<mariadb akraino user password> UI_ADMIN_PASSWORD=<UI admin user password> UI_AKRAINO_PASSWORD=<UI akraino user password>
+    mysql -p<MARIADB_AKRAINO_PASSWORD> -uakraino -h <IP of the mariadb container> < ../../ui/db-scripts/examples/initialize_db_example.sql
 
 In order to retrieve the IP of the mariadb container, the following command should be executed:
 
@@ -121,12 +203,11 @@ In order to retrieve the IP of the mariadb container, the following command shou
 
 Furthermore, the TAG_PRE variable should be defined because the default value is 'mariadb' (note that the 'dev-mariadb' is used for development purposes - look at pom.xml file).
 
-If the database must be re-deployed (it is assumed that the corresponding mariadb container has been stopped and deleted) while the persistent storage already exists (currently, the directory /var/lib/mariadb of the host is used), a different approach should be used after the image build process.
+If the database must be re-deployed (it is assumed that the corresponding mariadb container has been stopped and deleted) while the persistent storage already exists (currently, the 'akraino-validation-mariadb' docker volume is used), a different approach should be used after the image building process.
 
 To this end, another script has been developed, namely validation/docker/mariadb/deploy_with_existing_storage.sh which easily deploys the container. This script accepts the following as input parameters:
 
 CONTAINER_NAME, the name of the container, default value is akraino-validation-mariadb
-MARIADB_ROOT_PASSWORD, the desired mariadb root user password, this variable is required
 REGISTRY, the registry of the mariadb image, default value is akraino
 NAME, the name of the mariadb image, default value is validation
 TAG_PRE, the first part of the image version, default value is mariadb
@@ -135,23 +216,23 @@ MARIADB_HOST_PORT, the port on which mariadb is exposed on host, default value i
 
 In order to deploy the image using only the required parameters and the existing persistent storage, the below instructions should be followed:
 
-The mariadb root user password (currently the UI connects to the database using root privileges) should be configured using the appropriate variable and the following commands should be executed:
+The mariadb root user password should be configured using the appropriate variable and the following commands should be executed:
 
 .. code-block:: console
 
     cd validation/docker/mariadb
-    ./deploy_with_existing_persistent_storage.sh TAG_PRE=dev-mariadb MARIADB_ROOT_PASSWORD=<root user password>
+    ./deploy_with_existing_persistent_storage.sh TAG_PRE=dev-mariadb
 
-Finally, if the database must be re-deployed (it is assumed that the corresponding mariadb container has been stopped and deleted) and the old persistent storage must be deleted, the directory on the host machine where data is stored should be first deleted (note that all database's data will be lost).
+Finally, if the database must be re-deployed (it is assumed that the corresponding mariadb container has been stopped and deleted) and the old persistent storage must be deleted, the used docker volume should be first deleted (note that all database's data will be lost).
 
 To this end, after the image build process, the following commands should be executed:
 
 .. code-block:: console
 
-    sudo rm -rf /var/lib/mariadb
+    docker volume rm akraino-validation-mariadb
     cd validation/docker/mariadb
-    ./deploy.sh TAG_PRE=dev-mariadb MARIADB_ROOT_PASSWORD=<root user password> UI_ADMIN_PASSWORD=<UI admin user password> UI_AKRAINO_PASSWORD=<UI akraino user password>
-    mysql -p<MARIADB_ROOT_PASSWORD> -uroot -h <IP of the mariadb container> < ../../ui/db-scripts/examples/initialize_db_example.sql
+    ./deploy.sh TAG_PRE=dev-mariadb MARIADB_ROOT_PASSWORD=<root user password> MARIADB_AKRAINO_PASSWORD=<mariadb akraino user password> UI_ADMIN_PASSWORD=<UI admin user password> UI_AKRAINO_PASSWORD=<UI akraino user password>
+    mysql -p<MARIADB_AKRAINO_PASSWORD> -uakraino -h <IP of the mariadb container> < ../../ui/db-scripts/examples/initialize_db_example.sql
 
 In the context of the full control loop mode, the following tables must be initialized with appropriate data:
 
@@ -161,7 +242,7 @@ In the context of the full control loop mode, the following tables must be initi
 - blueprint (here every blueprint owner should register the name of the blueprint)
 - blueprint_instance_for_validation (here every blueprint owner should register the blueprint instances for validation, i.e. version, layer and description of a layer)
 
-The following file can be used for initializing the aforementioned data (as it was performed in the above example using the 'mysql -p<MARIADB_ROOT_PASSWORD> -uroot -h <IP of the mariadb container> < ../../ui/db-scripts/examples/initialize_db_example.sql' command):
+The following file can be used for initializing the aforementioned data (as it was performed in the above example using the 'mysql -p<MARIADB_AKRAINO_PASSWORD> -uakraino -h <IP of the mariadb container> < ../../ui/db-scripts/examples/initialize_db_example.sql' command):
 
     db-scripts/examples/initialize_db_example.sql
 
@@ -208,7 +289,7 @@ Then, the following command should be executed:
 
 .. code-block:: console
 
-    mysql -p<MARIADB_ROOT_PASSWORD> -uroot -h <IP of the mariadb container> < ./dbscript.sql
+    mysql -p<MARIADB_AKRAINO_PASSWORD> -uakraino -h <IP of the mariadb container> < ./dbscript.sql
 
 For example, if a user wants to define a new timeslot with the following data:
 
@@ -228,7 +309,7 @@ Then, the following command should be executed:
 
 .. code-block:: console
 
-    mysql -p<MARIADB_ROOT_PASSWORD> -uroot -h <IP of the mariadb container> < ./dbscript.sql
+    mysql -p<MARIADB_AKRAINO_PASSWORD> -uakraino -h <IP of the mariadb container> < ./dbscript.sql
 
 For example, if a user wants to define a new silo with the following data:
 
@@ -248,7 +329,7 @@ Then, the following command should be executed:
 
 .. code-block:: console
 
-    mysql -p<MARIADB_ROOT_PASSWORD> -uroot -h <IP of the mariadb container> < ./dbscript.sql
+    mysql -p<MARIADB_AKRAINO_PASSWORD> -uakraino -h <IP of the mariadb container> < ./dbscript.sql
 
 Furthermore, if a user wants to define a new blueprint, namely "newBlueprint" and a new instance of this blueprint with the following data:
 
@@ -267,7 +348,7 @@ Then, the following command should be executed:
 
 .. code-block:: console
 
-    mysql -p<MARIADB_ROOT_PASSWORD> -uroot -h <IP of the mariadb container> < ./dbscript.sql
+    mysql -p<MARIADB_AKRAINO_PASSWORD> -uakraino -h <IP of the mariadb container> < ./dbscript.sql
 
 The UI will automatically retrieve this new data and display it to the user.
 
@@ -279,18 +360,13 @@ It should be noted that it is not the UI responsibility to deploy a Jenkins inst
 
 Furthermore, this instance must have the following option enabled: "Manage Jenkins -> Configure Global Security -> Prevent Cross Site Request Forgery exploits".
 
-Also, currently, the corresponding Jenkins job should accept the following as input parameters: "SUBMISSION_ID", "BLUEPRINT", "VERSION", "LAYER" and "UI_IP".
+Also, currently, the corresponding Jenkins job should accept the following as input parameters: "SUBMISSION_ID", "BLUEPRINT", "VERSION", "LAYER", "LAB" and "UI_IP".
 The "SUBMISSION_ID" and "UI_IP" parameters (i.e. IP address of the UI host machine-this is needed by the Jenkins instance in order to send back Job completion notification) are created and provided by the back-end part of the UI.
-The "BLUEPRINT", "VERSION" and "LAYER" parameters are configured by the UI user.
+The "BLUEPRINT", "VERSION", "LAYER" and "LAB" parameters are configured by the UI user.
 
 Moreover, as the Jenkins notification plugin (https://wiki.jenkins.io/display/JENKINS/Notification+Plugin) seems to ignore proxy settings, the corresponding Jenkins job must be configured to execute the following commands at the end (Post-build Actions)
 
-.. code-block:: console
-
-    cookie=`curl -v -H "Content-Type: application/x-www-form-urlencoded" -X POST --insecure --silent http://$UI_IP:8080/AECBlueprintValidationUI/login_external -d "loginId=akraino&password=akraino" 2>&1 | grep "Set-Cookie: " | awk -F ':' '{print $2}'`
-    curl -v --cookie $cookie -H "Content-Type: application/json" -X POST --insecure --silent http://$UI_IP:8080/AECBlueprintValidationUI/api/jenkinsJobNotification/ --data '{"submissionId": "'"$SUBMISSION_ID"'" , "name":"'"$JOB_NAME"'", "buildNumber":"'"$BUILD_NUMBER"'"}'
-
-It should be noted that the credentials user=akraino and password=akraino defined in the above commands should be replaced with the credentials of a real UI user. Recall that these credentials are defined in the database.
+TBD
 
 - Nexus server
 
@@ -298,19 +374,17 @@ All the blueprint validation results are stored in Nexus server for both modes o
 
 It should be noted that it is not the UI responsibility to deploy a Nexus server.
 
-In the context of the full control loop, these results must be available in the following url:
+These results must be available in the following url:
 
-    https://nexus.akraino.org/content/sites/logs/<lab_silo>/job/<Jenkins Job name>/<Jenkins job number>/results/<layer>/<name_of_the_test_suite>.
+    https://nexus.akraino.org/content/sites/logs/<lab_silo>/<Blueprint name>/<Blueprint version>/<timestamp>/results/<layer>/<name_of_the_test_suite>
 
-where <lab_silo> is the silo used by a lab for storing results in Nexus (for example 'att-blu-val'), <Jenkins job name> is the Jenkins job name that is triggered by the UI, <Jenkins job number> is the number of the Jenkins job that produced this result, <layer> is the blueprint layer and <name_of_the_test_suite> is the name of the corresponding test suite.
+where <lab_silo> is the silo used by a lab for storing results in Nexus (for example 'att-blu-val'), <Blueprint name> is the name of the blueprint, <Blueprint version> the the blueprint version, <timestamp> is the timestamp used for producinf the results, <layer> is the blueprint layer and <name_of_the_test_suite> is the name of the corresponding test suite.
 
-If multiple test suites are available, multiple test suite names should be created.
+Below, an example URL is illustrated
+
+   https://nexus.akraino.org/content/sites/logs/att-blu-val/rec/master/20190611-132818/results/hardware/bios_version/
 
 Moreover, the results should be stored in the 'output.xml' file and placed in the aforementioned URL using the following format:
-
-TBD
-
-In the context of partial control, the results must be available in the following url:
 
 TBD
 
@@ -330,13 +404,13 @@ The pom.xml file supports the building of an appropriate container image using t
 This script accepts the following as input parameters:
 
 CONTAINER_NAME, the name of the contaner, default value is akraino-validation-ui
-DB_CONNECTION_URL, the URL connection with the akraino database of the maridb instance, this variable is required
-MARIADB_ROOT_PASSWORD, the mariadb root user password, this variable is required
+DB_IP_PORT, the IP and port of the maridb instance, this variable is required
+MARIADB_AKRAINO_PASSWORD, the mariadb akraino user password, this variable is required
 REGISTRY, the registry of the mariadb image, default value is akraino
 NAME, the name of the mariadb image, default value is validation
 TAG_PRE, the first part of the image version, default value is ui
 TAG_VER, the last part of the image version, default value is latest
-JENKINS_URL, the URL of the Jenkins instance, this variable is required
+JENKINS_URL, the URL of the Jenkins instance (http or https must be defined), this variable is required
 JENKINS_USERNAME, the Jenkins user name, this variable is required
 JENKINS_USER_PASSWORD, the Jenkins user password, this variable is required
 JENKINS_JOB_NAME, the name of Jenkins job capable of executing the blueprint validation tests, this variable is required
@@ -345,8 +419,8 @@ JENKINS_PROXY, the needed proxy in order for the Jenkins server to be reachable,
 
 In order to build the image using only the required parameters, the following data is needed:
 
-- The mariadb root user password (look at the Database subsection)
-- The URL for connecting to the akraino database of the mariadb
+- The mariadb akraino user password (look at the Database subsection)
+- The IP and port of the mariadb
 - The Jenkins url
 - The Jenkins username and password
 - The name of Jenkins Job
@@ -358,9 +432,9 @@ Then, the following commands can be executed in order to build and deploy the UI
     cd validation/ui
     mvn docker:build -Ddocker.filter=akraino/validation:dev-ui-latest
     cd ../docker/ui
-    ./deploy.sh TAG_PRE=dev-ui DB_CONNECTION_URL=<Url in order to connect to akraino database of the mariadb> MARIADB_ROOT_PASSWORD=<mariadb root password> JENKINS_URL=<http://jenkinsIP:port> JENKINS_USERNAME=<Jenkins user> JENKINS_USER_PASSWORD=<Jenkins password> JENKINS_JOB_NAME=<Jenkins job name>
+    ./deploy.sh TAG_PRE=dev-ui DB_IP_PORT=<IP and port of the mariadb> MARIADB_AKRAINO_PASSWORD=<mariadb akraino password> JENKINS_URL=<http://jenkinsIP:port> JENKINS_USERNAME=<Jenkins user> JENKINS_USER_PASSWORD=<Jenkins password> JENKINS_JOB_NAME=<Jenkins job name>
 
-The content of the DB_CONNECTION_URL can be for example 172.17.0.3:3306/akraino (i.e. IP and port of the database container plus '/akraino').
+The content of the DB_IP_PORT can be for example '172.17.0.3:3306'.
 
 Furthermore, the TAG_PRE variable should be defined as the default value is 'ui' (note that the 'dev-ui' is used for development purposes - look at pom.xml file).
 
@@ -368,7 +442,7 @@ If no proxy exists, the proxy ip and port variables should not be defined.
 
 The UI should be available in the following url:
 
-    http://localhost:8080/AECBlueprintValidationUI
+    http://localhost:8080/bluvalui/
 
 Note that the deployment uses the network host mode, so the 8080 must be available on the host.
 
@@ -378,12 +452,7 @@ TBD
 
 Limitations
 -----------
-- The partial loop mode is not currently supported.
 - The UI has been tested using Chrome and Firefox browsers.
 - The back-end part of the UI does not take into account the start date and time and duration of the configured timeslot. It immediately triggers the corresponding Jenkins Job.
 - Results data manipulation (filtering, graphical representation, indexing in time order, etc) is not supported.
-- Only the following labs are supported: AT&T, Ericsson, Community and Arm.
-- Only the following tabs are functional: 'Committed Submissions', 'Blueprint Validation Results -> Get by submission id'.
-- The UI configures only the "BLUEPRINT", "VERSION", "LAYER", "SUBMISSION_ID" and "UI_IP" input parameters of the Jenkins job.
 - The silos, labs, and the available blueprints and timeslots must be manually configured in the mariadb database.
-- Logout action is not currently supported.

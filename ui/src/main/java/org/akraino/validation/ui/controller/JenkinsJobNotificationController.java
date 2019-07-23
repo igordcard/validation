@@ -29,20 +29,20 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 
 @Controller
-@RequestMapping("/api/jenkinsJobNotification")
+@RequestMapping("/api/v1/jenkinsjobnotification")
 public class JenkinsJobNotificationController extends RestrictedBaseController {
 
     @Autowired
     JenkinsJobNotificationService service;
 
-    private static final EELFLoggerDelegate LOGGER =
-            EELFLoggerDelegate.getLogger(JenkinsJobNotificationController.class);
+    private static final EELFLoggerDelegate LOGGER = EELFLoggerDelegate
+            .getLogger(JenkinsJobNotificationController.class);
 
     public JenkinsJobNotificationController() {
         super();
     }
 
-    @RequestMapping(value = {"/"}, method = RequestMethod.POST)
+    @RequestMapping(value = { "/" }, method = RequestMethod.POST)
     public ResponseEntity<Void> handle(@RequestBody JnksJobNotify jnksJobNotify) {
         try {
             service.handle(jnksJobNotify);

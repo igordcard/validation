@@ -54,7 +54,11 @@ ignore = ui/target/**,
     ui/src/main/java/org/akraino/validation/ui/conf/ExternalAppConfig.java,
     ui/src/main/java/org/akraino/validation/ui/filter/SecurityXssFilter.java,
     ui/src/main/java/org/akraino/validation/ui/client/jenkins/resources/**.java,
-    ui/src/main/java/org/akraino/validation/ui/client/nexus/resources/**.java
+    ui/src/main/java/org/akraino/validation/ui/client/nexus/resources/**.java,
+    ui/src/main/java/org/akraino/validation/ui/data/SubmissionData.java,
+    ui/src/main/java/org/akraino/validation/ui/service/DbResultAdapter.java,
+    ui/src/main/java/org/akraino/validation/ui/client/nexus/NexusExecutorClient.java,
+    ui/src/main/java/org/akraino/validation/ui/daoimpl/ValidationTestResultDAOImpl.java
 
 [all.JS]
 bears = ESLintBear,JSComplexityBear
@@ -66,6 +70,11 @@ ignore = ui/src/main/webapp/app/fusion/**,
     ui/src/main/webapp/static/**,
     ui/bin/**,
     ui/target/**,
-    ui/src/main/webapp/app/AECBlueprintValidationUI/NewSubmission/AECNewSubmission.js,
-    ui/src/main/webapp/app/AECBlueprintValidationUI/CommittedSubmissions/AECCommittedSubmissions.js,
-    ui/src/main/webapp/app/AECBlueprintValidationUI/GetBySubmissionId/AECGetBySubmissionId.js
+    ui/src/main/webapp/app/BluvalUI/NewSubmission/NewSubmission.js,
+    ui/src/main/webapp/app/BluvalUI/CommittedSubmissions/CommittedSubmissions.js,
+    ui/src/main/webapp/app/BluvalUI/GetBySubmissionId/GetBySubmissionId.js,
+    ui/src/main/webapp/app/BluvalUI/GetMostRecent/GetMostRecent.js,
+    ui/src/main/webapp/app/BluvalUI/GetLastRun/GetLastRun.js,
+    ui/src/main/webapp/app/BluvalUI/GetByTimestamp/GetByTimestamp.js,
+    ui/src/main/webapp/app/BluvalUI/GetBasedOnDate/GetBasedOnDate.js,
+    ui/src/main/webapp/app/BluvalUI/ValidationResults/ValidationResults.js

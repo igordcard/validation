@@ -23,19 +23,9 @@ import java.net.Proxy;
 import java.net.URL;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
-import java.security.cert.X509Certificate;
-import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
 
 import javax.annotation.Nonnull;
-import javax.net.ssl.HostnameVerifier;
-import javax.net.ssl.HttpsURLConnection;
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLSession;
-import javax.net.ssl.TrustManager;
-import javax.net.ssl.X509TrustManager;
 import javax.ws.rs.core.MultivaluedMap;
 
 import org.akraino.validation.ui.client.jenkins.resources.CrumbResponse;
@@ -44,6 +34,7 @@ import org.akraino.validation.ui.client.jenkins.resources.Parameters;
 import org.akraino.validation.ui.client.jenkins.resources.QueueJobItem;
 import org.apache.commons.httpclient.HttpException;
 import org.onap.portalsdk.core.logging.logic.EELFLoggerDelegate;
+import org.springframework.stereotype.Service;
 
 import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.ClientHandlerException;
@@ -54,15 +45,14 @@ import com.sun.jersey.api.client.config.ClientConfig;
 import com.sun.jersey.api.client.config.DefaultClientConfig;
 import com.sun.jersey.api.client.filter.HTTPBasicAuthFilter;
 import com.sun.jersey.api.json.JSONConfiguration;
-import com.sun.jersey.client.urlconnection.HTTPSProperties;
 import com.sun.jersey.client.urlconnection.HttpURLConnectionFactory;
 import com.sun.jersey.client.urlconnection.URLConnectionClientHandler;
 
+@Service
 public final class JenkinsExecutorClient {
 
     private static final EELFLoggerDelegate LOGGER = EELFLoggerDelegate.getLogger(JenkinsExecutorClient.class);
 
-    private static final List<JenkinsExecutorClient> JENKINS_CLIENTS = new ArrayList<>();
     private static final Object LOCK = new Object();
     private final Client client;
 
@@ -70,13 +60,10 @@ public final class JenkinsExecutorClient {
     private final String password;
     private final String baseurl;
 
-    private final HostnameVerifier hostnameVerifier;
-    private final TrustManager[] trustAll;
-
-    private JenkinsExecutorClient(String newUser, String newPassword, String newBaseurl) {
-        this.user = newUser;
-        this.password = newPassword;
-        this.baseurl = newBaseurl;
+    public JenkinsExecutorClient() {
+        this.baseurl = System.getenv("JENKINS_URL");
+        this.user = System.getenv("JENKINS_USERNAME");
+        this.password = System.getenv("JENKINS_USER_PASSWORD");
         ClientConfig clientConfig = new DefaultClientConfig();
         clientConfig.getFeatures().put(JSONConfiguration.FEATURE_POJO_MAPPING, Boolean.TRUE);
         this.client = new Client(new URLConnectionClientHandler(new HttpURLConnectionFactory() {
@@ -97,44 +84,6 @@ public final class JenkinsExecutorClient {
             }
         }), clientConfig);
         this.client.addFilter(new HTTPBasicAuthFilter(user, password));
-        // Create all-trusting host name verifier
-        hostnameVerifier = new HostnameVerifier() {
-            @Override
-            public boolean verify(String hostname, SSLSession session) {
-                return true;
-            }
-        };
-        // Create a trust manager that does not validate certificate chains
-        trustAll = new TrustManager[] {new X509TrustManager() {
-            @Override
-            public X509Certificate[] getAcceptedIssuers() {
-                return null; // Not relevant.
-            }
-
-            @Override
-            public void checkClientTrusted(X509Certificate[] certs, String authType) {
-                // Do nothing. Just allow them all.
-            }
-
-            @Override
-            public void checkServerTrusted(X509Certificate[] certs, String authType) {
-                // Do nothing. Just allow them all.
-            }
-        }};
-    }
-
-    public static synchronized JenkinsExecutorClient getInstance(@Nonnull String newUser, @Nonnull String newPassword,
-            @Nonnull String newBaseurl) throws MalformedURLException {
-        new URL(newBaseurl);
-        for (JenkinsExecutorClient client : JENKINS_CLIENTS) {
-            if (client.getBaseUrl().equals(newBaseurl) && client.getUser().equals(newUser)
-                    && client.getPassword().equals(newPassword)) {
-                return client;
-            }
-        }
-        JenkinsExecutorClient client = new JenkinsExecutorClient(newUser, newPassword, newBaseurl);
-        JENKINS_CLIENTS.add(client);
-        return client;
     }
 
     public String getUser() {
@@ -150,7 +99,7 @@ public final class JenkinsExecutorClient {
     }
 
     public QueueJobItem getQueueJobItem(URL queueJobItemUrl) throws HttpException, ClientHandlerException,
-            UniformInterfaceException, KeyManagementException, NoSuchAlgorithmException {
+    UniformInterfaceException, KeyManagementException, NoSuchAlgorithmException {
         synchronized (LOCK) {
             LOGGER.info(EELFLoggerDelegate.applicationLogger, "Trying to get a Jenkins resource");
             String crumb = this.getCrumb();
@@ -159,29 +108,17 @@ public final class JenkinsExecutorClient {
             LOGGER.debug(EELFLoggerDelegate.debugLogger, "Request URI of get: " + webResource.getURI().toString());
             WebResource.Builder builder = webResource.getRequestBuilder();
             builder.header("Jenkins-Crumb", crumb);
-            ClientResponse response =
-                    builder.accept("application/json").type("application/json").get(ClientResponse.class);
+            ClientResponse response = builder.accept("application/json").type("application/json")
+                    .get(ClientResponse.class);
             if (response.getStatus() != 200) {
                 throw new HttpException("Get on Jenkins failed. HTTP error code : " + response.getStatus()
-                        + " and message: " + response.getEntity(String.class));
+                + " and message: " + response.getEntity(String.class));
             }
             LOGGER.info(EELFLoggerDelegate.applicationLogger, "Get of Jenkins resource succeeded");
             return response.getEntity(QueueJobItem.class);
         }
     }
 
-    /**
-     *
-     * @param jobName
-     * @param parameters
-     * @return The URL of the corresponding Jenkins queue job item
-     * @throws UniformInterfaceException
-     * @throws ClientHandlerException
-     * @throws HttpException
-     * @throws MalformedURLException
-     * @throws NoSuchAlgorithmException
-     * @throws KeyManagementException
-     */
     public URL postJobWithQueryParams(@Nonnull String jobName, @Nonnull Parameters parameters)
             throws HttpException, ClientHandlerException, UniformInterfaceException, MalformedURLException,
             KeyManagementException, NoSuchAlgorithmException {
@@ -194,15 +131,15 @@ public final class JenkinsExecutorClient {
                 queryParams = queryParams + parameter.getName() + "=" + parameter.getValue() + "&";
             }
             queryParams = queryParams.substring(0, queryParams.length() - 1);
-            WebResource webResource =
-                    this.client.resource(this.getBaseUrl() + "/job/" + jobName + "/buildWithParameters" + queryParams);
+            WebResource webResource = this.client
+                    .resource(this.getBaseUrl() + "/job/" + jobName + "/buildWithParameters" + queryParams);
             LOGGER.debug(EELFLoggerDelegate.debugLogger, "Request URI of post: " + webResource.getURI().toString());
             WebResource.Builder builder = webResource.getRequestBuilder();
             builder.header("Jenkins-Crumb", crumb);
             ClientResponse response = builder.type("application/json").post(ClientResponse.class, String.class);
             if (response.getStatus() != 200 && response.getStatus() != 201) {
                 throw new HttpException("Post of Jenkins job failed. HTTP error code : " + response.getStatus()
-                        + " and message: " + response.getEntity(String.class));
+                + " and message: " + response.getEntity(String.class));
             }
             LOGGER.info(EELFLoggerDelegate.applicationLogger, "Jenkins job has been successfully triggered");
             URL buildQueueUrl = null;
@@ -219,32 +156,19 @@ public final class JenkinsExecutorClient {
     }
 
     private String getCrumb() throws HttpException, ClientHandlerException, UniformInterfaceException,
-            KeyManagementException, NoSuchAlgorithmException {
+    KeyManagementException, NoSuchAlgorithmException {
         LOGGER.info(EELFLoggerDelegate.applicationLogger, "Attempting to get the crumb");
-        setProperties();
         String crumbUri = baseurl + "/crumbIssuer/api/json";
         WebResource webResource = this.client.resource(crumbUri);
-        ClientResponse response =
-                webResource.accept("application/json").type("application/json").get(ClientResponse.class);
+        ClientResponse response = webResource.accept("application/json").type("application/json")
+                .get(ClientResponse.class);
         if (response.getStatus() == 201 || response.getStatus() == 200) {
             CrumbResponse crumbResponse = response.getEntity(CrumbResponse.class);
             LOGGER.info(EELFLoggerDelegate.applicationLogger, "Successful crumb retrieval");
             return crumbResponse.getCrumb();
         }
         throw new HttpException("Get crumb attempt towards Jenkins failed. HTTP error code: " + response.getStatus()
-                + " and message: " + response.getEntity(String.class));
-    }
-
-    private void setProperties() throws NoSuchAlgorithmException, KeyManagementException {
-        SSLContext sslContext = SSLContext.getInstance("SSL");
-        sslContext.init(null, this.trustAll, new java.security.SecureRandom());
-        HttpsURLConnection.setDefaultSSLSocketFactory(sslContext.getSocketFactory());
-        // Install the all-trusting host verifier
-        HttpsURLConnection.setDefaultHostnameVerifier(this.hostnameVerifier);
-        DefaultClientConfig config = new DefaultClientConfig();
-        Map<String, Object> properties = config.getProperties();
-        HTTPSProperties httpsProperties = new HTTPSProperties((str, sslSession) -> true, sslContext);
-        properties.put(HTTPSProperties.PROPERTY_HTTPS_PROPERTIES, httpsProperties);
+        + " and message: " + response.getEntity(String.class));
     }
 
 }

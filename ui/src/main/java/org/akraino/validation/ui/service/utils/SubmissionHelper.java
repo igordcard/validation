@@ -33,4 +33,8 @@ public class SubmissionHelper {
         return submission;
     }
 
+    public Submission getSubmission(int submissionId) {
+        return submissionDAO.getSubmission(submissionId);
+    }
+
 }

@@ -16,5 +16,5 @@
 package org.akraino.validation.ui.data;
 
 public enum Lab {
-    ATT, Ericsson, Community, Arm
+    att, ericsson, community, arm
 }

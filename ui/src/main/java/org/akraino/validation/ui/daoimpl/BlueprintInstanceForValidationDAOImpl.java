@@ -17,6 +17,8 @@ package org.akraino.validation.ui.daoimpl;
 
 import java.util.List;
 
+import javax.annotation.Nonnull;
+
 import org.akraino.validation.ui.dao.BlueprintInstanceForValidationDAO;
 import org.akraino.validation.ui.entity.BlueprintInstanceForValidation;
 import org.hibernate.Criteria;
@@ -30,8 +32,8 @@ import org.springframework.stereotype.Repository;
 @Repository
 public class BlueprintInstanceForValidationDAOImpl implements BlueprintInstanceForValidationDAO {
 
-    private static final EELFLoggerDelegate LOGGER =
-            EELFLoggerDelegate.getLogger(BlueprintInstanceForValidationDAOImpl.class);
+    private static final EELFLoggerDelegate LOGGER = EELFLoggerDelegate
+            .getLogger(BlueprintInstanceForValidationDAOImpl.class);
 
     @Autowired
     private SessionFactory sessionFactory;
@@ -47,25 +49,28 @@ public class BlueprintInstanceForValidationDAOImpl implements BlueprintInstanceF
     }
 
     @Override
-    public BlueprintInstanceForValidation getBlueprintInstanceForValidation(Integer instId) {
+    public BlueprintInstanceForValidation getBlueprintInstanceForValidation(@Nonnull Integer instId) {
         Criteria criteria = getSession().createCriteria(BlueprintInstanceForValidation.class);
         criteria.add(Restrictions.eq("id", String.valueOf(instId)));
         return criteria.list() == null ? null : (BlueprintInstanceForValidation) criteria.list().get(0);
     }
 
     @Override
-    public void saveOrUpdate(BlueprintInstanceForValidation blueprintInst) {
+    public void saveOrUpdate(@Nonnull BlueprintInstanceForValidation blueprintInst) {
         getSession().saveOrUpdate(blueprintInst);
+        getSession().flush();
     }
 
     @Override
-    public void merge(BlueprintInstanceForValidation blueprintInst) {
+    public void merge(@Nonnull BlueprintInstanceForValidation blueprintInst) {
         getSession().merge(blueprintInst);
+        getSession().flush();
     }
 
     @Override
-    public void deleteBlueprintInstanceForValidation(BlueprintInstanceForValidation blueprintInst) {
+    public void deleteBlueprintInstanceForValidation(@Nonnull BlueprintInstanceForValidation blueprintInst) {
         getSession().delete(blueprintInst);
+        getSession().flush();
     }
 
     @Override
@@ -73,6 +78,7 @@ public class BlueprintInstanceForValidationDAOImpl implements BlueprintInstanceF
         if (getSession().createQuery("delete from BlueprintInstanceForValidation").executeUpdate() > 0) {
             LOGGER.info(EELFLoggerDelegate.applicationLogger,
                     "All blueprint instances for validation entries are cleaned up");
+            getSession().flush();
         }
     }
 

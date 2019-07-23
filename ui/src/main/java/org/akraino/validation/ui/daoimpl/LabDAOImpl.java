@@ -17,7 +17,10 @@ package org.akraino.validation.ui.daoimpl;
 
 import java.util.List;
 
+import javax.annotation.Nonnull;
+
 import org.akraino.validation.ui.dao.LabDAO;
+import org.akraino.validation.ui.data.Lab;
 import org.akraino.validation.ui.entity.LabInfo;
 import org.hibernate.Criteria;
 import org.hibernate.Session;
@@ -46,31 +49,42 @@ public class LabDAOImpl implements LabDAO {
     }
 
     @Override
-    public LabInfo getLab(Integer labId) {
+    public LabInfo getLab(@Nonnull Integer labId) {
         Criteria criteria = getSession().createCriteria(LabInfo.class);
         criteria.add(Restrictions.eq("id", String.valueOf(labId)));
         return criteria.list() == null ? null : (LabInfo) criteria.list().get(0);
     }
 
     @Override
-    public void saveOrUpdate(LabInfo lab) {
+    public LabInfo getLab(@Nonnull Lab lab) {
+        Criteria criteria = getSession().createCriteria(LabInfo.class);
+        criteria.add(Restrictions.eq("lab", lab));
+        return criteria.list() == null ? null : (LabInfo) criteria.list().get(0);
+    }
+
+    @Override
+    public void saveOrUpdate(@Nonnull LabInfo lab) {
         getSession().saveOrUpdate(lab);
+        getSession().flush();
     }
 
     @Override
-    public void merge(LabInfo lab) {
+    public void merge(@Nonnull LabInfo lab) {
         getSession().merge(lab);
+        getSession().flush();
     }
 
     @Override
-    public void deleteLab(LabInfo lab) {
+    public void deleteLab(@Nonnull LabInfo lab) {
         getSession().delete(lab);
+        getSession().flush();
     }
 
     @Override
     public void deleteAll() {
         if (getSession().createQuery("delete from Lab").executeUpdate() > 0) {
             LOGGER.info(EELFLoggerDelegate.applicationLogger, "All lab entries are cleaned up");
+            getSession().flush();
         }
     }
 

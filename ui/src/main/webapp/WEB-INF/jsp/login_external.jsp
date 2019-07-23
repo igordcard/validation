@@ -23,92 +23,105 @@ limitations under the License.
 %>
 
 <html>
-	<head>
-		<meta charset="utf-8">
-		<meta http-equiv="X-UA-Compatible" content="IE=edge">
-		<meta name="viewport" content="width=device-width, initial-scale=1">
-		<style>
-		html {
-			font-family: Verdana, Arial, Helvetica, sans-serif;
-		}
-		body {
-			padding-top: 15px;
-		}
-		.logo {
-			position: fixed;
-			left: 15px;
-			top: 15px;
-			z-index: -1;
-		}
-		.loginError {
-			font-size: 18px;
-			color: red;
-			text-align: center;
-		}
-		.login {
-			font-size: 16px;
-			display: block;
-			margin-left: auto;
-			margin-right: auto;
-			text-align: center;
-			width: 100%;
-		}
-		.login input[type=submit] {
-			font-size: 16px;
-		}
-		.terms {
-			font-size: 10px;
-			text-align: center;
-			margin-left: auto;
-			margin-right: auto;
-		}
-		.terms a {
-			font-size: 10px;
-			text-align: center;
-			margin-left: auto;
-			margin-right: auto;
-		}
-		</style>
-	</head>
-	<body>
 
-		<div class="login">
-			<img src="static/fusion/images/logo_akraino_edge_stack.png" alt="Akraino" width="400&quot;" height="114" border="0"/>
-			<h2>
-				<%=appDisplayName%>
-			</h2>
-			<br />
-			<form action="login_external" method="POST">
-				<label for="loginId">Login ID:</label>
-				<input id="loginId" name="loginId" type="text" style="width: 140px;height:25px;border-radius:7px;font-size:18px;padding-left:5px;" maxlength="30">
-				<br/>
-				<br/>
-				<label for="password">Password:</label>
-				<input id="password" name="password" type="password" style="width: 140px;height:25px;border-radius:7px;font-size:18px;padding-left:5px;"
-							maxlength="30" >
-				<br />
-				<br />
-				<input id="loginBtn" type="submit" alt="Login" value="Login">
-			</form>
-		</div>
-		<br />
-		<br />
-		<div class="loginError">${model.error}</div>
-		<br />
-		<br />
-		<br />
-		<br />
-		<br />
-		<br />
-		<div id="footer">
-			<div class="terms">
-			Copyright <script>new Date().getFullYear()>2017&&document.write(new Date().getFullYear());</script>
-				Akraino Edge Stack and Linux Foundation.
-			</div>
-			<p>
-			<div class="terms">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        html {
+            font-family: Verdana, Arial, Helvetica, sans-serif;
+        }
 
-			</div>
-		</div>
-	</body>
+        body {
+            padding-top: 15px;
+        }
+
+        .logo {
+            position: fixed;
+            left: 15px;
+            top: 15px;
+            z-index: -1;
+        }
+
+        .loginError {
+            font-size: 18px;
+            color: red;
+            text-align: center;
+        }
+
+        .login {
+            font-size: 16px;
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+            text-align: center;
+            width: 100%;
+        }
+
+        .login input[type=submit] {
+            font-size: 16px;
+        }
+
+        .terms {
+            font-size: 10px;
+            text-align: center;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .terms a {
+            font-size: 10px;
+            text-align: center;
+            margin-left: auto;
+            margin-right: auto;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="login">
+        <img src="static/fusion/images/logo_akraino_edge_stack.png" alt="Akraino" width="400&quot;" height="114"
+            border="0" />
+        <h2>
+            <%=appDisplayName%>
+        </h2>
+        <br />
+        <form action="login_external" method="POST">
+            <label for="loginId">Login ID:</label>
+            <input id="loginId" name="loginId" type="text"
+                style="width: 140px;height:25px;border-radius:7px;font-size:18px;padding-left:5px;" maxlength="30">
+            <br />
+            <br />
+            <label for="password">Password:</label>
+            <input id="password" name="password" type="password"
+                style="width: 140px;height:25px;border-radius:7px;font-size:18px;padding-left:5px;" maxlength="30">
+            <br />
+            <br />
+            <input id="loginBtn" type="submit" alt="Login" value="Login">
+        </form>
+    </div>
+    <br />
+    <br />
+    <div class="loginError">${model.error}</div>
+    <br />
+    <br />
+    <br />
+    <br />
+    <br />
+    <br />
+    <div id="footer">
+        <div class="terms">
+            Copyright
+            <script>new Date().getFullYear() > 2017 && document.write(new Date().getFullYear());</script>
+            Akraino Edge Stack and Linux Foundation.
+        </div>
+        <p>
+            <div class="terms">
+
+            </div>
+    </div>
+</body>
+
 </html>

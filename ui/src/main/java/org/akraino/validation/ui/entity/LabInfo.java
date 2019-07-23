@@ -24,6 +24,8 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Table;
 
+import org.akraino.validation.ui.data.Lab;
+
 @Entity
 @Table(name = "lab")
 public class LabInfo implements Serializable {
@@ -39,7 +41,7 @@ public class LabInfo implements Serializable {
     private int labId;
 
     @Column(name = "lab")
-    private org.akraino.validation.ui.data.Lab lab;
+    private Lab lab;
 
     public int getLabId() {
         return labId;
@@ -49,11 +51,11 @@ public class LabInfo implements Serializable {
         this.labId = labId;
     }
 
-    public org.akraino.validation.ui.data.Lab getLab() {
+    public Lab getLab() {
         return lab;
     }
 
-    public void setLab(org.akraino.validation.ui.data.Lab lab) {
+    public void setLab(Lab lab) {
         this.lab = lab;
     }
 }

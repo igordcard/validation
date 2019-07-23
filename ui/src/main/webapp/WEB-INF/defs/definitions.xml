@@ -17,13 +17,25 @@
 
 <tiles-definitions>
 
-    <definition name="newSubmission"
-        template="/app/AECBlueprintValidationUI/NewSubmission/NewSubmission.html" />
+    <definition name="newsubmission"
+        template="/app/BluvalUI/NewSubmission/NewSubmission.html" />
 
-    <definition name="committedSubmissions"
-        template="/app/AECBlueprintValidationUI/CommittedSubmissions/CommittedSubmissions.html" />
+    <definition name="committedsubmissions"
+        template="/app/BluvalUI/CommittedSubmissions/CommittedSubmissions.html" />
 
-    <definition name="getBySubmissionId"
-        template="/app/AECBlueprintValidationUI/GetBySubmissionId/GetBySubmissionId.html" />
+    <definition name="getmostrecent"
+        template="/app/BluvalUI/GetMostRecent/GetMostRecent.html" />
+
+    <definition name="getbytimestamp"
+        template="/app/BluvalUI/GetByTimestamp/GetByTimestamp.html" />
+
+    <definition name="getlastrun"
+        template="/app/BluvalUI/GetLastRun/GetLastRun.html" />
+
+    <definition name="getbasedondate"
+        template="/app/BluvalUI/GetBasedOnDate/GetBasedOnDate.html" />
+
+    <definition name="validationresults"
+        template="/app/BluvalUI/ValidationResults/ValidationResults.html" />
 
 </tiles-definitions>
