@@ -34,3 +34,4 @@ blueprint:
         -
             name: conformance
             what: conformance
+            optional: "True"

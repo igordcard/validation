@@ -30,15 +30,22 @@ import yaml
 from bluutil import BluvalError
 from bluutil import ShowStopperError
 
+_OPTIONAL_ALSO = False
 
 def run_testcase(testcase):
     """Runs a single testcase
     """
     name = testcase.get('name')
     skip = testcase.get('skip', "False")
+    optional = testcase.get('optional', "False")
     if skip.lower() == "true":
         # skip is mentioned and true.
         print('Skipping {}'.format(name))
+        return
+    print("_OPTIONAL_ALSO {}".format(_OPTIONAL_ALSO))
+    if  not _OPTIONAL_ALSO and optional.lower() == "true":
+        # Optional Test case.
+        print('Ignoring Optional {} testcase'.format(name))
         return
     show_stopper = testcase.get('show_stopper', "False")
     what = testcase.get('what')
@@ -92,14 +99,20 @@ def validate_blueprint(yaml_loc, layer):
 @click.command()
 @click.argument('blueprint')
 @click.option('--layer', '-l')
-def main(blueprint, layer):
+@click.option('--optional_also', '-o', is_flag=True)
+def main(blueprint, layer, optional_also):
     """Takes blueprint name and optional layer. Validates inputs and derives
     yaml location from blueprint name. Invokes validate on blue print.
     """
+    global _OPTIONAL_ALSO  # pylint: disable=global-statement
     mypath = Path(__file__).absolute()
     yaml_loc = mypath.parents[0].joinpath('bluval-{}.yaml'.format(blueprint))
     if layer is not None:
         layer = layer.lower()
+    if optional_also:
+        _OPTIONAL_ALSO = True
+        print("_OPTIONAL_ALSO {}".format(_OPTIONAL_ALSO))
+
     try:
         validate_blueprint(yaml_loc, layer)
     except ShowStopperError as err:
