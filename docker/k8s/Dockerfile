@@ -17,8 +17,9 @@
 # ref: https://docs.docker.com/develop/develop-images/dockerfile_best-practices/#use-multi-stage-builds
 FROM golang:alpine3.9 as build
 
-# Sonobuoy supports Kubernetes versions 1.11, 1.12 and 1.13
-ARG SB_TAG=v0.14.3
+# Sonobuoy supports 3 Kubernetes minor versions: the current release and 2
+# minor versions before.
+ARG SB_TAG=v0.15.1
 # Determine the latest stable git tag at build time based on stable major version
 ARG K8S_VER=1.15
 
