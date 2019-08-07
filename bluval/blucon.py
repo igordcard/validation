@@ -29,22 +29,41 @@ import yaml
 from bluutil import BluvalError
 from bluutil import ShowStopperError
 
+def get_volumes(layer):
+    """Create a list with volumes to mount in the container for given layer
+    """
+    mypath = Path(__file__).absolute()
+    volume_yaml = yaml.safe_load(mypath.parents[0].joinpath("volumes.yaml").open())
+
+    if layer not in volume_yaml['layers']:
+        return ''
+    if volume_yaml['layers'][layer] is None:
+        return ''
+
+    volume_list = ''
+    for vol in volume_yaml['layers'][layer]:
+        if volume_yaml['volumes'][vol]['local'] == '':
+            continue
+        volume_list = (volume_list + ' -v ' +
+                       volume_yaml['volumes'][vol]['local'] + ':' +
+                       volume_yaml['volumes'][vol]['target'])
+    return volume_list
+
+
 def invoke_docker(bluprint, layer):
     """Start docker container for given layer
     """
-    cmd = ("docker run"
-           " -v $HOME/.ssh:/root/.ssh"
-           " -v $HOME/.kube/config:/root/.kube/config"
-           " -v $VALIDATION_HOME/tests/variables.yaml:"
-           "/opt/akraino/validation/tests/variables.yaml"
-           " -v $AKRAINO_HOME/results:/opt/akraino/results"
+
+    volume_list = get_volumes('common') + get_volumes(layer)
+    cmd = ("docker run" + volume_list +
            " akraino/validation:{0}-latest"
-           " bin/sh -c"
+           " /bin/sh -c"
            " 'cd /opt/akraino/validation "
            "&& python bluval/bluval.py -l {0} {1}'").format(layer, bluprint)
+
     args = [cmd]
     try:
-        print('Invoking {}'.format(args))
+        print('\nInvoking {}'.format(args))
         subprocess.call(args, shell=True)
     except OSError:
         #print('Error while executing {}'.format(args))
