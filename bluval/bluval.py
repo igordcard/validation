@@ -96,6 +96,20 @@ def validate_blueprint(yaml_loc, layer):
     validate_layer(blueprint, layer)
 
 
+def write_test_info(layer):
+    """writes testing info to test_info.yaml
+    """
+    data = dict(
+        test_info=dict(
+            layer=layer,
+            optional=_OPTIONAL_ALSO,
+        )
+    )
+
+    with open('/opt/akraino/results/test_info.yaml', 'w') as outfile:
+        yaml.dump(data, outfile, default_flow_style=False)
+
+
 @click.command()
 @click.argument('blueprint')
 @click.option('--layer', '-l')
@@ -114,6 +128,7 @@ def main(blueprint, layer, optional_also):
         print("_OPTIONAL_ALSO {}".format(_OPTIONAL_ALSO))
 
     try:
+        write_test_info(layer)
         validate_blueprint(yaml_loc, layer)
     except ShowStopperError as err:
         print('ShowStopperError:', err)

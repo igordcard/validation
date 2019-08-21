@@ -29,6 +29,8 @@ import yaml
 from bluutil import BluvalError
 from bluutil import ShowStopperError
 
+_OPTIONAL_ALSO = False
+
 def get_volumes(layer):
     """Create a list with volumes to mount in the container for given layer
     """
@@ -59,7 +61,8 @@ def invoke_docker(bluprint, layer):
            " akraino/validation:{0}-latest"
            " /bin/sh -c"
            " 'cd /opt/akraino/validation "
-           "&& python bluval/bluval.py -l {0} {1}'").format(layer, bluprint)
+           "&& python bluval/bluval.py -l {0} {1} {2}'"
+           .format(layer, ("-o" if _OPTIONAL_ALSO else ""), bluprint))
 
     args = [cmd]
     try:
@@ -86,14 +89,19 @@ def invoke_dockers(yaml_loc, layer, blueprint_name):
 @click.command()
 @click.argument('blueprint')
 @click.option('--layer', '-l')
-def main(blueprint, layer):
+@click.option('--optional_also', '-o', is_flag=True)
+def main(blueprint, layer, optional_also):
     """Takes blueprint name and optional layer. Validates inputs and derives
     yaml location from blueprint name. Invokes validate on blue print.
     """
+    global _OPTIONAL_ALSO  # pylint: disable=global-statement
     mypath = Path(__file__).absolute()
     yaml_loc = mypath.parents[0].joinpath('bluval-{}.yaml'.format(blueprint))
     if layer is not None:
         layer = layer.lower()
+    if optional_also:
+        _OPTIONAL_ALSO = True
+        print("_OPTIONAL_ALSO {}".format(_OPTIONAL_ALSO))
     try:
         invoke_dockers(yaml_loc, layer, blueprint)
     except ShowStopperError as err:
