@@ -116,3 +116,11 @@ All notable changes to this project will be documented in this file.
 
 ### Removed
 - Deletion of submissions
+
+## [0.1.0-SNAPSHOT] - 23 August 2019
+### Added
+
+### Changed
+
+### Removed
+- Unused credentials in music.properties file
