@@ -274,3 +274,38 @@ want to enter the container, add */bin/sh* at the end of the command above.
 
 Normally, this conainer is not used directly, but instead leveraged via
 sonobuoy.
+
+The helm container
+==================
+
+Building and pushing the container
+----------------------------------
+
+To build just the helm container, use the command:
+
+.. code-block:: console
+
+    make helm-build [ REGISTRY=<dockerhub_registry> NAME=<image_name>]
+
+To both build and push the container, use the command:
+
+.. code-block:: console
+
+    make helm [ REGISTRY=<dockerhub_registry> NAME=<image_name>]
+
+Using the container
+-------------------
+
+Container needs to be started with the SSH key file mounted. Users
+credentials can be provided via a mounted variables.yaml file.
+
+The results folder can be mounted as well; this way the logs are
+stored on the local server.
+
+.. code-block:: console
+
+    docker run -ti -v /home/jenkins/openrc:/root/openrc \
+    -v /home/foobar/.ssh/id_rsa:/root/.ssh/id_rsa \
+    -v /home/foobar/variables.yaml:/opt/akraino/validation/tests/variables.yaml \
+    -v /home/foobar/helm_results:/opt/akraino/results/ \
+    akraino/validation:helm-latest
