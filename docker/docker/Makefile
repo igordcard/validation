@@ -1,6 +1,5 @@
 ##############################################################################
-# Copyright (c) 2019 AT&T Intellectual Property.                             #
-# Copyright (c) 2019 Nokia.                                                  #
+# Copyright (c) 2019 AT&T, ENEA AB, Nokia and others                         #
 #                                                                            #
 # Licensed under the Apache License, Version 2.0 (the "License");            #
 # you maynot use this file except in compliance with the License.            #
@@ -15,19 +14,10 @@
 # limitations under the License.                                             #
 ##############################################################################
 
+.PHONY: all
+all: .push_image .push_manifest
 
-*** Settings ***
-Documentation     Runs the Docker Bench for Security script which checks for
-...               dozens of common best-practices around deploying Docker
-...               containers in production.
-Library           BuiltIn
-Resource          docker_bench.resource
-Suite Setup       Open Connection And Log In
-Suite Teardown    Close All Connections
-Test Setup        Upload Test Software To Nodes
-Test Teardown     Remove Test Software From Nodes
+.PHONY: build
+build: .build
 
-
-*** Test Cases ***
-Security Check By Docker Bench
-    Run Test Software On Nodes
+include ../build.mk

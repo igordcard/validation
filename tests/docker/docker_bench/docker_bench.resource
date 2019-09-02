@@ -26,7 +26,7 @@ Library            String
 
 *** Variables ***
 ${REPORTDIR}       ${LOG_PATH}${/}${SUITE_NAME.replace(' ','_')}
-${SRCDIR}          ./docker-bench-security
+${SRCDIR}          /opt/akraino/docker-bench-security
 ${DESTDIR}         /tmp/docker-bench-security
 ${NODEDIR}         /tmp/docker-bench-security-run
 ${SSH_OPTS}        -o StrictHostKeyChecking=no
@@ -36,11 +36,6 @@ ${SSH_OPTS}        -o StrictHostKeyChecking=no
 Open Connection And Log In
     Open Connection        ${HOST}
     Login With Public Key  ${USERNAME}  ${SSH_KEYFILE}
-
-Download Docker Bench Software
-    Remove Docker Bench Software
-    Run Process            git  clone
-    ...                    https://github.com/docker/docker-bench-security.git  ${SRCDIR}
 
 Upload Test Software To Nodes
     Put Directory          ${SRCDIR}  ${DESTDIR}  recursive=True
@@ -65,9 +60,6 @@ Copy Test Software To All Nodes
     :FOR  ${node}  IN  @{nodes}
     \   Execute Command   ssh ${SSH_OPTS} ${node} "mkdir -p ${NODEDIR}"
     \   Execute Command   scp ${SSH_OPTS} -rp ${DESTDIR}/. ${node}:${NODEDIR}
-
-Remove Docker Bench Software
-    Remove Directory       ${SRCDIR}  recursive=True
 
 Remove Test Software From Nodes
     :FOR  ${node}  IN  @{nodes}
