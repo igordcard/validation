@@ -31,6 +31,7 @@ import org.onap.portalsdk.core.logging.format.AppMessagesEnum;
 import org.onap.portalsdk.core.logging.logic.EELFLoggerDelegate;
 import org.onap.portalsdk.core.objectcache.AbstractCacheManager;
 import org.onap.portalsdk.core.onboarding.util.CipherUtil;
+import org.onap.portalsdk.core.onboarding.util.PortalApiProperties;
 import org.onap.portalsdk.core.service.DataAccessService;
 import org.onap.portalsdk.core.util.CacheManager;
 import org.onap.portalsdk.core.util.SystemProperties;
@@ -54,12 +55,12 @@ import com.mchange.v2.c3p0.ComboPooledDataSource;
 
 @Configuration
 @EnableWebMvc
-@ComponentScan(basePackages = {"org.akraino", "org.onap"})
-@PropertySource(value = {"${container.classpath:}/WEB-INF/conf/app/test.properties"}, ignoreResourceNotFound = true)
+@ComponentScan(basePackages = { "org.akraino", "org.onap" })
+@PropertySource(value = { "${container.classpath:}/WEB-INF/conf/app/test.properties" }, ignoreResourceNotFound = true)
 @Profile("src")
 @EnableAsync
 @EnableScheduling
-@Import({MusicSessionConfig.class})
+@Import({ MusicSessionConfig.class })
 public class ExternalAppConfig extends AppConfig implements Configurable {
 
     private RegistryAdapter schedulerRegistryAdapter;
@@ -112,9 +113,10 @@ public class ExternalAppConfig extends AppConfig implements Configurable {
         ComboPooledDataSource dataSource = new ComboPooledDataSource();
         try {
             dataSource.setDriverClass(SystemProperties.getProperty(SystemProperties.DB_DRIVER));
-            dataSource.setJdbcUrl("jdbc:mariadb://" + System.getenv("DB_CONNECTION_URL"));
+            dataSource.setJdbcUrl("jdbc:mariadb://" + System.getenv("DB_IP_PORT") + "/"
+                    + PortalApiProperties.getProperty("akraino_database_name"));
             dataSource.setUser(SystemProperties.getProperty(SystemProperties.DB_USERNAME));
-            String password = System.getenv("MARIADB_ROOT_PASSWORD");
+            String password = System.getenv("MARIADB_AKRAINO_PASSWORD");
             if (SystemProperties.containsProperty(SystemProperties.DB_ENCRYPT_FLAG)) {
                 String encryptFlag = SystemProperties.getProperty(SystemProperties.DB_ENCRYPT_FLAG);
                 if (encryptFlag != null && encryptFlag.equalsIgnoreCase("true")) {
@@ -123,9 +125,9 @@ public class ExternalAppConfig extends AppConfig implements Configurable {
             }
             dataSource.setPassword(password);
             dataSource
-                    .setMinPoolSize(Integer.parseInt(SystemProperties.getProperty(SystemProperties.DB_MIN_POOL_SIZE)));
+            .setMinPoolSize(Integer.parseInt(SystemProperties.getProperty(SystemProperties.DB_MIN_POOL_SIZE)));
             dataSource
-                    .setMaxPoolSize(Integer.parseInt(SystemProperties.getProperty(SystemProperties.DB_MAX_POOL_SIZE)));
+            .setMaxPoolSize(Integer.parseInt(SystemProperties.getProperty(SystemProperties.DB_MAX_POOL_SIZE)));
             dataSource.setIdleConnectionTestPeriod(
                     Integer.parseInt(SystemProperties.getProperty(SystemProperties.IDLE_CONNECTION_TEST_PERIOD)));
             dataSource.setTestConnectionOnCheckout(getConnectionOnCheckout());
@@ -134,11 +136,11 @@ public class ExternalAppConfig extends AppConfig implements Configurable {
             LOGGER.error(EELFLoggerDelegate.errorLogger,
                     "Error initializing database, verify database settings in properties file: "
                             + UserUtils.getStackTrace(e),
-                    AlarmSeverityEnum.CRITICAL);
+                            AlarmSeverityEnum.CRITICAL);
             LOGGER.error(EELFLoggerDelegate.debugLogger,
                     "Error initializing database, verify database settings in properties file: "
                             + UserUtils.getStackTrace(e),
-                    AlarmSeverityEnum.CRITICAL);
+                            AlarmSeverityEnum.CRITICAL);
             // Raise an alarm that opening a connection to the database failed.
             LOGGER.logEcompError(AppMessagesEnum.BeDaoSystemError);
             throw e;
@@ -161,13 +163,13 @@ public class ExternalAppConfig extends AppConfig implements Configurable {
 
     /**
      * Adds request interceptors to the specified registry by calling
-     * {@link AppConfig#addInterceptors(InterceptorRegistry)}, but excludes
-     * certain paths from the session timeout interceptor.
+     * {@link AppConfig#addInterceptors(InterceptorRegistry)}, but excludes certain
+     * paths from the session timeout interceptor.
      */
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
         super.setExcludeUrlPathsForSessionTimeout("/login_external", "*/login_external.htm", "login", "/login.htm",
-                "/api*", "/single_signon.htm", "/single_signon");
+                "/api*", "/single_signon.htm", "/single_signon", "logout", "/logout.htm");
         super.addInterceptors(registry);
     }
 
@@ -182,8 +184,8 @@ public class ExternalAppConfig extends AppConfig implements Configurable {
     }
 
     /**
-     * Creates and returns a new instance of a {@link SchedulerFactoryBean}
-     * and populates it with triggers.
+     * Creates and returns a new instance of a {@link SchedulerFactoryBean} and
+     * populates it with triggers.
      *
      * @return New instance of {@link SchedulerFactoryBean}
      * @throws Exception
@@ -214,9 +216,8 @@ public class ExternalAppConfig extends AppConfig implements Configurable {
     }
 
     /**
-     * Gets the value of the property
-     * {@link SystemProperties#PREFERRED_TEST_QUERY}; defaults to "Select 1"
-     * if the property is not defined.
+     * Gets the value of the property {@link SystemProperties#PREFERRED_TEST_QUERY};
+     * defaults to "Select 1" if the property is not defined.
      *
      * @return String value that is a SQL query
      */
@@ -237,8 +238,8 @@ public class ExternalAppConfig extends AppConfig implements Configurable {
 
     /**
      * Gets the value of the property
-     * {@link SystemProperties#TEST_CONNECTION_ON_CHECKOUT}; defaults to true
-     * if the property is not defined.
+     * {@link SystemProperties#TEST_CONNECTION_ON_CHECKOUT}; defaults to true if the
+     * property is not defined.
      *
      * @return Boolean value
      */
@@ -246,8 +247,8 @@ public class ExternalAppConfig extends AppConfig implements Configurable {
         // Default to true, always test connection
         boolean testConnectionOnCheckout = true;
         if (SystemProperties.containsProperty(SystemProperties.TEST_CONNECTION_ON_CHECKOUT)) {
-            testConnectionOnCheckout =
-                    Boolean.valueOf(SystemProperties.getProperty(SystemProperties.TEST_CONNECTION_ON_CHECKOUT));
+            testConnectionOnCheckout = Boolean
+                    .valueOf(SystemProperties.getProperty(SystemProperties.TEST_CONNECTION_ON_CHECKOUT));
             LOGGER.debug(EELFLoggerDelegate.debugLogger, "getConnectionOnCheckout: property key {} value is {}",
                     SystemProperties.TEST_CONNECTION_ON_CHECKOUT, testConnectionOnCheckout);
         } else {

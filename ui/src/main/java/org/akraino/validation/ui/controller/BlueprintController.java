@@ -31,7 +31,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 
 @Controller
-@RequestMapping("/api/blueprint")
+@RequestMapping("/api/v1/blueprint")
 public class BlueprintController extends RestrictedBaseController {
 
     private static final EELFLoggerDelegate LOGGER = EELFLoggerDelegate.getLogger(BlueprintController.class);

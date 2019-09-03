@@ -31,7 +31,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 
 @Controller
-@RequestMapping("/api/timeslots")
+@RequestMapping("/api/v1/timeslots")
 public class TimeslotsController extends RestrictedBaseController {
 
     private static final EELFLoggerDelegate LOGGER = EELFLoggerDelegate.getLogger(TimeslotsController.class);
@@ -43,7 +43,7 @@ public class TimeslotsController extends RestrictedBaseController {
         super();
     }
 
-    @RequestMapping(value = {"/"}, method = RequestMethod.GET)
+    @RequestMapping(value = { "/" }, method = RequestMethod.GET)
     public ResponseEntity<List<Timeslot>> getTimeSlots() {
         try {
             return new ResponseEntity<>(service.getTimeslots(), HttpStatus.OK);

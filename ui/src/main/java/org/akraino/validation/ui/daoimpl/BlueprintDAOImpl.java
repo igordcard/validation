@@ -17,6 +17,8 @@ package org.akraino.validation.ui.daoimpl;
 
 import java.util.List;
 
+import javax.annotation.Nonnull;
+
 import org.akraino.validation.ui.dao.BlueprintDAO;
 import org.akraino.validation.ui.entity.Blueprint;
 import org.hibernate.Criteria;
@@ -46,30 +48,34 @@ public class BlueprintDAOImpl implements BlueprintDAO {
     }
 
     @Override
-    public Blueprint getBlueprint(Integer blueprintId) {
+    public Blueprint getBlueprint(@Nonnull Integer blueprintId) {
         Criteria criteria = getSession().createCriteria(Blueprint.class);
         criteria.add(Restrictions.eq("id", String.valueOf(blueprintId)));
         return criteria.list() == null ? null : (Blueprint) criteria.list().get(0);
     }
 
     @Override
-    public void saveOrUpdate(Blueprint blueprint) {
+    public void saveOrUpdate(@Nonnull Blueprint blueprint) {
         getSession().saveOrUpdate(blueprint);
+        getSession().flush();
     }
 
     @Override
-    public void merge(Blueprint blueprint) {
+    public void merge(@Nonnull Blueprint blueprint) {
         getSession().merge(blueprint);
+        getSession().flush();
     }
 
     @Override
-    public void deleteBlueprint(Blueprint blueprint) {
+    public void deleteBlueprint(@Nonnull Blueprint blueprint) {
         getSession().delete(blueprint);
+        getSession().flush();
     }
 
     @Override
     public void deleteAll() {
         if (getSession().createQuery("delete from Blueprint").executeUpdate() > 0) {
+            getSession().flush();
             LOGGER.info(EELFLoggerDelegate.applicationLogger, "All blueprint entries are cleaned up");
         }
     }

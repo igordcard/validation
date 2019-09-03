@@ -18,6 +18,7 @@ package org.akraino.validation.ui.service;
 import java.util.List;
 
 import org.akraino.validation.ui.dao.LabDAO;
+import org.akraino.validation.ui.data.Lab;
 import org.akraino.validation.ui.entity.LabInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -31,15 +32,15 @@ public class LabService {
     private LabDAO labDAO;
 
     public void saveLab(LabInfo lab) {
-
         labDAO.saveOrUpdate(lab);
+    }
 
+    public LabInfo getLab(Lab lab) {
+        return labDAO.getLab(lab);
     }
 
     public List<LabInfo> getLabs() {
-
         return labDAO.getLabs();
-
     }
 
     public void deleteAll() {

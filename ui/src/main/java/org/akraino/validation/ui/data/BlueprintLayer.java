@@ -16,5 +16,5 @@
 package org.akraino.validation.ui.data;
 
 public enum BlueprintLayer {
-    Hardware, Os, K8s, Kubeless, OpenStack, VNF, Application, All
+    hardware, os, k8s, kubeless, openstack, vnf, application, networking
 }

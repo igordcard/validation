@@ -46,7 +46,7 @@
   <!--<jmxConfigurator /> -->
 
   <!--  specify the component name -->
-  <property name="componentName" value="AECBlueprintValidationUI"></property>
+  <property name="componentName" value="bluvalui"></property>
 
   <!--  specify the base path of the log directory -->
   <property name="logDirPrefix" value="${catalina.base}/logs"></property>

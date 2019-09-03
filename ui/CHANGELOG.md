@@ -124,3 +124,33 @@ All notable changes to this project will be documented in this file.
 
 ### Removed
 - Unused credentials in music.properties file
+
+## [0.2.0-SNAPSHOT] - 30 August 2019
+### Added
+- Partial loop is supported
+- LAB parameter is now being sent towards Jenkins
+- Logout process is supported
+- Results are retrieved by timestamp, last run and based on date
+- For DB results, a common thread-safe adapter is used
+
+### Changed
+- The common Nexus URL is now also used for full control loop mode.
+- Only the IP and port are needed to be defined regarding DB identification process
+- 'v1' has been added in REST API URLs
+- Small letters are used for all the view names
+- Bug with infinite nested ng-repeat loops fixed
+- The name of war file has been changed from 'AECBlueprintValidationUI' to 'bluvalui'.
+- Bug fixed regarding the display of the overall result.
+- Host verifiers and trust certificates have been moved from clients to 'UiInitializer' spring component.
+- UI docker container is detached when it is deployed
+- README file has been updated to include instructions regarding installation of needed tools for the development mode
+- 200 most recent results are retrieved on each nexus scan loop
+- A common diplay test suite view is used now
+- DB results have been divided in order to support layer as a key
+- DB akraino user is used instead of DB root user
+- test.info.yaml parsing is supported
+- Selection of optional test cases is supported
+- Pagination table is supported for committed submissions
+
+### Removed
+

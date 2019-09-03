@@ -17,6 +17,7 @@ package org.akraino.validation.ui.dao;
 
 import java.util.List;
 
+import org.akraino.validation.ui.data.Lab;
 import org.akraino.validation.ui.entity.LabInfo;
 
 public interface LabDAO {
@@ -28,6 +29,8 @@ public interface LabDAO {
     List<LabInfo> getLabs();
 
     LabInfo getLab(Integer labId);
+
+    LabInfo getLab(Lab lab);
 
     void deleteLab(LabInfo lab);
 

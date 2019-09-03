@@ -31,15 +31,11 @@ public class BlueprintInstanceForValidationService {
     private BlueprintInstanceForValidationDAO dao;
 
     public void saveBlueprintInstance(BlueprintInstanceForValidation blueprintIns) {
-
         dao.saveOrUpdate(blueprintIns);
-
     }
 
     public List<BlueprintInstanceForValidation> getBlueprintInstancesForValidation() {
-
         return dao.getBlueprintInstancesForValidation();
-
     }
 
     public void deleteAll() {

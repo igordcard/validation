@@ -45,16 +45,6 @@ public class Submission implements Serializable {
     @Column(name = "status")
     private SubmissionStatus status;
 
-    @Column(name = "jenkins_queue_job_item_url")
-    private String jnksJobUrl;
-
-    @Column(name = "nexus_result_url")
-    private String nexusResultUrl;
-
-    @ManyToOne
-    @JoinColumn(name = "blueprint_instance_for_validation_id")
-    private BlueprintInstanceForValidation blueprintInst;
-
     @ManyToOne
     @JoinColumn(name = "timeslot_id")
     private Timeslot timeslot;
@@ -75,31 +65,6 @@ public class Submission implements Serializable {
         this.status = submissionStatus;
     }
 
-    public String getJenkinsQueueJobItemUrl() {
-        return this.jnksJobUrl;
-    }
-
-    public void setJnksQueueJobItemUrl(String url) {
-        this.jnksJobUrl = url;
-    }
-
-    public String getNexusResultUrl() {
-        return this.nexusResultUrl;
-    }
-
-    public void setNexusResultUrl(String nexusResultUrl) {
-        this.nexusResultUrl = nexusResultUrl;
-    }
-
-    public void setBlueprintInstanceForValidation(BlueprintInstanceForValidation blueprintInst) {
-        this.blueprintInst = blueprintInst;
-    }
-
-    public BlueprintInstanceForValidation getBlueprintInstanceForValidation() {
-        return this.blueprintInst;
-    }
-
-
     public void setTimeslot(Timeslot timeslot) {
         this.timeslot = timeslot;
     }
@@ -107,6 +72,5 @@ public class Submission implements Serializable {
     public Timeslot getTimeslot() {
         return this.timeslot;
     }
-
 
 }

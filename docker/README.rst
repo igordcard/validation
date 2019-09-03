@@ -82,7 +82,7 @@ The mariadb container
 Building and pushing the container
 ----------------------------------
 
-To build just the postgresql container, use the command:
+To build just the mariadb container, use the command:
 
 .. code-block:: console
 
@@ -100,6 +100,7 @@ In order for the container to be easily created, the deploy.sh script has been d
 
 CONTAINER_NAME, name of the container, default value is akraino-validation-mariadb
 MARIADB_ROOT_PASSWORD, the desired mariadb root user password, this variable is required
+MARIADB_AKRAINO_PASSWORD, the desired mariadb akraino user password, this variable is required
 UI_ADMIN_PASSWORD, the desired Blueprint Validation UI password for the admin user, this variable is required
 UI_AKRAINO_PASSWORD, the desired Blueprint Validation UI password for the akraino user, this variable is required
 REGISTRY, registry of the mariadb image, default value is akraino
@@ -115,14 +116,13 @@ Example (assuming the default variables have been utilized for building the imag
 .. code-block:: console
 
     cd validation/docker/mariadb
-    ./deploy.sh MARIADB_ROOT_PASSWORD=password UI_ADMIN_PASSWORD=admin UI_AKRAINO_PASSWORD=akraino
+    ./deploy.sh MARIADB_ROOT_PASSWORD=root_password MARIADB_AKRAINO_PASSWORD=akraino_password UI_ADMIN_PASSWORD=admin UI_AKRAINO_PASSWORD=akraino
 
 Also, in order to re-deploy the database (it is assumed that the corresponding mariadb container has been stopped and deleted) while the persistent storage already exists (currently, the directory /var/lib/mariadb of the host is used), a different approach should be used after the image build process.
 
 To this end, another script has been developed, namely deploy_with_existing_storage.sh which easily deploys the container. This script accepts the following items as input parameters:
 
 CONTAINER_NAME, the name of the container, default value is akraino-validation-mariadb
-MARIADB_ROOT_PASSWORD, the desired mariadb root user password, this variable is required
 REGISTRY, the registry of the mariadb image, default value is akraino
 NAME, the name of the mariadb image, default value is validation
 TAG_PRE, the first part of the image version, default value is mariadb
@@ -136,7 +136,7 @@ Example (assuming the default variables have been utilized for building the imag
 .. code-block:: console
 
     cd validation/docker/mariadb
-    ./deploy_with_existing_persistent_storage.sh MARIADB_ROOT_PASSWORD=password
+    ./deploy_with_existing_persistent_storage.sh
 
 More info can be found at the UI README file.
 
@@ -163,13 +163,13 @@ Using the container
 In order for the container to be easily created, the deploy.sh script has been developed. This script accepts the following as input parameters:
 
 CONTAINER_NAME, the name of the contaner, default value is akraino-validation-ui
-DB_CONNECTION_URL, the URL connection with the akraino database of the maridb instance, this variable is required
-MARIADB_ROOT_PASSWORD, the mariadb root user password, this variable is required
+DB_IP_PORT, the IP and port of the maridb instance, this variable is required
+MARIADB_AKRAINO_PASSWORD, the mariadb akraino user password, this variable is required
 REGISTRY, the registry of the mariadb image, default value is akraino
 NAME, the name of the mariadb image, default value is validation
 TAG_PRE, the first part of the image version, default value is ui
 TAG_VER, the last part of the image version, default value is latest
-JENKINS_URL, the URL of the Jenkins instance, this variable is required
+JENKINS_URL, the URL of the Jenkins instance (http or https must be defined), this variable is required
 JENKINS_USERNAME, the Jenkins user name, this variable is required
 JENKINS_USER_PASSWORD, the Jenkins user password, this variable is required
 JENKINS_JOB_NAME, the name of Jenkins job capable of executing the blueprint validation tests, this variable is required
@@ -191,7 +191,7 @@ Example (assuming the default variables have been utilized for building the imag
 .. code-block:: console
 
     cd validation/docker/ui
-    ./deploy.sh DB_CONNECTION_URL=172.17.0.3:3306/akraino MARIADB_ROOT_PASSWORD=password JENKINS_URL=http://192.168.2.2:8080 JENKINS_USERNAME=name JENKINS_USER_PASSWORD=jenkins_pwd JENKINS_JOB_NAME=job1
+    ./deploy.sh DB_IP_PORT=172.17.0.3:3306 MARIADB_AKRAINO_PASSWORD=akraino_password JENKINS_URL=http://192.168.2.2:8080 JENKINS_USERNAME=name JENKINS_USER_PASSWORD=jenkins_pwd JENKINS_JOB_NAME=job1
 
 The kube-conformance container
 ==============================

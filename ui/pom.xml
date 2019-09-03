@@ -14,8 +14,8 @@
 
     <groupId>org.akraino.validation</groupId>
     <artifactId>ui</artifactId>
-    <version>0.1.0-SNAPSHOT</version>
-    <name>AECBlueprintValidationUI Maven Webapp</name>
+    <version>0.2.0-SNAPSHOT</version>
+    <name>Bluval UI Maven Webapp</name>
     <packaging>war</packaging>
 
     <properties>
@@ -64,7 +64,7 @@
 
     <build>
         <!-- The war file name carries no version number -->
-        <finalName>AECBlueprintValidationUI</finalName>
+        <finalName>bluvalui</finalName>
 
         <plugins>
             <plugin>
@@ -144,7 +144,8 @@
                 </configuration>
             </plugin>
 
-            <!-- Currently, the docker-maven-plugin is used only for the development mode -->
+            <!-- Currently, the docker-maven-plugin is used only for the
+                development mode -->
             <plugin>
                 <groupId>io.fabric8</groupId>
                 <artifactId>docker-maven-plugin</artifactId>
@@ -372,6 +373,5 @@
             <artifactId>commons-httpclient</artifactId>
             <version>${commons-httpclient.version}</version>
         </dependency>
-
     </dependencies>
 </project>

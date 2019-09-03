@@ -31,15 +31,11 @@ public class BlueprintService {
     private BlueprintDAO blueprintDAO;
 
     public void saveBlueprint(Blueprint blueprint) {
-
         blueprintDAO.saveOrUpdate(blueprint);
-
     }
 
     public List<Blueprint> getBlueprints() {
-
         return blueprintDAO.getBlueprints();
-
     }
 
     public void deleteAll() {

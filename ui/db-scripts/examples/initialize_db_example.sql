@@ -25,14 +25,13 @@ insert into timeslot values(1, 'now', null, 1);
 insert into silo values(1, 'att-blu-val', 1);
 
 insert into blueprint (id, blueprint_name) values(1, 'dummy');
-insert into blueprint (id, blueprint_name) values(2, 'Unicycle');
-insert into blueprint (id, blueprint_name) values(3, 'REC');
+insert into blueprint (id, blueprint_name) values(2, 'unicycle');
+insert into blueprint (id, blueprint_name) values(3, 'rec');
 
-insert into blueprint_instance_for_validation (id, blueprint_id, version, layer, layer_description) values(1, 1, 'latest', 0, 'Dummy Hardware');  /* 0 Stands for hardware layer */
-insert into blueprint_instance_for_validation (id, blueprint_id, version, layer, layer_description) values(2, 3, 'latest', 0, 'AT&T Hardware'); /* 0 Stands for hardware layer */
-insert into blueprint_instance_for_validation (id, blueprint_id, version, layer, layer_description) values(3, 3, 'latest', 1, 'OS of the AT&T platform'); /* 1 Stands for OS layer */
-insert into blueprint_instance_for_validation (id, blueprint_id, version, layer, layer_description) values(4, 3, 'latest', 2, 'K8s of the AT&T platform'); /* 2 Stands for K8s layer */
-insert into blueprint_instance_for_validation (id, blueprint_id, version, layer, layer_description) values(5, 3, 'latest', 7, 'All layers'); /* 7 Stands for all layers */
-insert into blueprint_instance_for_validation (id, blueprint_id, version, layer, layer_description) values(6, 2, 'latest', 0, 'Unicycle Hardware'); /* 0 Stands for hardware layer */
+insert into blueprint_instance_for_validation (id, blueprint_id, version, layer, layer_description) values(1, 1, 'master', 0, 'Dummy Hardware');  /* 0 Stands for hardware layer */
+insert into blueprint_instance_for_validation (id, blueprint_id, version, layer, layer_description) values(2, 3, 'master', 0, 'AT&T Hardware'); /* 0 Stands for hardware layer */
+insert into blueprint_instance_for_validation (id, blueprint_id, version, layer, layer_description) values(3, 3, 'master', 1, 'OS of the AT&T platform'); /* 1 Stands for OS layer */
+insert into blueprint_instance_for_validation (id, blueprint_id, version, layer, layer_description) values(4, 3, 'master', 2, 'K8s of the AT&T platform'); /* 2 Stands for K8s layer */
+insert into blueprint_instance_for_validation (id, blueprint_id, version, layer, layer_description) values(6, 2, 'master', 0, 'Unicycle Hardware'); /* 0 Stands for hardware layer */
 
 commit;
