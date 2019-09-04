@@ -275,6 +275,46 @@ want to enter the container, add */bin/sh* at the end of the command above.
 Normally, this conainer is not used directly, but instead leveraged via
 sonobuoy.
 
+The openstack container
+=======================
+
+Building and pushing the container
+----------------------------------
+
+To build just the openstack container, use the command:
+
+.. code-block:: console
+
+    make openstack-build [ REGISTRY=<dockerhub_registry> NAME=<image_name>]
+
+To both build and push the container, use the command:
+
+.. code-block:: console
+
+    make openstack [ REGISTRY=<dockerhub_registry> NAME=<image_name>]
+
+Using the container
+-------------------
+
+The openstack image is meant to be ran from a server that has access to the
+openstack deployment (jenkins slave, jumpserver, etc).
+
+Before running the image, copy openstack deployment environment variables
+(openrc) to a local folder (e.g. /root/openrc).
+
+Container needs to be started with the openrc file mounted. Optionally, test
+cases can be excluded from execution via a mounted blacklist file.
+
+The results folder can be mounted as well; this way the logs are
+stored on the local server.
+
+.. code-block:: console
+
+    docker run -ti -v /home/jenkins/openrc:/root/openrc \
+    -v /home/jenkins/blacklist.txt:/opt/akraino/validation/tests/openstack/tempest/blacklist.txt \
+    -v /home/jenkins/openstack_results:/opt/akraino/results/ \
+    akraino/validation:openstack-latest
+
 The helm container
 ==================
 
