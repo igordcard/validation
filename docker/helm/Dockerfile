@@ -33,11 +33,13 @@ WORKDIR /wheels
 RUN pip3 install wheel
 RUN pip3 wheel -r /wheels/requirements/pip-requirements.txt
 RUN git clone https://gerrit.akraino.org/r/validation /opt/akraino/validation
+RUN git clone https://github.com/helm/helm.git /opt/helm
 
 # Copy binaries in the final container and install requirements
 FROM python:3.6-alpine3.9
 COPY --from=build /wheels /wheels
 COPY --from=build /opt/akraino/validation /opt/akraino/validation
+COPY --from=build /opt/helm/docs/examples/alpine /opt/akraino/bluval-test-alpine
 
 RUN pip3 install -r /wheels/requirements/pip-requirements.txt \
                  -f /wheels && \
