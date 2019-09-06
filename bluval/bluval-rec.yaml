@@ -23,14 +23,18 @@ blueprint:
         - docker
         - k8s
     # Any hardware some basic tests
-    hardware: &hardware_dummy
+    hardware: &hardware_rec
         -
             name: hp_baremetal
             what: hp_baremetal
-    os: &os_base
+    os: &os_rec
+        -
+            name: ltp
+            what: ltp
         -
             name: cyclictest
             what: cyclictest
+            optional: "True"
     docker: &docker_base
         -
             name: docker_bench

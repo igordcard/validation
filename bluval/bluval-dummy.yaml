@@ -39,8 +39,12 @@ blueprint:
             show_stopper: "False"
     os: &os_base
         -
+            name: ltp
+            what: ltp
+        -
             name: cyclictest
             what: cyclictest
+            optional: "True"
     networking: &networking
         -
             name: pxe_networking_test
