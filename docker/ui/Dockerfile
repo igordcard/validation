@@ -19,4 +19,4 @@ RUN git clone https://gerrit.akraino.org/r/validation /opt/akraino/validation
 RUN cd /opt/akraino/validation/ui && mvn clean package
 
 FROM tomcat:8.5.37
-COPY  --from=build /opt/akraino/validation/ui/target/AECBlueprintValidationUI.war /usr/local/tomcat/webapps
+COPY  --from=build /opt/akraino/validation/ui/target/bluvalui.war /usr/local/tomcat/webapps
