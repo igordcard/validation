@@ -1,3 +1,4 @@
+os-testr
 python-tempestconf
 robotframework
 tempest
