@@ -47,7 +47,8 @@ Build Chart Archive
     Set Suite Variable      ${CHARTARC}
 
 Get Default Repository
-    ${REPOURL}=             Execute Command  helm repo list | grep '^${REPONAME} ' | cut -f2
+    ${REPOURL}=             Execute Command
+    ...                     helm repo list | grep '^${REPONAME}\\([[:blank:]]\\|[^[:print:]]\\)' | cut -f2
     Set Suite Variable      ${REPOURL}
     Should Not Be Empty     ${REPOURL}
 
