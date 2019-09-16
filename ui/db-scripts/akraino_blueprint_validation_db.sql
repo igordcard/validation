@@ -18,18 +18,20 @@ SET FOREIGN_KEY_CHECKS=1;
 
 use akraino;
 
-DROP TABLE IF EXISTS blueprint_instance_for_validation;
-DROP TABLE IF EXISTS blueprint;
-DROP TABLE IF EXISTS silo;
-DROP TABLE IF EXISTS timeslot;
-DROP TABLE IF EXISTS lab;
 DROP TABLE IF EXISTS w_robot_test_result;
 DROP TABLE IF EXISTS validation_test_result;
 DROP TABLE IF EXISTS submission;
+DROP TABLE IF EXISTS blueprint_instance_blueprint_layer;
+DROP TABLE IF EXISTS blueprint_instance;
+DROP TABLE IF EXISTS blueprint_layer;
+DROP TABLE IF EXISTS blueprint;
+DROP TABLE IF EXISTS timeslot;
+DROP TABLE IF EXISTS lab;
 
 create table lab (
    id bigint not NULL AUTO_INCREMENT,
    lab text not NULL unique,
+   silo text not NULL unique,
    CONSTRAINT id_pk PRIMARY KEY (id)
 );
 
@@ -41,17 +43,8 @@ create table timeslot (
    CONSTRAINT id_pk PRIMARY KEY (id),
    CONSTRAINT lab_id_fk FOREIGN KEY (lab_id)
       REFERENCES lab (id) MATCH SIMPLE
-      ON UPDATE NO ACTION ON DELETE NO ACTION
-);
-
-create table silo (
-   id bigint not NULL AUTO_INCREMENT,
-   silo text not NULL,
-   lab_id bigint not NULL unique,
-   CONSTRAINT id_pk PRIMARY KEY (id),
-   CONSTRAINT lab_id_fk2 FOREIGN KEY (lab_id)
-      REFERENCES lab (id) MATCH SIMPLE
-      ON UPDATE NO ACTION ON DELETE NO ACTION
+      ON UPDATE NO ACTION ON DELETE NO ACTION,
+   unique (start_date_time, lab_id)
 );
 
 CREATE TABLE blueprint
@@ -61,18 +54,36 @@ CREATE TABLE blueprint
    CONSTRAINT id_pk PRIMARY KEY (id)
 );
 
-CREATE TABLE blueprint_instance_for_validation
+CREATE TABLE blueprint_layer
+(
+   id bigint not NULL AUTO_INCREMENT,
+   layer text not NULL unique,
+   CONSTRAINT id_pk PRIMARY KEY (id)
+);
+
+CREATE TABLE blueprint_instance
 (
    id bigint not NULL AUTO_INCREMENT,
    blueprint_id bigint not NULL,
    version text not NULL,
-   layer text not NULL,
-   layer_description text not NULL,
    CONSTRAINT id_pk PRIMARY KEY (id),
    CONSTRAINT blueprint_id_fk FOREIGN KEY (blueprint_id)
       REFERENCES blueprint (id) MATCH SIMPLE
       ON UPDATE NO ACTION ON DELETE NO ACTION,
-   unique (version, layer, blueprint_id)
+   unique (version, blueprint_id)
+);
+
+CREATE TABLE blueprint_instance_blueprint_layer
+(
+   blueprint_instance_id bigint not NULL,
+   blueprint_layer_id bigint not NULL,
+   CONSTRAINT blueprint_instance_id_fk2 FOREIGN KEY (blueprint_instance_id)
+      REFERENCES blueprint_instance (id) MATCH SIMPLE
+      ON UPDATE NO ACTION ON DELETE NO ACTION,
+   CONSTRAINT blueprint_layer_id_fk FOREIGN KEY (blueprint_layer_id)
+      REFERENCES blueprint_layer (id) MATCH SIMPLE
+      ON UPDATE NO ACTION ON DELETE NO ACTION,
+   unique (blueprint_instance_id, blueprint_layer_id)
 );
 
 CREATE TABLE submission
@@ -89,11 +100,10 @@ CREATE TABLE submission
 CREATE TABLE validation_test_result
 (
    id bigint not NULL AUTO_INCREMENT,
-   blueprint_name varchar(20) not NULL,
-   version text not NULL,
+   blueprint_instance_id bigint not NULL,
+   all_layers boolean,
    lab_id bigint not NULL,
    timestamp text,
-   all_layers boolean,
    optional boolean,
    result boolean,
    submission_id bigint,
@@ -104,6 +114,9 @@ CREATE TABLE validation_test_result
       ON UPDATE NO ACTION ON DELETE NO ACTION,
    CONSTRAINT submission_id_fk FOREIGN KEY (submission_id)
       REFERENCES submission (id) MATCH SIMPLE
+      ON UPDATE NO ACTION ON DELETE NO ACTION,
+   CONSTRAINT blueprint_instance_id_fk FOREIGN KEY (blueprint_instance_id)
+      REFERENCES blueprint_instance (id) MATCH SIMPLE
       ON UPDATE NO ACTION ON DELETE NO ACTION,
    unique (timestamp, lab_id)
 );

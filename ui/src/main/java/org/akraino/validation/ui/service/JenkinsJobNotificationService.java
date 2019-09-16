@@ -18,15 +18,16 @@ package org.akraino.validation.ui.service;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.akraino.validation.ui.client.nexus.resources.ValidationNexusTestResult;
 import org.akraino.validation.ui.dao.ValidationTestResultDAO;
 import org.akraino.validation.ui.data.JnksJobNotify;
 import org.akraino.validation.ui.data.SubmissionStatus;
-import org.akraino.validation.ui.entity.LabSilo;
+import org.akraino.validation.ui.entity.LabInfo;
 import org.akraino.validation.ui.entity.Submission;
 import org.akraino.validation.ui.entity.ValidationDbTestResult;
 import org.akraino.validation.ui.service.utils.SubmissionHelper;
+import org.apache.commons.httpclient.HttpException;
 import org.onap.portalsdk.core.logging.logic.EELFLoggerDelegate;
+import org.onap.portalsdk.core.web.support.UserUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -44,13 +45,13 @@ public class JenkinsJobNotificationService {
     private DbSubmissionAdapter submissionService;
 
     @Autowired
-    private SiloService siloService;
-
-    @Autowired
     private DbResultAdapter dbAdapter;
 
     @Autowired
     private IntegratedResultService iService;
+
+    @Autowired
+    private LabService labService;
 
     @Autowired
     private ValidationTestResultDAO vTestResultDAO;
@@ -65,29 +66,32 @@ public class JenkinsJobNotificationService {
             LOGGER.debug(EELFLoggerDelegate.debugLogger, "No related submission was found");
             return;
         }
-        String siloText = null;
-        for (LabSilo silo : siloService.getSilos()) {
-            if (silo.getLab().getLab().equals(submission.getTimeslot().getLab().getLab())) {
-                siloText = silo.getSilo();
-            }
-        }
-        if (siloText == null) {
-            throw new IllegalArgumentException("Could not retrieve silo of the selected lab : "
-                    + submission.getTimeslot().getLab().getLab().toString());
+        LabInfo labInfo = labService.getLab(submission.getTimeslot().getLabInfo().getLab());
+        if (labInfo == null) {
+            throw new IllegalArgumentException(
+                    "Could not retrieve lab : " + submission.getTimeslot().getLabInfo().getLab().toString());
         }
         LOGGER.info(EELFLoggerDelegate.applicationLogger,
                 "Updating submission with id: " + submission.getSubmissionId());
         submission.setSubmissionStatus(SubmissionStatus.Completed);
         submissionHelper.saveSubmission(submission);
         ValidationDbTestResult vDbResult = vTestResultDAO.getValidationTestResult(submission);
-        if (vDbResult != null) {
-            ValidationNexusTestResult vNexusResult = iService.getResult(vDbResult.getBlueprintName(),
-                    vDbResult.getVersion(), vDbResult.getLab().getLab(), jnksJobNotify.getTimestamp());
-            if (vNexusResult != null) {
-                List<ValidationNexusTestResult> vNexusResults = new ArrayList<ValidationNexusTestResult>();
-                vNexusResults.add(vNexusResult);
-                dbAdapter.storeResultInDb(vNexusResults);
+        try {
+            if (vDbResult != null) {
+                // Fetch submission result from nexus
+                ValidationDbTestResult vNexusResult = iService.getResult(
+                        vDbResult.getBlueprintInstance().getBlueprint().getBlueprintName(),
+                        vDbResult.getBlueprintInstance().getVersion(), vDbResult.getLab().getLab(),
+                        jnksJobNotify.getTimestamp());
+                if (vNexusResult != null) {
+                    List<ValidationDbTestResult> vNexusResults = new ArrayList<ValidationDbTestResult>();
+                    vNexusResults.add(vNexusResult);
+                    dbAdapter.storeResultsInDb(vNexusResults);
+                }
             }
+        } catch (HttpException ex) {
+            LOGGER.error(EELFLoggerDelegate.errorLogger,
+                    "Error when retrieving Nexus results. " + UserUtils.getStackTrace(ex));
         }
         dbAdapter.updateTimestamp(jnksJobNotify);
     }

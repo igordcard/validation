@@ -17,25 +17,34 @@ package org.akraino.validation.ui.service;
 
 import java.util.List;
 
-import org.akraino.validation.ui.dao.BlueprintInstanceForValidationDAO;
-import org.akraino.validation.ui.entity.BlueprintInstanceForValidation;
+import org.akraino.validation.ui.dao.BlueprintInstanceDAO;
+import org.akraino.validation.ui.entity.Blueprint;
+import org.akraino.validation.ui.entity.BlueprintInstance;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @Transactional
-public class BlueprintInstanceForValidationService {
+public class BlueprintInstanceService {
 
     @Autowired
-    private BlueprintInstanceForValidationDAO dao;
+    private BlueprintInstanceDAO dao;
 
-    public void saveBlueprintInstance(BlueprintInstanceForValidation blueprintIns) {
+    public void saveBlueprintInstance(BlueprintInstance blueprintIns) {
         dao.saveOrUpdate(blueprintIns);
     }
 
-    public List<BlueprintInstanceForValidation> getBlueprintInstancesForValidation() {
-        return dao.getBlueprintInstancesForValidation();
+    public List<BlueprintInstance> getBlueprintInstances() {
+        return dao.getBlueprintInstances();
+    }
+
+    public BlueprintInstance getBlueprintInstance(int instId) {
+        return dao.getBlueprintInstance(instId);
+    }
+
+    public BlueprintInstance getBlueprintInstance(Blueprint blueprint, String version) {
+        return dao.getBlueprintInstance(blueprint, version);
     }
 
     public void deleteAll() {

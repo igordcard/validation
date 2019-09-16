@@ -188,46 +188,48 @@ table {
             </thead>
             <tbody>
                 <tr class="border_bottom"
-                    ng-repeat="validationNexusTestResult in filterWithResult(filterWithLayer(validationNexusTestResults,filterLayer), filterResult) | filter:filtertimestamp | orderBy:dateTimeSort:descending"
-                    ng-class="{success: (validationNexusTestResult.result===true), warning: (validationNexusTestResult.result===false)}">
+                    ng-repeat="validationDbTestResult in filterWithResult(filterWithLayer(filterWithTimestamp(validationDbTestResults,filtertimestamp.timestamp),filterLayer), filterResult) | orderBy:dateTimeSort:descending"
+                    ng-class="{'success': validationDbTestResult.result===true, 'warning': validationDbTestResult.result===false || !validationDbTestResult.dateStorage}">
                     <td class
                         style="padding-left: 10px; font-size: 15px; width: 13%;">
-                        {{ getLab(validationNexusTestResult.silo, silos)
+                        {{ validationDbTestResult.lab.lab }}</td>
+                    <td class
+                        style="padding-left: 10px; font-size: 15px; width: 13%;">{{
+                        validationDbTestResult.blueprintInstance.blueprint.blueprintName
                         }}</td>
                     <td class
                         style="padding-left: 10px; font-size: 15px; width: 13%;">{{
-                        validationNexusTestResult.blueprintName }}</td>
+                        validationDbTestResult.blueprintInstance.version
+                        }}</td>
                     <td class
                         style="padding-left: 10px; font-size: 15px; width: 13%;">{{
-                        validationNexusTestResult.version }}</td>
+                        validationDbTestResult.timestamp }}</td>
                     <td class
                         style="padding-left: 10px; font-size: 15px; width: 13%;">{{
-                        validationNexusTestResult.timestamp }}</td>
+                        validationDbTestResult.dateStorage }}</td>
                     <td class
                         style="padding-left: 10px; font-size: 15px; width: 13%;">{{
-                        validationNexusTestResult.dateOfStorage }}</td>
+                        validationDbTestResult.optional }}</td>
                     <td class
                         style="padding-left: 10px; font-size: 15px; width: 13%;">{{
-                        validationNexusTestResult.optional }}</td>
-                    <td class
-                        style="padding-left: 10px; font-size: 15px; width: 13%;">{{
-                        validationNexusTestResult.allLayers }}</td>
+                        validationDbTestResult.allLayers }}</td>
                     <td class
                         style="padding-left: 10px; font-size: 15px; width: 13%;">
                         <div
-                            ng-repeat="layer in  getBlueprintLayers(validationNexusTestResult.wRobotNexusTestResults)">
+                            ng-repeat="layer in  getBlueprintLayers(validationDbTestResult.wrobotDbTestResults)">
                             {{layer}}</div>
                     </td>
                     <td class
                         style="padding-left: 10px; font-size: 15px; width: 13%;">{{
-                        validationNexusTestResult.submissionId }}</td>
+                        validationDbTestResult.submission.submissionId
+                        }}</td>
                     <td class
                         style="padding-left: 10px; font-size: 15px; width: 13%;">
                         <button
                             style="margin-left: 25px; margin-top: 4px;"
                             type="submit" class="btn btn-alt btn-small"
-                            ng-click="getTestSuiteResults(validationNexusTestResult);">{{
-                            mapResult(validationNexusTestResult)}}</button>
+                            ng-click="getTestSuiteResults(validationDbTestResult);">{{
+                            mapResult(validationDbTestResult)}}</button>
                         </button>
                     </td>
                 </tr>

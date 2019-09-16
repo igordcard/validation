@@ -34,6 +34,10 @@ public class BlueprintService {
         blueprintDAO.saveOrUpdate(blueprint);
     }
 
+    public Blueprint getBlueprint(String name) {
+        return blueprintDAO.getBlueprint(name);
+    }
+
     public List<Blueprint> getBlueprints() {
         return blueprintDAO.getBlueprints();
     }

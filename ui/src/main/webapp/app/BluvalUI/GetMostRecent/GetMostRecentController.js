@@ -26,8 +26,11 @@ app.controller('GetMostRecentController', function($scope, restAPISvc, $window,
         $scope.loadingBlueprints = false;
         $scope.loadingVersions = false;
         $scope.loadingResults = false;
-        restAPISvc.getRestAPI("/api/v1/results/getlabs/", function(data) {
-            $scope.labs = data;
+        $scope.labs = [];
+        restAPISvc.getRestAPI("/api/v1/lab/", function(data) {
+            angular.forEach(data, function(lab) {
+                $scope.labs.push(lab.lab);
+            });
             $scope.loadingLabs = false;
         });
     }

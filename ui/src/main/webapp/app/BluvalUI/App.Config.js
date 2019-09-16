@@ -16,4 +16,4 @@
 
 var config_module = angular.module('App.Config', []);
 config_module.constant('appContext', '/bluvalui');
-config_module.constant('refreshPeriod', '12000'); // in msecs
+config_module.constant('refreshPeriod', '30000'); // in msecs

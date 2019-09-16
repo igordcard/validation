@@ -21,74 +21,51 @@ app
                 'committedSubmissionsSvc',
                 [ function() {
                     var svc = [];
-                    svc.getLayer = function(validationNexusTestResult) {
-                        if (validationNexusTestResult.allLayers) {
+                    svc.getLayer = function(validationDbTestResult) {
+                        if (!validationDbTestResult) {
+                            return null;
+                        }
+                        if (validationDbTestResult.allLayers) {
                             return "all";
                         }
                         var layers = [];
-                        angular
-                                .forEach(
-                                        validationNexusTestResult.wRobotNexusTestResults,
-                                        function(result) {
-                                            layers.push(result.blueprintLayer);
-                                        });
+                        angular.forEach(
+                                validationDbTestResult.wrobotDbTestResults,
+                                function(result) {
+                                    layers.push(result.layer);
+                                });
                         return layers;
                     };
-                    svc.getResultUrl = function(submissionData) {
-                        if (submissionData.status !== "Completed") {
+                    svc.getResultUrl = function(submission) {
+                        if (submission.submissionStatus !== "Completed") {
                             return null;
                         }
-                        if (!submissionData.validationNexusTestResult.wRobotNexusTestResults) {
+                        if (!submission.validationDbTestResult) {
                             return null;
                         }
-                        if (submissionData.validationNexusTestResult.wRobotNexusTestResults.length === 0) {
+                        if (!submission.validationDbTestResult.wrobotDbTestResults) {
                             return null;
                         }
-                        var resultExistence = false;
-                        angular
-                                .forEach(
-                                        submissionData.validationNexusTestResult.wRobotNexusTestResults,
-                                        function(result) {
-                                            if (result.robotTestResults
-                                                    && result.robotTestResults.length > 0) {
-                                                resultExistence = true;
-                                            }
-                                        });
-                        if (resultExistence) {
+                        if (submission.validationDbTestResult.wrobotDbTestResults.length === 0) {
+                            return null;
+                        }
+                        if (submission.validationDbTestResult.dateStorage) {
                             return "https://nexus.akraino.org/content/sites/logs/"
-                                    + submissionData.validationNexusTestResult.silo
+                                    + submission.timeslot.labInfo.silo
                                     + "/"
-                                    + submissionData.validationNexusTestResult.blueprintName
+                                    + submission.validationDbTestResult.blueprintInstance.blueprint.blueprintName
                                     + "/"
-                                    + submissionData.validationNexusTestResult.version
+                                    + submission.validationDbTestResult.blueprintInstance.version
                                     + "/"
-                                    + submissionData.validationNexusTestResult.timestamp
+                                    + submission.validationDbTestResult.timestamp
                                     + "/";
                         }
                         return null;
                     };
-                    svc.mapResult = function(validationNexusTestResult) {
-                        if (!validationNexusTestResult.timestamp) {
-                            return null;
-                        }
-                        if (!validationNexusTestResult.wRobotNexusTestResults) {
-                            return null;
-                        }
-                        if (validationNexusTestResult.wRobotNexusTestResults.length === 0) {
-                            return null;
-                        }
-                        var resultExistence = false;
-                        angular
-                                .forEach(
-                                        validationNexusTestResult.wRobotNexusTestResults,
-                                        function(result) {
-                                            if (result.robotTestResults
-                                                    && result.robotTestResults.length > 0) {
-                                                resultExistence = true;
-                                            }
-                                        });
-                        if (resultExistence) {
-                            if (validationNexusTestResult.result === true) {
+                    svc.mapResult = function(validationDbTestResult) {
+                        if (validationDbTestResult
+                                && validationDbTestResult.dateStorage) {
+                            if (validationDbTestResult.result === true) {
                                 return 'SUCCESS';
                             }
                             return 'FAILURE'

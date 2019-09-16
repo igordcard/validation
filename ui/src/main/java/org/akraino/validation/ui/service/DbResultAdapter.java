@@ -4,34 +4,27 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import javax.annotation.Nonnull;
 
-import org.akraino.validation.ui.client.nexus.resources.RobotTestResult;
-import org.akraino.validation.ui.client.nexus.resources.ValidationNexusTestResult;
-import org.akraino.validation.ui.client.nexus.resources.WRobotNexusTestResult;
 import org.akraino.validation.ui.dao.ValidationTestResultDAO;
 import org.akraino.validation.ui.dao.WRobotTestResultDAO;
-import org.akraino.validation.ui.data.BlueprintLayer;
 import org.akraino.validation.ui.data.JnksJobNotify;
-import org.akraino.validation.ui.data.Lab;
-import org.akraino.validation.ui.data.SubmissionData;
+import org.akraino.validation.ui.entity.Blueprint;
+import org.akraino.validation.ui.entity.BlueprintInstance;
+import org.akraino.validation.ui.entity.BlueprintLayer;
 import org.akraino.validation.ui.entity.LabInfo;
-import org.akraino.validation.ui.entity.LabSilo;
 import org.akraino.validation.ui.entity.Submission;
 import org.akraino.validation.ui.entity.ValidationDbTestResult;
 import org.akraino.validation.ui.entity.WRobotDbTestResult;
 import org.onap.portalsdk.core.logging.logic.EELFLoggerDelegate;
-import org.onap.portalsdk.core.web.support.UserUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.fasterxml.jackson.core.JsonParseException;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonMappingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 @Service
 @Transactional
@@ -50,97 +43,93 @@ public class DbResultAdapter {
     private WRobotTestResultDAO wRobotDAO;
 
     @Autowired
-    private SiloService siloService;
-
-    @Autowired
     DbSubmissionAdapter subService;
 
-    public void associateSubmissionWithValidationResult(SubmissionData submissionData)
+    @Autowired
+    BlueprintService blueprintService;
+
+    @Autowired
+    BlueprintInstanceService blueprintInstService;
+
+    @Autowired
+    BlueprintLayerService layerService;
+
+    public void associateSubmissionWithValidationResult(Submission submission)
             throws JsonParseException, JsonMappingException, IOException {
         synchronized (LOCK) {
-            ValidationDbTestResult vDbTestResult = this
-                    .convertValidationNexusToDb(submissionData.getValidationNexusTestResult());
-            Submission submission = new Submission();
-            submission.setSubmissionId(submissionData.getSubmissionId());
-            vDbTestResult.setSubmission(submission);
-            vTestResultDAO.saveOrUpdate(vDbTestResult);
-            List<WRobotDbTestResult> vRobotDbResults = this.convertWRobotNexusResultsToDb(
-                    submissionData.getValidationNexusTestResult().getwRobotNexusTestResults());
-            if (vRobotDbResults != null) {
-                for (WRobotDbTestResult vRobotDbResult : vRobotDbResults) {
-                    vRobotDbResult.setValidationTestResult(vDbTestResult);
+            if (!compareBluInstances(submission.getValidationDbTestResult().getBlueprintInstance(),
+                    blueprintInstService.getBlueprintInstance(
+                            submission.getValidationDbTestResult().getBlueprintInstance().getBlueprintInstanceId()))) {
+                throw new RuntimeException("Blueprint instance data changed.");
+            }
+            submission.getValidationDbTestResult().setSubmission(submission);
+            vTestResultDAO.saveOrUpdate(submission.getValidationDbTestResult());
+            if (submission.getValidationDbTestResult().getWRobotDbTestResults() != null) {
+                for (WRobotDbTestResult vRobotDbResult : submission.getValidationDbTestResult()
+                        .getWRobotDbTestResults()) {
+                    vRobotDbResult.setValidationDbTestResult(submission.getValidationDbTestResult());
                     wRobotDAO.saveOrUpdate(vRobotDbResult);
                 }
             }
         }
     }
 
-    public void storeResultInDb(List<ValidationNexusTestResult> vNexusResults) {
+    public void storeResultsInDb(List<ValidationDbTestResult> vNexusResults) {
         synchronized (LOCK) {
             if (vNexusResults == null || vNexusResults.size() < 1) {
                 return;
             }
-            for (ValidationNexusTestResult vNexusResult : vNexusResults) {
-                if (!checkValidityOfValidationNexusTestResult(vNexusResult)) {
+            for (ValidationDbTestResult vNexusResult : vNexusResults) {
+                if (vNexusResult.getWRobotDbTestResults() == null) {
                     continue;
                 }
-                LabInfo labInfo = null;
-                for (LabSilo silo : siloService.getSilos()) {
-                    if (silo.getSilo().equals(vNexusResult.getSilo())) {
-                        labInfo = silo.getLab();
-                    }
+                if (!checkValidityOfNexusResult(vNexusResult)) {
+                    continue;
                 }
+                LabInfo labInfo = labService.getLabBasedOnSilo(vNexusResult.getLab().getSilo());
                 ValidationDbTestResult vDbResult = vTestResultDAO.getValidationTestResult(labInfo,
                         vNexusResult.getTimestamp());
                 if (vDbResult == null) {
-                    vDbResult = new ValidationDbTestResult();
+                    vDbResult = vNexusResult;
                     vDbResult.setLab(labInfo);
-                    vDbResult.setTimestamp(vNexusResult.getTimestamp());
-                    vDbResult.setBlueprintName(vNexusResult.getBlueprintName());
-                    vDbResult.setVersion(vNexusResult.getVersion());
-                    vDbResult.setAllLayers(vNexusResult.getAllLayers());
-                    vDbResult.setOptional(vNexusResult.getOptional());
+                    Blueprint blueprint = blueprintService
+                            .getBlueprint(vNexusResult.getBlueprintInstance().getBlueprint().getBlueprintName());
+                    if (blueprint == null) {
+                        blueprint = vNexusResult.getBlueprintInstance().getBlueprint();
+                        blueprintService.saveBlueprint(blueprint);
+                    }
+                    BlueprintInstance blueprintInst = blueprintInstService.getBlueprintInstance(blueprint,
+                            (vNexusResult.getBlueprintInstance().getVersion()));
+                    if (blueprintInst == null) {
+                        blueprintInst = vNexusResult.getBlueprintInstance();
+                        blueprintInst.setBlueprint(blueprint);
+                        blueprintInstService.saveBlueprintInstance(blueprintInst);
+                    }
+                    vDbResult.setBlueprintInstance(blueprintInst);
                 }
+                updateBlueInstLayers(vNexusResult);
                 vDbResult.setResult(vNexusResult.getResult());
-                vDbResult.setDateStorage(vNexusResult.getDateOfStorage());
+                vDbResult.setDateStorage(vNexusResult.getDateStorage());
                 LOGGER.debug(EELFLoggerDelegate.debugLogger,
-                        "Storing validation test result with keys: blueprint name: " + vNexusResult.getBlueprintName()
-                        + ", version: " + vNexusResult.getVersion() + ", lab: " + vNexusResult.getSilo()
-                        + ", timestamp: " + vNexusResult.getTimestamp());
+                        "Storing validation test result with keys: blueprint name: "
+                                + vNexusResult.getBlueprintInstance().getBlueprint().getBlueprintName() + ", version: "
+                                + vNexusResult.getBlueprintInstance().getVersion() + ", lab: "
+                                + vNexusResult.getLab().getSilo() + ", timestamp: " + vNexusResult.getTimestamp());
                 vTestResultDAO.saveOrUpdate(vDbResult);
                 List<org.akraino.validation.ui.entity.WRobotDbTestResult> wRobotDbResults = wRobotDAO
                         .getWRobotTestResult(vDbResult);
                 if (wRobotDbResults == null) {
                     // Store the new wrapper robot rest results in db
-                    for (WRobotNexusTestResult wNexusResult : vNexusResult.getwRobotNexusTestResults()) {
-                        WRobotDbTestResult wRobotDbResult = new WRobotDbTestResult();
-                        wRobotDbResult.setLayer(wNexusResult.getBlueprintLayer().name());
-                        wRobotDbResult.setValidationTestResult(vDbResult);
-                        ObjectMapper mapper = new ObjectMapper();
-                        try {
-                            wRobotDbResult
-                            .setRobotTestResults(mapper.writeValueAsString(wNexusResult.getRobotTestResults()));
-                        } catch (JsonProcessingException e) {
-                            LOGGER.error(EELFLoggerDelegate.errorLogger,
-                                    "Error while converting POJO to string. " + UserUtils.getStackTrace(e));
-                            continue;
-                        }
-                        wRobotDAO.saveOrUpdate(wRobotDbResult);
+                    for (WRobotDbTestResult wNexusResult : vNexusResult.getWRobotDbTestResults()) {
+                        wNexusResult.setValidationDbTestResult(vDbResult);
+                        wRobotDAO.saveOrUpdate(wNexusResult);
                     }
                 } else if (vDbResult.getSubmission() != null) {
                     // update validation result related to submission
-                    for (WRobotNexusTestResult wNexusResult : vNexusResult.getwRobotNexusTestResults()) {
-                        WRobotDbTestResult wRobotDbResult = wRobotDAO
-                                .getWRobotTestResult(wNexusResult.getBlueprintLayer().name(), vDbResult);
-                        ObjectMapper mapper = new ObjectMapper();
-                        try {
-                            wRobotDbResult
-                            .setRobotTestResults(mapper.writeValueAsString(wNexusResult.getRobotTestResults()));
-                        } catch (JsonProcessingException e) {
-                            LOGGER.error(EELFLoggerDelegate.errorLogger,
-                                    "Error while converting POJO to string. " + UserUtils.getStackTrace(e));
-                            continue;
-                        }
+                    for (WRobotDbTestResult wNexusResult : vNexusResult.getWRobotDbTestResults()) {
+                        WRobotDbTestResult wRobotDbResult = wRobotDAO.getWRobotTestResult(wNexusResult.getLayer(),
+                                vDbResult);
+                        wRobotDbResult.setRobotTestResults(wNexusResult.getRobotTestResults());
                         wRobotDAO.saveOrUpdate(wRobotDbResult);
                     }
                 }
@@ -173,7 +162,7 @@ public class DbResultAdapter {
             wRobotResults = wRobotDAO.getWRobotTestResult(vDbTimestamp);
             if (wRobotResults != null && wRobotResults.size() > 0) {
                 for (WRobotDbTestResult wRobotResult : wRobotResults) {
-                    wRobotResult.setValidationTestResult(vDbSubmission);
+                    wRobotResult.setValidationDbTestResult(vDbSubmission);
                     wRobotDAO.saveOrUpdate(wRobotResult);
                 }
             }
@@ -186,38 +175,55 @@ public class DbResultAdapter {
         }
     }
 
-    public List<ValidationNexusTestResult> readResultFromDb(String blueprintName, String version, Lab lab,
-            List<BlueprintLayer> layers, Boolean allLayers, Boolean optional, Boolean outcome)
+    public List<ValidationDbTestResult> readResultFromDb(String blueprintName, String version, String lab,
+            List<String> layers, Boolean allLayers, Boolean optional, Boolean outcome)
                     throws JsonParseException, JsonMappingException, IOException {
         synchronized (LOCK) {
-            LabInfo actualLabInfo = labService.getLab(lab);
-            List<ValidationDbTestResult> vDbResults = vTestResultDAO.getValidationTestResults(blueprintName, version,
+            LabInfo actualLabInfo = null;
+            if (lab != null) {
+                actualLabInfo = labService.getLab(lab);
+                if (actualLabInfo == null) {
+                    return null;
+                }
+            }
+            Blueprint blueprint = null;
+            if (blueprintName != null) {
+                blueprint = blueprintService.getBlueprint(blueprintName);
+                if (blueprint == null) {
+                    return null;
+                }
+            }
+            BlueprintInstance blueprintInst = blueprintInstService.getBlueprintInstance(blueprint, version);
+            if (blueprintInst == null) {
+                return null;
+            }
+            List<ValidationDbTestResult> vDbResults = vTestResultDAO.getValidationTestResults(blueprintInst,
                     actualLabInfo, allLayers, optional, outcome);
             if (vDbResults == null || vDbResults.size() < 1) {
                 return null;
             }
-            List<ValidationNexusTestResult> vNexusResults = new ArrayList<ValidationNexusTestResult>();
+            List<ValidationDbTestResult> actualResults = new ArrayList<ValidationDbTestResult>();
             for (ValidationDbTestResult vDbResult : vDbResults) {
                 if (layers != null && layers.size() > 0) {
-                    List<BlueprintLayer> storedLayers = new ArrayList<BlueprintLayer>();
+                    List<String> storedLayers = new ArrayList<String>();
                     List<WRobotDbTestResult> wDbResults = wRobotDAO.getWRobotTestResult(vDbResult);
                     if (wDbResults == null || wDbResults.size() < 1) {
                         continue;
                     }
                     for (WRobotDbTestResult wRobot : wDbResults) {
-                        storedLayers.add(BlueprintLayer.valueOf(wRobot.getLayer()));
+                        storedLayers.add(wRobot.getLayer());
                     }
                     if (!new HashSet<>(storedLayers).equals(new HashSet<>(layers))) {
                         continue;
                     }
                 }
-                vNexusResults.add(convertValidationDbToNexus(vDbResult));
+                actualResults.add(vDbResult);
             }
-            return vNexusResults;
+            return actualResults;
         }
     }
 
-    public ValidationNexusTestResult readResultFromDb(@Nonnull Lab lab, @Nonnull String timestamp)
+    public ValidationDbTestResult readResultFromDb(@Nonnull String lab, @Nonnull String timestamp)
             throws JsonParseException, JsonMappingException, IOException {
         synchronized (LOCK) {
             LabInfo actualLabInfo = labService.getLab(lab);
@@ -225,39 +231,38 @@ public class DbResultAdapter {
             if (vDbResult == null) {
                 return null;
             }
-            return convertValidationDbToNexus(vDbResult);
+            return vDbResult;
         }
     }
 
-    public ValidationNexusTestResult readResultFromDb(@Nonnull String submissionId)
+    public ValidationDbTestResult readResultFromDb(@Nonnull String submissionId)
             throws JsonParseException, JsonMappingException, IOException {
         synchronized (LOCK) {
-            ValidationDbTestResult vDbResult = vTestResultDAO
-                    .getValidationTestResult(subService.getSubmission(submissionId));
-            if (vDbResult == null) {
-                return null;
-            }
-            return convertValidationDbToNexus(vDbResult);
+            return vTestResultDAO.getValidationTestResult(subService.getSubmission(submissionId));
         }
     }
 
-    public void deleteUnreferencedEntries(List<ValidationNexusTestResult> vNexusResults) {
+    public void deleteUnreferencedEntries(List<ValidationDbTestResult> vNexusResults) {
         synchronized (LOCK) {
             if (vNexusResults == null || vNexusResults.size() < 1) {
                 return;
             }
-            LabInfo labInfo = null;
-            for (LabSilo silo : siloService.getSilos()) {
-                if (silo.getSilo().equals(vNexusResults.get(0).getSilo())) {
-                    labInfo = silo.getLab();
-                }
-            }
+            LabInfo labInfo = labService.getLabBasedOnSilo(vNexusResults.get(0).getLab().getSilo());
             if (labInfo == null) {
                 return;
             }
-            List<ValidationDbTestResult> vDbResults = vTestResultDAO.getValidationTestResults(
-                    vNexusResults.get(0).getBlueprintName(), vNexusResults.get(0).getVersion(), labInfo, null, null,
-                    null);
+            Blueprint blueprint = blueprintService
+                    .getBlueprint(vNexusResults.get(0).getBlueprintInstance().getBlueprint().getBlueprintName());
+            if (blueprint == null) {
+                return;
+            }
+            BlueprintInstance blueInst = blueprintInstService.getBlueprintInstance(blueprint,
+                    vNexusResults.get(0).getBlueprintInstance().getVersion());
+            if (blueInst == null) {
+                return;
+            }
+            List<ValidationDbTestResult> vDbResults = vTestResultDAO.getValidationTestResults(blueInst, labInfo, null,
+                    null, null);
             if (vDbResults == null || vDbResults.size() < 1) {
                 return;
             }
@@ -268,13 +273,8 @@ public class DbResultAdapter {
                 boolean deletion = true;
                 String dbTimestamp = vDbResult.getTimestamp();
                 LabInfo dbLabInfo = vDbResult.getLab();
-                for (ValidationNexusTestResult vNexusResult : vNexusResults) {
-                    LabInfo nexusLabInfo = null;
-                    for (LabSilo silo : siloService.getSilos()) {
-                        if (silo.getSilo().equals(vNexusResult.getSilo())) {
-                            nexusLabInfo = silo.getLab();
-                        }
-                    }
+                for (ValidationDbTestResult vNexusResult : vNexusResults) {
+                    LabInfo nexusLabInfo = labService.getLabBasedOnSilo(vNexusResult.getLab().getSilo());
                     if (nexusLabInfo == null) {
                         continue;
                     }
@@ -293,7 +293,6 @@ public class DbResultAdapter {
                     vTestResultDAO.deleteValidationTestResult(vDbResult);
                 }
             }
-
         }
     }
 
@@ -309,17 +308,33 @@ public class DbResultAdapter {
         }
     }
 
-    public List<ValidationDbTestResult> getValidationTestResults(String blueprintName, String version, LabInfo labInfo,
-            Boolean allLayers, Boolean optional, Boolean outcome) {
+    public List<ValidationDbTestResult> getValidationTestResults(String blueprintName, @Nonnull String version,
+            LabInfo labInfo, Boolean allLayers, Boolean optional, Boolean outcome) {
         synchronized (LOCK) {
-            return vTestResultDAO.getValidationTestResults(blueprintName, version, labInfo, allLayers, optional,
-                    outcome);
+            Blueprint blueprint = null;
+            if (blueprintName != null) {
+                blueprint = blueprintService.getBlueprint(blueprintName);
+                if (blueprint == null) {
+                    return null;
+                }
+            }
+            BlueprintInstance bluInst = blueprintInstService.getBlueprintInstance(blueprint, version);
+            if (bluInst == null) {
+                return null;
+            }
+            return vTestResultDAO.getValidationTestResults(bluInst, labInfo, allLayers, optional, outcome);
         }
     }
 
     public ValidationDbTestResult getValidationTestResult(LabInfo labInfo, String timestamp) {
         synchronized (LOCK) {
             return vTestResultDAO.getValidationTestResult(labInfo, timestamp);
+        }
+    }
+
+    public ValidationDbTestResult getValidationTestResult(String labSilo, String timestamp) {
+        synchronized (LOCK) {
+            return vTestResultDAO.getValidationTestResult(labService.getLabBasedOnSilo(labSilo), timestamp);
         }
     }
 
@@ -347,134 +362,76 @@ public class DbResultAdapter {
         }
     }
 
-    private ValidationNexusTestResult convertValidationDbToNexus(ValidationDbTestResult vDbResult)
-            throws JsonParseException, JsonMappingException, IOException {
-        ValidationNexusTestResult vNexusResult = new ValidationNexusTestResult();
-        vNexusResult.setResultId(vDbResult.getResultId());
-        vNexusResult.setBlueprintName(vDbResult.getBlueprintName());
-        vNexusResult.setVersion(vDbResult.getVersion());
-        vNexusResult.setAllLayers(vDbResult.getAllLayers());
-        vNexusResult.setDateOfStorage(vDbResult.getDateStorage());
-        vNexusResult.setOptional(vDbResult.getOptional());
-        vNexusResult.setResult(vDbResult.getResult());
-        String siloText = null;
-        for (LabSilo silo : siloService.getSilos()) {
-            if (silo.getLab().getLab().equals(vDbResult.getLab().getLab())) {
-                siloText = silo.getSilo();
-            }
+    public boolean checkValidityOfNexusResult(ValidationDbTestResult vNexusResult) {
+        if (vNexusResult == null) {
+            return true;
         }
-        if (siloText == null) {
-            throw new IllegalArgumentException("Lab does not exist: " + vDbResult.getLab().toString());
-        }
-        vNexusResult.setSilo(siloText);
-        vNexusResult.setTimestamp(vDbResult.getTimestamp());
-        if (vDbResult.getSubmission() != null) {
-            vNexusResult.setSubmissionId(String.valueOf(vDbResult.getSubmission().getSubmissionId()));
-        }
-        List<WRobotNexusTestResult> wNexusResults = new ArrayList<WRobotNexusTestResult>();
-        List<WRobotDbTestResult> wDbResults = wRobotDAO.getWRobotTestResult(vDbResult);
-        if (wDbResults != null && wDbResults.size() > 0) {
-            for (WRobotDbTestResult wRobot : wDbResults) {
-                WRobotNexusTestResult wNexusResult = new WRobotNexusTestResult();
-                wNexusResult.setBlueprintLayer(BlueprintLayer.valueOf(wRobot.getLayer()));
-                if (wRobot.getRobotTestResults() != null) {
-                    ObjectMapper mapper = new ObjectMapper();
-                    wNexusResult.setRobotTestResults(
-                            mapper.readValue(wRobot.getRobotTestResults(), new TypeReference<List<RobotTestResult>>() {
-                            }));
-                }
-                wNexusResults.add(wNexusResult);
-            }
-            vNexusResult.setwRobotNexusTestResults(wNexusResults);
-        }
-        return vNexusResult;
-    }
-
-    private ValidationDbTestResult convertValidationNexusToDb(ValidationNexusTestResult vNexusResult)
-            throws JsonParseException, JsonMappingException, IOException {
-        LabInfo labInfo = null;
-        for (LabSilo silo : siloService.getSilos()) {
-            if (silo.getSilo().equals(vNexusResult.getSilo())) {
-                labInfo = silo.getLab();
-            }
-        }
+        LabInfo labInfo = labService.getLabBasedOnSilo(vNexusResult.getLab().getSilo());
         if (labInfo == null) {
-            return null;
+            throw new RuntimeException("Lab silo : " + vNexusResult.getLab().getSilo() + " not found");
         }
-        ValidationDbTestResult vDbResult = new ValidationDbTestResult();
-        vDbResult.setBlueprintName(vNexusResult.getBlueprintName());
-        vDbResult.setVersion(vNexusResult.getVersion());
-        vDbResult.setLab(labInfo);
-        vDbResult.setOptional(vNexusResult.getOptional());
-        vDbResult.setAllLayers(vNexusResult.getAllLayers());
-        vDbResult.setDateStorage(vNexusResult.getDateOfStorage());
-        vDbResult.setResult(vNexusResult.getResult());
-        vDbResult.setTimestamp(vNexusResult.getTimestamp());
-        return vDbResult;
-    }
-
-    private List<WRobotDbTestResult> convertWRobotNexusResultsToDb(List<WRobotNexusTestResult> wRobotNexusResults) {
-        if (wRobotNexusResults == null || wRobotNexusResults.size() < 1) {
-            return null;
+        ValidationDbTestResult vDbResult = vTestResultDAO.getValidationTestResult(
+                labService.getLabBasedOnSilo(vNexusResult.getLab().getSilo()), vNexusResult.getTimestamp());
+        Blueprint blueprint = null;
+        BlueprintInstance bluInst = null;
+        List<WRobotDbTestResult> wRobotDbResults = null;
+        if (vDbResult != null) {
+            blueprint = vDbResult.getBlueprintInstance().getBlueprint();
+            labInfo = vDbResult.getLab();
+            wRobotDbResults = wRobotDAO.getWRobotTestResult(vDbResult);
+        } else {
+            blueprint = blueprintService
+                    .getBlueprint(vNexusResult.getBlueprintInstance().getBlueprint().getBlueprintName());
         }
-        List<WRobotDbTestResult> wDbResults = new ArrayList<WRobotDbTestResult>();
-        for (WRobotNexusTestResult wRobotNexusResult : wRobotNexusResults) {
-            WRobotDbTestResult wDbResult = new WRobotDbTestResult();
-            if (wRobotNexusResult.getBlueprintLayer() != null) {
-                wDbResult.setLayer(wRobotNexusResult.getBlueprintLayer().toString());
-            }
-            ObjectMapper mapper = new ObjectMapper();
-            if (wRobotNexusResult.getRobotTestResults() != null && wRobotNexusResult.getRobotTestResults().size() > 0) {
-                try {
-                    wDbResult.setRobotTestResults(mapper.writeValueAsString(wRobotNexusResult.getRobotTestResults()));
-                } catch (JsonProcessingException e) {
-                    LOGGER.error(EELFLoggerDelegate.errorLogger,
-                            "Error while converting POJO to string. " + UserUtils.getStackTrace(e));
-                    continue;
-                }
-            }
-            wDbResults.add(wDbResult);
-        }
-        return wDbResults;
-    }
-
-    private boolean checkValidityOfValidationNexusTestResult(ValidationNexusTestResult vNexusResult) {
-        LabInfo labInfo = null;
-        for (LabSilo silo : siloService.getSilos()) {
-            if (silo.getSilo().equals(vNexusResult.getSilo())) {
-                labInfo = silo.getLab();
+        if (blueprint != null) {
+            if (vDbResult != null) {
+                bluInst = vDbResult.getBlueprintInstance();
+            } else {
+                bluInst = blueprintInstService.getBlueprintInstance(blueprint,
+                        vNexusResult.getBlueprintInstance().getVersion());
             }
         }
-        if (labInfo == null) {
-            LOGGER.error(EELFLoggerDelegate.errorLogger, "No lab Info found for silo. " + vNexusResult.getSilo());
+        // Start comparison, be elastic with allLayers and optional
+        if (!labInfo.getSilo().equals(vNexusResult.getLab().getSilo())) {
+            LOGGER.error(EELFLoggerDelegate.errorLogger,
+                    "Nexus has different data for blueprint : "
+                            + vDbResult.getBlueprintInstance().getBlueprint().getBlueprintName() + ", version: "
+                            + vDbResult.getBlueprintInstance().getVersion() + " and lab: " + vDbResult.getLab().getLab()
+                            + ". Lab inconsistency : " + vDbResult.getLab() + " " + labInfo);
             return false;
         }
-        ValidationDbTestResult vDbResult = vTestResultDAO.getValidationTestResult(labInfo, vNexusResult.getTimestamp());
-        if (vDbResult != null) {
-            // Be elastic for allLayers and optional
-            if (!vDbResult.getBlueprintName().equals(vNexusResult.getBlueprintName())
-                    || !vDbResult.getVersion().equals(vNexusResult.getVersion()) || !vDbResult.getLab().equals(labInfo)
-                    || !vDbResult.getTimestamp().equals(vNexusResult.getTimestamp())) {
+        if (blueprint != null) {
+            if (!blueprint.getBlueprintName()
+                    .equals(vNexusResult.getBlueprintInstance().getBlueprint().getBlueprintName())) {
                 LOGGER.error(EELFLoggerDelegate.errorLogger,
-                        "Nexus has different data for blueprint : " + vDbResult.getBlueprintName() + ", version: "
-                                + vDbResult.getVersion() + " and lab: " + vDbResult.getLab().getLab().name());
+                        "Nexus has different data for blueprint : " + blueprint.getBlueprintName()
+                        + ". Name inconsistency : " + blueprint.getBlueprintName() + " "
+                        + vNexusResult.getBlueprintInstance().getBlueprint().getBlueprintName());
                 return false;
             }
         }
-        List<org.akraino.validation.ui.entity.WRobotDbTestResult> wRobotDbResults = wRobotDAO
-                .getWRobotTestResult(vDbResult);
+        if (bluInst != null) {
+            if (!bluInst.getVersion().equals(vNexusResult.getBlueprintInstance().getVersion())) {
+                LOGGER.error(EELFLoggerDelegate.errorLogger,
+                        "Nexus has different data for blueprint : " + bluInst.getBlueprint().getBlueprintName()
+                        + ", version: " + bluInst.getVersion() + ". Version inconsistency : "
+                        + bluInst.getVersion() + " " + vNexusResult.getBlueprintInstance().getVersion());
+                return false;
+            }
+        }
         if (wRobotDbResults != null) {
-            if (vDbResult.getSubmission() != null) {
-                for (WRobotNexusTestResult wNexusResult : vNexusResult.getwRobotNexusTestResults()) {
-                    WRobotDbTestResult wRobotDbResult = wRobotDAO
-                            .getWRobotTestResult(wNexusResult.getBlueprintLayer().name(), vDbResult);
-                    if (wRobotDbResult == null) {
-                        LOGGER.error(EELFLoggerDelegate.errorLogger,
-                                "Nexus has different layer results for submission id: "
-                                        + vDbResult.getSubmission().getSubmissionId());
-                        return false;
-                    }
-                }
+            List<String> storedLayers1 = new ArrayList<String>();
+            for (WRobotDbTestResult wNexusResult : vNexusResult.getWRobotDbTestResults()) {
+                storedLayers1.add(wNexusResult.getLayer());
+            }
+            List<String> storedLayers2 = new ArrayList<String>();
+            for (WRobotDbTestResult wDbResult : wRobotDbResults) {
+                storedLayers2.add(wDbResult.getLayer());
+            }
+            if (!new HashSet<>(storedLayers1).equals(new HashSet<>(storedLayers2))) {
+                LOGGER.error(EELFLoggerDelegate.errorLogger,
+                        "Nexus has different layer results for validation result id: " + vDbResult.getResultId());
+                return false;
             }
         }
         return true;
@@ -484,6 +441,14 @@ public class DbResultAdapter {
         ValidationDbTestResult vDbSubmission = vTestResultDAO
                 .getValidationTestResult(subService.getSubmission(String.valueOf(jnksJobNotify.getSubmissionId())));
         if (vDbSubmission == null) {
+            LOGGER.error(EELFLoggerDelegate.errorLogger, "Received timestamp for submission id : "
+                    + jnksJobNotify.getSubmissionId() + " which has not validation result associated with it");
+            return false;
+        }
+        if (!vDbSubmission.getAllLayers() && (vDbSubmission.getWRobotDbTestResults() == null
+                || vDbSubmission.getWRobotDbTestResults().size() < 1)) {
+            LOGGER.error(EELFLoggerDelegate.errorLogger, "Received timestamp for submission id : "
+                    + jnksJobNotify.getSubmissionId() + " which is not stored correctly");
             return false;
         }
         ValidationDbTestResult vDbTimestamp = vTestResultDAO.getValidationTestResult(vDbSubmission.getLab(),
@@ -497,11 +462,107 @@ public class DbResultAdapter {
             + " from nexus for submission id: " + jnksJobNotify.getSubmissionId());
             return false;
         }
-        // Be elastic for allLayers and optional
-        if (!vDbSubmission.getBlueprintName().equals(vDbTimestamp.getBlueprintName())
-                || !vDbSubmission.getVersion().equals(vDbTimestamp.getVersion())
+        if (!vDbSubmission.getAllLayers()) {
+            if (wRobotDAO.getWRobotTestResult(vDbSubmission).size() != wRobotDAO.getWRobotTestResult(vDbTimestamp)
+                    .size()) {
+                LOGGER.error(EELFLoggerDelegate.errorLogger, "No consistency exists in stored layers records.");
+                return false;
+            }
+            List<String> storedLayers1 = new ArrayList<String>();
+            List<String> storedLayers2 = new ArrayList<String>();
+            List<WRobotDbTestResult> wDbResults = wRobotDAO.getWRobotTestResult(vDbSubmission);
+            for (WRobotDbTestResult wRobot : wDbResults) {
+                storedLayers1.add(wRobot.getLayer());
+            }
+            wDbResults = wRobotDAO.getWRobotTestResult(vDbTimestamp);
+            for (WRobotDbTestResult wRobot : wDbResults) {
+                storedLayers2.add(wRobot.getLayer());
+            }
+            if (!new HashSet<>(storedLayers1).equals(new HashSet<>(storedLayers2))) {
+                LOGGER.error(EELFLoggerDelegate.errorLogger, "No consistency exists in stored layers records.");
+                return false;
+            }
+        }
+        // Be elastic with allLayers and optional
+        if (!vDbSubmission.getBlueprintInstance().getBlueprint().getBlueprintName()
+                .equals(vDbTimestamp.getBlueprintInstance().getBlueprint().getBlueprintName())
+                || !vDbSubmission.getBlueprintInstance().getVersion()
+                .equals(vDbTimestamp.getBlueprintInstance().getVersion())
                 || !vDbSubmission.getLab().equals(vDbTimestamp.getLab())) {
             LOGGER.error(EELFLoggerDelegate.errorLogger, "No consistency exists in database records.");
+            return false;
+        }
+        return true;
+    }
+
+    private void updateBlueInstLayers(ValidationDbTestResult vNexusResult) {
+        for (BlueprintInstance blueprintInst : blueprintInstService.getBlueprintInstances()) {
+            if (!blueprintInst.getBlueprint().getBlueprintName()
+                    .equals(vNexusResult.getBlueprintInstance().getBlueprint().getBlueprintName())) {
+                continue;
+            }
+            Set<BlueprintLayer> blueprintLayers = blueprintInst.getBlueprintLayers();
+            if (blueprintLayers == null) {
+                blueprintLayers = new HashSet<BlueprintLayer>();
+            }
+            for (WRobotDbTestResult nexusResult : vNexusResult.getWRobotDbTestResults()) {
+                BlueprintLayer layer = layerService.getBlueprintLayer(nexusResult.getLayer());
+                if (layer == null) {
+                    layer = new BlueprintLayer();
+                    layer.setLayer(nexusResult.getLayer());
+                    layerService.saveBlueprintLayer(layer);
+                }
+                if (!blueprintLayers.contains(layer)) {
+                    blueprintLayers.add(layer);
+                }
+            }
+            blueprintInst.setBlueprintLayers(blueprintLayers);
+            blueprintInstService.saveBlueprintInstance(blueprintInst);
+        }
+    }
+
+    private boolean compareBluInstances(BlueprintInstance inst1, BlueprintInstance inst2) {
+        if (!inst1.getVersion().equals(inst2.getVersion())) {
+            return false;
+        }
+        if (inst1.getBlueprintInstanceId() != inst2.getBlueprintInstanceId()) {
+            return false;
+        }
+        Set<BlueprintLayer> layers1 = inst1.getBlueprintLayers();
+        Set<BlueprintLayer> layers2 = inst2.getBlueprintLayers();
+        if (!(layers1 == null && layers2 == null)) {
+            if (layers1 != null && layers2 == null) {
+                return false;
+            }
+            if (layers1 == null && layers2 != null) {
+                return false;
+            }
+            if (!(layers1.size() == layers2.size())) {
+                return false;
+            }
+            boolean overallLayerEquality = true;
+            for (BlueprintLayer blulayer1 : layers1) {
+                boolean layerEquality = false;
+                for (BlueprintLayer blulayer2 : layers2) {
+                    if (blulayer1.getLayer().equals(blulayer2.getLayer())) {
+                        layerEquality = true;
+                    }
+                }
+                if (!layerEquality) {
+                    overallLayerEquality = false;
+                    break;
+                }
+            }
+            if (!overallLayerEquality) {
+                return false;
+            }
+        }
+        Blueprint blueprint1 = inst1.getBlueprint();
+        Blueprint blueprint2 = inst2.getBlueprint();
+        if (blueprint1.getBlueprintId() != blueprint2.getBlueprintId()) {
+            return false;
+        }
+        if (!blueprint1.getBlueprintName().equals(blueprint2.getBlueprintName())) {
             return false;
         }
         return true;

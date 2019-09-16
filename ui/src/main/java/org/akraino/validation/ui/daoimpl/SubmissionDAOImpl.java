@@ -44,12 +44,14 @@ public class SubmissionDAOImpl implements SubmissionDAO {
     @Override
     public List<Submission> getSubmissions() {
         Criteria criteria = getSession().createCriteria(Submission.class);
+        criteria.setResultTransformer(Criteria.DISTINCT_ROOT_ENTITY);
         return criteria.list();
     }
 
     @Override
     public Submission getSubmission(@Nonnull Integer submissionId) {
         Criteria criteria = getSession().createCriteria(Submission.class);
+        criteria.setResultTransformer(Criteria.DISTINCT_ROOT_ENTITY);
         criteria.add(Restrictions.eq("id", submissionId));
         return criteria.list() == null || criteria.list().size() < 1 ? null : (Submission) criteria.list().get(0);
     }

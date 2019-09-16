@@ -29,9 +29,7 @@ import org.akraino.validation.ui.client.jenkins.resources.Parameter;
 import org.akraino.validation.ui.client.jenkins.resources.Parameters;
 import org.akraino.validation.ui.conf.ExecutorServiceInitializer;
 import org.akraino.validation.ui.dao.SubmissionDAO;
-import org.akraino.validation.ui.data.SubmissionData;
 import org.akraino.validation.ui.data.SubmissionStatus;
-import org.akraino.validation.ui.entity.LabSilo;
 import org.akraino.validation.ui.entity.Submission;
 import org.akraino.validation.ui.service.utils.PrioritySupplier;
 import org.akraino.validation.ui.service.utils.SubmissionHelper;
@@ -51,6 +49,7 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 public class DbSubmissionAdapter {
 
     private static final EELFLoggerDelegate LOGGER = EELFLoggerDelegate.getLogger(DbSubmissionAdapter.class);
+    private static final Object LOCK = new Object();
 
     @Autowired
     private SubmissionDAO submissionDAO;
@@ -65,136 +64,98 @@ public class DbSubmissionAdapter {
     private DbResultAdapter dbAdapter;
 
     @Autowired
-    SiloService siloService;
+    BlueprintInstanceService bluInstService;
 
-    public SubmissionData saveSubmission(SubmissionData submissionData)
+    public Submission saveSubmission(Submission submission)
             throws JsonParseException, JsonMappingException, IOException {
-        Submission submission = new Submission();
-        submission.setSubmissionStatus(SubmissionStatus.Submitted);
-        submission.setTimeslot(submissionData.getTimeslot());
-        submissionDAO.saveOrUpdate(submission);
-        submissionData.setSubmissionId(submission.getSubmissionId());
-        String siloText = null;
-        for (LabSilo silo : siloService.getSilos()) {
-            if (silo.getLab().getLab().equals(submissionData.getTimeslot().getLab().getLab())) {
-                siloText = silo.getSilo();
-            }
+        synchronized (LOCK) {
+            submission.setSubmissionStatus(SubmissionStatus.Submitted);
+            submissionDAO.saveOrUpdate(submission);
+            dbAdapter.associateSubmissionWithValidationResult(submission);
+            ApplicationContext context = new AnnotationConfigApplicationContext(ExecutorServiceInitializer.class);
+            ExecutorService service = (ExecutorService) context.getBean("executorService");
+            JenkinsTriggerSubmissionJob task = new JenkinsTriggerSubmissionJob(submission);
+            CompletableFuture<Submission> completableFuture = CompletableFuture
+                    .supplyAsync(new PrioritySupplier<>(1, task::execute), service);
+            completableFuture.thenAcceptAsync(result -> this.callbackNotify(result));
+            return submission;
         }
-        if (siloText == null) {
-            throw new IllegalArgumentException(
-                    "Lab does not exist: " + submissionData.getTimeslot().getLab().toString());
-        }
-        submissionData.getValidationNexusTestResult().setSilo(siloText);
-        dbAdapter.associateSubmissionWithValidationResult(submissionData);
-        ApplicationContext context = new AnnotationConfigApplicationContext(ExecutorServiceInitializer.class);
-        ExecutorService service = (ExecutorService) context.getBean("executorService");
-        JenkinsTriggerSubmissionJob task = new JenkinsTriggerSubmissionJob(submissionData);
-        CompletableFuture<SubmissionData> completableFuture = CompletableFuture
-                .supplyAsync(new PrioritySupplier<>(1, task::execute), service);
-        completableFuture.thenAcceptAsync(result -> this.callbackNotify(result));
-        submissionData.setSubmissionId(submission.getSubmissionId());
-        return submissionData;
     }
 
     public List<Submission> getSubmissions() {
-        return submissionDAO.getSubmissions();
-    }
-
-    public List<SubmissionData> getSubmissionDatas() throws JsonParseException, JsonMappingException, IOException {
-        List<Submission> submissions = submissionDAO.getSubmissions();
-        if (submissions == null || submissions.size() < 1) {
-            return null;
+        synchronized (LOCK) {
+            return submissionDAO.getSubmissions();
         }
-        List<SubmissionData> datas = new ArrayList<SubmissionData>();
-        for (Submission submission : submissions) {
-            SubmissionData submissionData = new SubmissionData();
-            submissionData.setStatus(submission.getSubmissionStatus());
-            submissionData.setSubmissionId(submission.getSubmissionId());
-            submissionData.setTimeslot(submission.getTimeslot());
-            submissionData.setValidationNexusTestResult(
-                    dbAdapter.readResultFromDb(String.valueOf(submission.getSubmissionId())));
-            datas.add(submissionData);
-        }
-        return datas;
-    }
-
-    public SubmissionData getSubmissionData(String submissionId)
-            throws JsonParseException, JsonMappingException, IOException {
-        Submission submission = submissionDAO.getSubmission(Integer.valueOf(submissionId));
-        if (submission == null) {
-            return null;
-        }
-        SubmissionData submissionData = new SubmissionData();
-        submissionData.setStatus(submission.getSubmissionStatus());
-        submissionData.setSubmissionId(submission.getSubmissionId());
-        submissionData.setTimeslot(submission.getTimeslot());
-        submissionData.setValidationNexusTestResult(dbAdapter.readResultFromDb(submissionId));
-        return submissionData;
     }
 
     public Submission getSubmission(String submissionId) {
-        return submissionDAO.getSubmission(Integer.valueOf(submissionId));
+        synchronized (LOCK) {
+            return submissionDAO.getSubmission(Integer.valueOf(submissionId));
+        }
     }
 
     public void deleteSubmission(Integer submissionId) {
-        submissionDAO.deleteSubmission(submissionId);
+        synchronized (LOCK) {
+            submissionDAO.deleteSubmission(submissionId);
+        }
     }
 
     public void deleteAll() {
-        submissionDAO.deleteAll();
+        synchronized (LOCK) {
+            submissionDAO.deleteAll();
+        }
     }
 
-    private void callbackNotify(SubmissionData submissionData) {
-        if (submissionData == null) {
+    private void callbackNotify(Submission submission) {
+        if (submission == null) {
             return;
         }
-        Submission submission = submissionHelper.getSubmission(submissionData.getSubmissionId());
         submission.setSubmissionStatus(SubmissionStatus.Running);
         submissionHelper.saveSubmission(submission);
     }
 
     private class JenkinsTriggerSubmissionJob {
 
-        private SubmissionData submissionData;
+        private Submission submission;
 
-        public JenkinsTriggerSubmissionJob(SubmissionData submissionData) {
-            this.submissionData = submissionData;
+        public JenkinsTriggerSubmissionJob(Submission submission) {
+            this.submission = submission;
         }
 
-        public SubmissionData execute() {
+        public Submission execute() {
             try (final DatagramSocket socket = new DatagramSocket()) {
                 String jobName = System.getenv("JENKINS_JOB_NAME");
                 List<Parameter> listOfParameters = new ArrayList<Parameter>();
                 Parameters parameters = new Parameters();
                 Parameter parameter = new Parameter();
                 parameter.setName("SUBMISSION_ID");
-                parameter.setValue(String.valueOf(submissionData.getSubmissionId()));
+                parameter.setValue(String.valueOf(submission.getSubmissionId()));
                 listOfParameters.add(parameter);
                 parameter = new Parameter();
                 parameter.setName("BLUEPRINT");
-                parameter.setValue(submissionData.getValidationNexusTestResult().getBlueprintName());
+                parameter.setValue(submission.getValidationDbTestResult().getBlueprintInstance().getBlueprint()
+                        .getBlueprintName());
                 listOfParameters.add(parameter);
                 parameter = new Parameter();
                 parameter.setName("LAYER");
-                if (submissionData.getValidationNexusTestResult().getAllLayers()) {
+                if (submission.getValidationDbTestResult().getAllLayers()) {
                     parameter.setValue("all");
                 } else {
-                    parameter.setValue(submissionData.getValidationNexusTestResult().getwRobotNexusTestResults().get(0)
-                            .getBlueprintLayer().name().toLowerCase());
+                    parameter.setValue(submission.getValidationDbTestResult().getBlueprintInstance()
+                            .getBlueprintLayers().iterator().next().getLayer().toLowerCase());
                 }
                 listOfParameters.add(parameter);
                 parameter = new Parameter();
                 parameter.setName("VERSION");
-                parameter.setValue(submissionData.getValidationNexusTestResult().getVersion());
+                parameter.setValue(submission.getValidationDbTestResult().getBlueprintInstance().getVersion());
                 listOfParameters.add(parameter);
                 parameter = new Parameter();
                 parameter.setName("LAB");
-                parameter.setValue(submissionData.getTimeslot().getLab().getLab().name());
+                parameter.setValue(submission.getTimeslot().getLabInfo().getLab());
                 listOfParameters.add(parameter);
                 parameter = new Parameter();
                 parameter.setName("OPTIONAL");
-                parameter.setValue(
-                        String.valueOf(submissionData.getValidationNexusTestResult().getOptional().toString()));
+                parameter.setValue(String.valueOf(submission.getValidationDbTestResult().getOptional().toString()));
                 listOfParameters.add(parameter);
                 parameter = new Parameter();
                 parameter.setName("UI_IP");
@@ -206,7 +167,7 @@ public class DbSubmissionAdapter {
                 listOfParameters.add(parameter);
                 parameters.setParameter(listOfParameters);
                 jenkinsService.postJobWithQueryParams(jobName, parameters).toString();
-                return submissionData;
+                return submission;
             } catch (Exception e) {
                 LOGGER.error(EELFLoggerDelegate.errorLogger,
                         "Error when triggering Jenkins job. " + UserUtils.getStackTrace(e));

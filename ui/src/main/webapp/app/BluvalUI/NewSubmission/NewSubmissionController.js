@@ -23,21 +23,31 @@ app
                     initialize();
 
                     function initialize() {
+                        $scope.blueprintInstances = [];
+                        $scope.blueprintNames = [];
+                        $scope.blueprintVersions = [];
+                        $scope.blueprintLayers = [];
+                        $scope.optionals = [];
+                        $scope.selectedBlueprintName = {};
+                        $scope.selectedBlueprintVersion = {};
+                        $scope.selectedBlueprintLayer = {};
+                        $scope.selectedOptional = "";
                         restAPISvc
                                 .getRestAPI(
-                                        "/api/v1/blueprintinstanceforvalidation/",
+                                        "/api/v1/blueprintinstance/",
                                         function(data) {
-                                            $scope.blueprintInstancesForValidation = data;
-                                            $scope.blueprintNames = [];
+                                            $scope.blueprintInstances = data;
                                             angular
                                                     .forEach(
-                                                            $scope.blueprintInstancesForValidation,
+                                                            $scope.blueprintInstances,
                                                             function(
                                                                     blueprintInstance) {
                                                                 if ($scope.blueprintNames
-                                                                        .indexOf(blueprintInstance["blueprint"]["blueprintName"]) === -1) {
+                                                                        .indexOf(blueprintInstance["blueprint"]["blueprintName"]
+                                                                                .trim()) === -1) {
                                                                     $scope.blueprintNames
-                                                                            .push(blueprintInstance["blueprint"]["blueprintName"]);
+                                                                            .push(blueprintInstance["blueprint"]["blueprintName"]
+                                                                                    .trim());
                                                                 }
                                                             });
                                         });
@@ -54,12 +64,14 @@ app
                                                  * + " duration(in sec) :" +
                                                  * blueprintInstance["timeslot"].duration
                                                  */
-                                                + " lab :" + timeslot.lab.lab;
+                                                + " lab :"
+                                                + timeslot.labInfo.lab;
                                         $scope.declerativeTimeslots.push(temp);
                                     });
                         });
                     }
-                    $scope.selectedBluePrintNameChange = function() {
+
+                    $scope.selectedBlueprintNameChange = function() {
                         $scope.blueprintVersions = [];
                         $scope.blueprintLayers = [];
                         $scope.optionals = [];
@@ -68,18 +80,22 @@ app
                         $scope.selectedOptional = "";
                         angular
                                 .forEach(
-                                        $scope.blueprintInstancesForValidation,
+                                        $scope.blueprintInstances,
                                         function(blueprintInstance) {
-                                            if ($scope.selectedBlueprintName === blueprintInstance["blueprint"]["blueprintName"]) {
+                                            if ($scope.selectedBlueprintName
+                                                    .trim() === blueprintInstance["blueprint"]["blueprintName"]
+                                                    .trim()) {
                                                 if ($scope.blueprintVersions
-                                                        .indexOf(blueprintInstance["version"]) === -1) {
+                                                        .indexOf(blueprintInstance["version"]
+                                                                .trim()) === -1) {
                                                     $scope.blueprintVersions
-                                                            .push(blueprintInstance["version"]);
+                                                            .push(blueprintInstance["version"]
+                                                                    .trim());
                                                 }
                                             }
                                         });
                     }
-                    $scope.selectedBluePrintVersionChange = function() {
+                    $scope.selectedBlueprintVersionChange = function() {
                         if (!$scope.selectedBlueprintName) {
                             return;
                         }
@@ -89,22 +105,29 @@ app
                         $scope.selectedOptional = "";
                         angular
                                 .forEach(
-                                        $scope.blueprintInstancesForValidation,
+                                        $scope.blueprintInstances,
                                         function(blueprintInstance) {
-                                            if ($scope.selectedBlueprintName === blueprintInstance["blueprint"]["blueprintName"]) {
-                                                if ($scope.selectedBlueprintVersion === blueprintInstance["version"]) {
-                                                    if ($scope.blueprintLayers
-                                                            .indexOf(blueprintInstance["layer"]) === -1) {
-                                                        $scope.blueprintLayers
-                                                                .push(blueprintInstance["layer"]);
-                                                    }
+                                            if ($scope.selectedBlueprintName
+                                                    .trim() === blueprintInstance["blueprint"]["blueprintName"]
+                                                    .trim()) {
+                                                if ($scope.selectedBlueprintVersion
+                                                        .trim() === blueprintInstance["version"]
+                                                        .trim()) {
+                                                    angular
+                                                            .forEach(
+                                                                    blueprintInstance.blueprintLayers,
+                                                                    function(
+                                                                            layer) {
+                                                                        $scope.blueprintLayers
+                                                                                .push(layer.layer);
+                                                                    });
                                                 }
                                             }
                                         });
                         $scope.blueprintLayers.push("all");
                     }
 
-                    $scope.selectedBluePrintLayerChange = function() {
+                    $scope.selectedBlueprintLayerChange = function() {
                         $scope.optionals = [ 'true', 'false' ];
                     }
 
@@ -138,30 +161,45 @@ app
                         if ($scope.selectedBlueprintLayer === 'all') {
                             allLayers = "true";
                         }
-                        var wRobotTestResults = [];
+                        var wrobotTestResults = [];
                         if (allLayers === "false") {
-                            wRobotTestResults = [ {
-                                "blueprintLayer" : $scope.selectedBlueprintLayer
+                            wrobotTestResults = [ {
+                                "layer" : $scope.selectedBlueprintLayer
                             } ];
                         }
 
-                        var validationNexusTestResult = {
-                            "blueprintName" : $scope.selectedBlueprintName,
-                            "version" : $scope.selectedBlueprintVersion,
+                        var blueprintInstanceData = "";
+                        angular
+                                .forEach(
+                                        $scope.blueprintInstances,
+                                        function(blueprintInstance) {
+                                            if ($scope.selectedBlueprintName
+                                                    .trim() === blueprintInstance["blueprint"]["blueprintName"]
+                                                    .trim()) {
+                                                if ($scope.selectedBlueprintVersion
+                                                        .trim() === blueprintInstance["version"]
+                                                        .trim()) {
+                                                    blueprintInstanceData = blueprintInstance;
+                                                }
+                                            }
+                                        });
+                        var validationDbTestResult = {
+                            "blueprintInstance" : blueprintInstanceData,
                             "allLayers" : allLayers,
-                            "wRobotNexusTestResults" : wRobotTestResults,
-                            "optional" : $scope.selectedOptional
+                            "wrobotDbTestResults" : wrobotTestResults,
+                            "optional" : $scope.selectedOptional,
+                            "lab" : finalTimeslot.labInfo
                         };
-                        var submissionData = {
-                            "validationNexusTestResult" : validationNexusTestResult,
+                        var submission = {
+                            "validationDbTestResult" : validationDbTestResult,
                             "timeslot" : finalTimeslot
                         };
                         restAPISvc
                                 .postRestAPI(
                                         "/api/v1/submission/",
-                                        submissionData,
+                                        submission,
                                         function(data) {
-                                            if (data !== undefined) {
+                                            if (data) {
                                                 var confirmText = "The blueprint instance for validation has been submitted successfully. Submission id:"
                                                         + data.submissionId;
                                                 confirm(confirmText);

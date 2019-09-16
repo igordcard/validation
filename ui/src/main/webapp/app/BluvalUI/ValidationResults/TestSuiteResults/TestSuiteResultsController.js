@@ -22,24 +22,23 @@ app.controller('TestSuiteResultsController', function($scope,
 
     function initialize() {
         $scope.showTestSuitesResults = false;
-        $scope.wRobotTestResults = [];
-        $scope.selectedTestId = null;
-        $scope.selectedTest = null;
+        $scope.wrobotTestResults = [];
+        $scope.selectedTestId = '';
+        $scope.selectedTest = '';
         $scope.resultsLayers = [];
         $scope.resultsLayerTestSuitesNames = [];
-        $scope.selectedRobotTestResult = [];
-        $scope.selectedLayer = [];
-        $scope.selectedTestSuiteName = [];
-
-        $scope.validationNexusTestResult = $scope.params;
-        $scope.wRobotTestResults = $scope.params.wRobotNexusTestResults;
+        $scope.selectedRobotTestResult = '';
+        $scope.selectedLayer = '';
+        $scope.selectedTestSuiteName = '';
+        $scope.validationDbTestResult = $scope.params;
+        $scope.wrobotTestResults = $scope.params.wrobotDbTestResults;
         if (generalValidationResultsSvc
-                .mapResult($scope.validationNexusTestResult) === null) {
+                .mapResult($scope.validationDbTestResult) === null) {
             confirm("No data was found");
         } else {
             $scope.showTestSuitesResults = true;
-            angular.forEach($scope.wRobotTestResults, function(result) {
-                $scope.resultsLayers.push(result.blueprintLayer);
+            angular.forEach($scope.wrobotTestResults, function(result) {
+                $scope.resultsLayers.push(result.layer);
             });
         }
 
@@ -50,15 +49,16 @@ app.controller('TestSuiteResultsController', function($scope,
         $scope.selectedTest = null;
         $scope.resultsLayerTestSuitesNames = [];
         $scope.robotTestResults = [];
-        $scope.selectedRobotTestResult = [];
-        $scope.selectedTestSuiteName = [];
+        $scope.selectedRobotTestResult = '';
+        $scope.selectedTestSuiteName = '';
         var selectedLayerResult = [];
-        angular.forEach($scope.wRobotTestResults, function(result) {
-            if (result.blueprintLayer === selectedLayer) {
+        angular.forEach($scope.wrobotTestResults, function(result) {
+            if (result.layer === selectedLayer) {
                 selectedLayerResult = result;
             }
         });
-        $scope.robotTestResults = selectedLayerResult.robotTestResults;
+        $scope.robotTestResults = angular
+                .fromJson(selectedLayerResult.robotTestResults);
         angular.forEach($scope.robotTestResults, function(robotTestResult) {
             $scope.resultsLayerTestSuitesNames.push(robotTestResult.name);
         });
@@ -68,8 +68,8 @@ app.controller('TestSuiteResultsController', function($scope,
         if (!selectedTestSuiteName) {
             return;
         }
-        $scope.selectedTestId = null;
-        $scope.selectedTest = null;
+        $scope.selectedTestId = '';
+        $scope.selectedTest = '';
         angular.forEach($scope.robotTestResults, function(robotTestResult) {
             if (robotTestResult.name.trim() === selectedTestSuiteName.trim()) {
                 $scope.selectedRobotTestResult = robotTestResult;

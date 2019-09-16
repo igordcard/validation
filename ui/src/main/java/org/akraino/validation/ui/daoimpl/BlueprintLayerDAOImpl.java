@@ -17,10 +17,8 @@ package org.akraino.validation.ui.daoimpl;
 
 import java.util.List;
 
-import javax.annotation.Nonnull;
-
-import org.akraino.validation.ui.dao.BlueprintDAO;
-import org.akraino.validation.ui.entity.Blueprint;
+import org.akraino.validation.ui.dao.BlueprintLayerDAO;
+import org.akraino.validation.ui.entity.BlueprintLayer;
 import org.hibernate.Criteria;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
@@ -30,9 +28,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public class BlueprintDAOImpl implements BlueprintDAO {
+public class BlueprintLayerDAOImpl implements BlueprintLayerDAO {
 
-    private static final EELFLoggerDelegate LOGGER = EELFLoggerDelegate.getLogger(BlueprintDAOImpl.class);
+    private static final EELFLoggerDelegate LOGGER = EELFLoggerDelegate.getLogger(BlueprintLayerDAOImpl.class);
 
     @Autowired
     private SessionFactory sessionFactory;
@@ -42,51 +40,51 @@ public class BlueprintDAOImpl implements BlueprintDAO {
     }
 
     @Override
-    public List<Blueprint> getBlueprints() {
-        Criteria criteria = getSession().createCriteria(Blueprint.class);
+    public List<BlueprintLayer> getBlueprintLayers() {
+        Criteria criteria = getSession().createCriteria(BlueprintLayer.class);
         criteria.setResultTransformer(Criteria.DISTINCT_ROOT_ENTITY);
         return criteria.list();
     }
 
     @Override
-    public Blueprint getBlueprint(@Nonnull Integer blueprintId) {
-        Criteria criteria = getSession().createCriteria(Blueprint.class);
+    public BlueprintLayer getBlueprintLayer(Integer bluLayerId) {
+        Criteria criteria = getSession().createCriteria(BlueprintLayer.class);
         criteria.setResultTransformer(Criteria.DISTINCT_ROOT_ENTITY);
-        criteria.add(Restrictions.eq("id", blueprintId));
-        return criteria.list() == null || criteria.list().size() < 1 ? null : (Blueprint) criteria.list().get(0);
+        criteria.add(Restrictions.eq("id", bluLayerId));
+        return criteria.list() == null || criteria.list().size() < 1 ? null : (BlueprintLayer) criteria.list().get(0);
     }
 
     @Override
-    public Blueprint getBlueprint(String name) {
-        Criteria criteria = getSession().createCriteria(Blueprint.class);
+    public BlueprintLayer getBlueprintLayer(String layer) {
+        Criteria criteria = getSession().createCriteria(BlueprintLayer.class);
         criteria.setResultTransformer(Criteria.DISTINCT_ROOT_ENTITY);
-        criteria.add(Restrictions.eq("blueprintName", name));
-        return criteria.list() == null || criteria.list().size() < 1 ? null : (Blueprint) criteria.list().get(0);
+        criteria.add(Restrictions.eq("layer", layer));
+        return criteria.list() == null || criteria.list().size() < 1 ? null : (BlueprintLayer) criteria.list().get(0);
     }
 
     @Override
-    public void saveOrUpdate(@Nonnull Blueprint blueprint) {
-        getSession().saveOrUpdate(blueprint);
+    public void saveOrUpdate(BlueprintLayer blueprintLayer) {
+        getSession().saveOrUpdate(blueprintLayer);
         getSession().flush();
     }
 
     @Override
-    public void merge(@Nonnull Blueprint blueprint) {
-        getSession().merge(blueprint);
+    public void merge(BlueprintLayer blueprintLayer) {
+        getSession().merge(blueprintLayer);
         getSession().flush();
     }
 
     @Override
-    public void deleteBlueprint(@Nonnull Blueprint blueprint) {
-        getSession().delete(blueprint);
+    public void deleteBlueprintLayer(BlueprintLayer blueprintLayer) {
+        getSession().delete(blueprintLayer);
         getSession().flush();
     }
 
     @Override
     public void deleteAll() {
-        if (getSession().createQuery("delete from Blueprint").executeUpdate() > 0) {
+        if (getSession().createQuery("delete from BlueprintLayer").executeUpdate() > 0) {
             getSession().flush();
-            LOGGER.info(EELFLoggerDelegate.applicationLogger, "All blueprint entries are cleaned up");
+            LOGGER.info(EELFLoggerDelegate.applicationLogger, "All blueprint layers are cleaned up");
         }
     }
 

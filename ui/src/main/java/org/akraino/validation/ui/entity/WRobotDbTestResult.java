@@ -15,6 +15,7 @@
  */
 package org.akraino.validation.ui.entity;
 
+import java.io.IOException;
 import java.io.Serializable;
 
 import javax.persistence.Column;
@@ -25,6 +26,11 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
+
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.databind.SerializerProvider;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.databind.ser.std.StdSerializer;
 
 @Entity
 @Table(name = "w_robot_test_result")
@@ -45,10 +51,11 @@ public class WRobotDbTestResult implements Serializable {
 
     @ManyToOne
     @JoinColumn(name = "validation_test_result_id")
-    private ValidationDbTestResult vResult;
+    @JsonSerialize(using = ValidationDbTestResultSerializer.class)
+    private ValidationDbTestResult validationDbTestResult;
 
     @Column(name = "robot_test_results")
-    private String rResults;
+    private String robotTestResults;
 
     public int getWRobotResultId() {
         return wRobotResultId;
@@ -66,20 +73,37 @@ public class WRobotDbTestResult implements Serializable {
         this.layer = layer;
     }
 
-    public ValidationDbTestResult getValidationTestResult() {
-        return vResult;
+    public ValidationDbTestResult getValidationDbTestResult() {
+        return validationDbTestResult;
     }
 
-    public void setValidationTestResult(ValidationDbTestResult vResult) {
-        this.vResult = vResult;
+    public void setValidationDbTestResult(ValidationDbTestResult validationDbTestResult) {
+        this.validationDbTestResult = validationDbTestResult;
     }
 
     public String getRobotTestResults() {
-        return rResults;
+        return robotTestResults;
     }
 
-    public void setRobotTestResults(String rResults) {
-        this.rResults = rResults;
+    public void setRobotTestResults(String robotTestResults) {
+        this.robotTestResults = robotTestResults;
     }
 
+    static class ValidationDbTestResultSerializer extends StdSerializer<ValidationDbTestResult> {
+
+        public ValidationDbTestResultSerializer() {
+            this(null);
+        }
+
+        public ValidationDbTestResultSerializer(Class<ValidationDbTestResult> t) {
+            super(t);
+        }
+
+        @Override
+        public void serialize(ValidationDbTestResult validationDbTestResult, JsonGenerator gen,
+                SerializerProvider provider) throws IOException {
+            gen.writeObject(null);
+        }
+
+    }
 }

@@ -24,8 +24,11 @@ app.controller('GetBasedOnDateController', function($scope, restAPISvc,
         $scope.loadingLabs = true;
         $scope.loadingBlueprints = false;
         $scope.loadingVersions = false;
-        restAPISvc.getRestAPI("/api/v1/results/getlabs/", function(data) {
-            $scope.labs = data;
+        $scope.labs = [];
+        restAPISvc.getRestAPI("/api/v1/lab/", function(data) {
+            angular.forEach(data, function(lab) {
+                $scope.labs.push(lab.lab);
+            });
             $scope.loadingLabs = false;
         });
     }

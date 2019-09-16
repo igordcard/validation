@@ -18,8 +18,8 @@ package org.akraino.validation.ui.controller;
 
 import java.util.List;
 
-import org.akraino.validation.ui.entity.BlueprintInstanceForValidation;
-import org.akraino.validation.ui.service.BlueprintInstanceForValidationService;
+import org.akraino.validation.ui.entity.BlueprintInstance;
+import org.akraino.validation.ui.service.BlueprintInstanceService;
 import org.onap.portalsdk.core.controller.RestrictedBaseController;
 import org.onap.portalsdk.core.logging.logic.EELFLoggerDelegate;
 import org.onap.portalsdk.core.web.support.UserUtils;
@@ -31,23 +31,22 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 
 @Controller
-@RequestMapping("/api/v1/blueprintinstanceforvalidation")
-public class BlueprintInstanceForValidationController extends RestrictedBaseController {
+@RequestMapping("/api/v1/blueprintinstance")
+public class BlueprintInstanceController extends RestrictedBaseController {
 
-    private static final EELFLoggerDelegate LOGGER = EELFLoggerDelegate
-            .getLogger(BlueprintInstanceForValidationController.class);
+    private static final EELFLoggerDelegate LOGGER = EELFLoggerDelegate.getLogger(BlueprintInstanceController.class);
 
     @Autowired
-    BlueprintInstanceForValidationService service;
+    BlueprintInstanceService service;
 
-    public BlueprintInstanceForValidationController() {
+    public BlueprintInstanceController() {
         super();
     }
 
     @RequestMapping(value = { "/" }, method = RequestMethod.GET)
-    public ResponseEntity<List<BlueprintInstanceForValidation>> getBlueprintInstancesForValidation() {
+    public ResponseEntity<List<BlueprintInstance>> getBlueprintInstances() {
         try {
-            return new ResponseEntity<>(service.getBlueprintInstancesForValidation(), HttpStatus.OK);
+            return new ResponseEntity<>(service.getBlueprintInstances(), HttpStatus.OK);
         } catch (Exception e) {
             LOGGER.error(EELFLoggerDelegate.errorLogger,
                     "Error when trying to get blueprint instances for validation. " + UserUtils.getStackTrace(e));

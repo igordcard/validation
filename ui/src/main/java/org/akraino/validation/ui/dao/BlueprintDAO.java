@@ -29,6 +29,8 @@ public interface BlueprintDAO {
 
     Blueprint getBlueprint(Integer blueprintId);
 
+    Blueprint getBlueprint(String name);
+
     void deleteBlueprint(Blueprint blueprint);
 
     void deleteAll();

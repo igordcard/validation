@@ -32,15 +32,20 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.NoSuchElementException;
 
 import javax.annotation.Nonnull;
 
 import org.akraino.validation.ui.client.nexus.resources.RobotTestResult;
 import org.akraino.validation.ui.client.nexus.resources.Status;
 import org.akraino.validation.ui.client.nexus.resources.TestInfoYaml;
-import org.akraino.validation.ui.client.nexus.resources.ValidationNexusTestResult;
 import org.akraino.validation.ui.client.nexus.resources.WRobotNexusTestResult;
-import org.akraino.validation.ui.data.BlueprintLayer;
+import org.akraino.validation.ui.entity.Blueprint;
+import org.akraino.validation.ui.entity.BlueprintInstance;
+import org.akraino.validation.ui.entity.LabInfo;
+import org.akraino.validation.ui.entity.ValidationDbTestResult;
+import org.akraino.validation.ui.entity.WRobotDbTestResult;
+import org.akraino.validation.ui.service.DbResultAdapter;
 import org.apache.commons.httpclient.HttpException;
 import org.json.JSONObject;
 import org.json.XML;
@@ -50,6 +55,7 @@ import org.jsoup.nodes.Element;
 import org.onap.portalsdk.core.logging.logic.EELFLoggerDelegate;
 import org.onap.portalsdk.core.onboarding.util.PortalApiProperties;
 import org.onap.portalsdk.core.web.support.UserUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
@@ -71,6 +77,9 @@ import com.sun.jersey.client.urlconnection.URLConnectionClientHandler;
 
 @Service
 public final class NexusExecutorClient {
+
+    @Autowired
+    DbResultAdapter dbAdapter;
 
     private static final EELFLoggerDelegate LOGGER = EELFLoggerDelegate.getLogger(NexusExecutorClient.class);
 
@@ -145,7 +154,7 @@ public final class NexusExecutorClient {
         return this.getResource(endpoint);
     }
 
-    public ValidationNexusTestResult getResult(@Nonnull String name, @Nonnull String version, @Nonnull String siloText,
+    public ValidationDbTestResult getResult(@Nonnull String name, @Nonnull String version, @Nonnull String siloText,
             @Nonnull String timestamp)
                     throws ClientHandlerException, UniformInterfaceException, JsonParseException, JsonMappingException,
                     IOException, KeyManagementException, NoSuchAlgorithmException, ParseException, NullPointerException {
@@ -165,29 +174,46 @@ public final class NexusExecutorClient {
         if (element == null) {
             return null;
         }
-        ValidationNexusTestResult vNexusResult = new ValidationNexusTestResult();
-        vNexusResult.setBlueprintName(name);
-        vNexusResult.setSilo(siloText);
-        vNexusResult.setVersion(version);
-        vNexusResult.setTimestamp(timestamp);
+        ValidationDbTestResult vDbResult = new ValidationDbTestResult();
+        Blueprint blueprint = new Blueprint();
+        blueprint.setBlueprintName(name);
+        BlueprintInstance blueInst = new BlueprintInstance();
+        blueInst.setBlueprint(blueprint);
+        blueInst.setVersion(version);
+        vDbResult.setBlueprintInstance(blueInst);
+        LabInfo lab = new LabInfo();
+        lab.setSilo(siloText);
+        vDbResult.setLab(lab);
+        vDbResult.setTimestamp(timestamp);
         String lastModified = element.getElementsByTag("td").get(1).text();
-        vNexusResult.setDateOfStorage(lastModified);
+        vDbResult.setDateStorage(lastModified);
         TestInfoYaml testInfo = getTestInfo(webResource.getURI().toString() + timestamp);
         if (testInfo != null) {
             if (testInfo.gettest_info().getLayer().equals("all")) {
-                vNexusResult.setAllLayers(true);
+                vDbResult.setAllLayers(true);
             } else {
-                vNexusResult.setAllLayers(false);
+                vDbResult.setAllLayers(false);
             }
-            vNexusResult.setOptional(testInfo.gettest_info().getOptional());
+            vDbResult.setOptional(testInfo.gettest_info().getOptional());
         }
         List<WRobotNexusTestResult> wTestResults = getWRobotTestResults(name, version, siloText, timestamp);
-        vNexusResult.setwRobotNexusTestResults(wTestResults);
-        vNexusResult.setResult(determineResult(wTestResults));
-        return vNexusResult;
+        if (wTestResults.size() < 1) {
+            throw new RuntimeException("No robot test results could be obtained.");
+        }
+        vDbResult.setResult(determineResult(wTestResults));
+        List<WRobotDbTestResult> wDbResults = new ArrayList<WRobotDbTestResult>();
+        for (WRobotNexusTestResult wTestResult : wTestResults) {
+            WRobotDbTestResult wDbResult = new WRobotDbTestResult();
+            wDbResult.setLayer(wTestResult.getLayer());
+            ObjectMapper mapper = new ObjectMapper();
+            wDbResult.setRobotTestResults(mapper.writeValueAsString(wTestResult.getRobotNexusTestResults()));
+            wDbResults.add(wDbResult);
+        }
+        vDbResult.setWRobotDbTestResults(new HashSet<WRobotDbTestResult>(wDbResults));
+        return vDbResult;
     }
 
-    public List<ValidationNexusTestResult> getResults(@Nonnull String name, @Nonnull String version,
+    public List<ValidationDbTestResult> getResults(@Nonnull String name, @Nonnull String version,
             @Nonnull String siloText, int noOfLastElements)
                     throws ClientHandlerException, UniformInterfaceException, JsonParseException, JsonMappingException,
                     IOException, KeyManagementException, NoSuchAlgorithmException, ParseException {
@@ -200,31 +226,49 @@ public final class NexusExecutorClient {
             throw new HttpException("Could not retrieve validation Nexus test results. HTTP error code : "
                     + response.getStatus() + " and message: " + response.getEntity(String.class));
         }
-        List<ValidationNexusTestResult> vNexusResults = new ArrayList<ValidationNexusTestResult>();
+        List<ValidationDbTestResult> vDbResults = new ArrayList<ValidationDbTestResult>();
         Document document = Jsoup.parse(response.getEntity(String.class));
         List<Element> elements = document.getElementsByTag("body").get(0).getElementsByTag("table").get(0)
                 .getElementsByTag("tbody").get(0).getElementsByTag("tr");
         elements = findLastElementsByDate(elements.subList(2, elements.size()), noOfLastElements);
         for (int i = 0; i < elements.size(); i++) {
+            String timestamp = null;
             try {
-                String timestamp = elements.get(i).getElementsByTag("td").get(0).getElementsByTag("a").get(0).text();
+                timestamp = elements.get(i).getElementsByTag("td").get(0).getElementsByTag("a").get(0).text();
                 timestamp = timestamp.substring(0, timestamp.length() - 1);
-                ValidationNexusTestResult vNexusResult = this.getResult(name, version, siloText, timestamp);
-                vNexusResults.add(vNexusResult);
-            } catch (HttpException ex) {
-                LOGGER.warn(EELFLoggerDelegate.auditLogger, "Exception occured while retrieving timestamp results");
+                ValidationDbTestResult vDbResult = dbAdapter.getValidationTestResult(siloText, timestamp);
+                if (vDbResult == null || vDbResult.getDateStorage() == null) {
+                    vDbResults.add(this.getResult(name, version, siloText, timestamp));
+                } else {
+                    // Just to avoid deletion of already received validation timestamp results
+                    vDbResult = new ValidationDbTestResult();
+                    Blueprint blueprint = new Blueprint();
+                    blueprint.setBlueprintName(name);
+                    BlueprintInstance blueInst = new BlueprintInstance();
+                    blueInst.setBlueprint(blueprint);
+                    blueInst.setVersion(version);
+                    vDbResult.setBlueprintInstance(blueInst);
+                    LabInfo lab = new LabInfo();
+                    lab.setSilo(siloText);
+                    vDbResult.setLab(lab);
+                    vDbResult.setTimestamp(timestamp);
+                    vDbResults.add(vDbResult);
+                }
+            } catch (IllegalArgumentException | HttpException | NullPointerException | NoSuchElementException ex) {
+                LOGGER.warn(EELFLoggerDelegate.auditLogger, "Exception occured while retrieving timestamp : "
+                        + timestamp + " result." + UserUtils.getStackTrace(ex));
                 continue;
             }
         }
-        return vNexusResults;
+        return vDbResults;
     }
 
-    public List<ValidationNexusTestResult> getResults(@Nonnull String name, @Nonnull String version,
+    public List<ValidationDbTestResult> getResults(@Nonnull String name, @Nonnull String version,
             @Nonnull String siloText, @Nonnull Date date)
                     throws ClientHandlerException, UniformInterfaceException, JsonParseException, JsonMappingException,
                     IOException, KeyManagementException, NoSuchAlgorithmException, ParseException, NullPointerException {
         String nexusUrl = this.baseurl + "/" + siloText + "/" + name + "/" + version;
-        LOGGER.info(EELFLoggerDelegate.applicationLogger, "Trying to get validation Nexus results based on date");
+        LOGGER.debug(EELFLoggerDelegate.applicationLogger, "Trying to get validation Nexus results based on date");
         WebResource webResource = this.client.resource(nexusUrl + "/");
         LOGGER.debug(EELFLoggerDelegate.debugLogger, "Request URI of get: " + webResource.getURI().toString());
         ClientResponse response = webResource.get(ClientResponse.class);
@@ -232,7 +276,7 @@ public final class NexusExecutorClient {
             throw new HttpException("Could not retrieve validation Nexus results based on date. HTTP error code : "
                     + response.getStatus() + " and message: " + response.getEntity(String.class));
         }
-        List<ValidationNexusTestResult> vNexusResults = new ArrayList<ValidationNexusTestResult>();
+        List<ValidationDbTestResult> vDbResults = new ArrayList<ValidationDbTestResult>();
         Document document = Jsoup.parse(response.getEntity(String.class));
         List<Element> elements = document.getElementsByTag("body").get(0).getElementsByTag("table").get(0)
                 .getElementsByTag("tbody").get(0).getElementsByTag("tr");
@@ -241,18 +285,19 @@ public final class NexusExecutorClient {
             try {
                 String timestamp = elements.get(i).getElementsByTag("td").get(0).getElementsByTag("a").get(0).text();
                 timestamp = timestamp.substring(0, timestamp.length() - 1);
-                ValidationNexusTestResult vNexusResult = this.getResult(name, version, siloText, timestamp);
-                vNexusResults.add(vNexusResult);
-            } catch (HttpException ex) {
-                LOGGER.warn(EELFLoggerDelegate.auditLogger, "Exception occured while retrieving timestamp results");
+                ValidationDbTestResult vDbResult = this.getResult(name, version, siloText, timestamp);
+                vDbResults.add(vDbResult);
+            } catch (IllegalArgumentException | HttpException | NullPointerException ex) {
+                LOGGER.warn(EELFLoggerDelegate.auditLogger,
+                        "Exception occured while retrieving timestamp results. " + UserUtils.getStackTrace(ex));
                 continue;
             }
         }
-        return vNexusResults;
+        return vDbResults;
     }
 
-    public ValidationNexusTestResult getLastResultBasedOnOutcome(@Nonnull String name, @Nonnull String version,
-            @Nonnull String siloText, List<BlueprintLayer> layers, Boolean optional, boolean outcome)
+    public ValidationDbTestResult getLastResultBasedOnOutcome(@Nonnull String name, @Nonnull String version,
+            @Nonnull String siloText, List<String> layers, Boolean optional, boolean outcome)
                     throws ClientHandlerException, UniformInterfaceException, JsonParseException, JsonMappingException,
                     IOException, KeyManagementException, NoSuchAlgorithmException, ParseException, NullPointerException {
         String nexusUrl = this.baseurl + "/" + siloText + "/" + name + "/" + version;
@@ -289,24 +334,24 @@ public final class NexusExecutorClient {
             try {
                 String elementTimestamp = element.getElementsByTag("td").get(0).getElementsByTag("a").get(0).text();
                 elementTimestamp = elementTimestamp.substring(0, elementTimestamp.length() - 1);
-                ValidationNexusTestResult vNexusResult = this.getResult(name, version, siloText, elementTimestamp);
-                if (vNexusResult.getResult() != outcome) {
+                ValidationDbTestResult vDbResult = this.getResult(name, version, siloText, elementTimestamp);
+                if (vDbResult.getResult() != outcome) {
                     continue;
                 }
-                if (optional != null && vNexusResult.getOptional() != optional) {
+                if (optional != null && vDbResult.getOptional() != optional) {
                     continue;
                 }
                 if (layers != null) {
-                    List<BlueprintLayer> storedLayers = new ArrayList<BlueprintLayer>();
-                    for (WRobotNexusTestResult wRobot : vNexusResult.getwRobotNexusTestResults()) {
-                        storedLayers.add(wRobot.getBlueprintLayer());
+                    List<String> storedLayers = new ArrayList<String>();
+                    for (WRobotDbTestResult wRobot : vDbResult.getWRobotDbTestResults()) {
+                        storedLayers.add(wRobot.getLayer());
                     }
                     if (!new HashSet<>(storedLayers).equals(new HashSet<>(layers))) {
                         continue;
                     }
                 }
-                return vNexusResult;
-            } catch (HttpException ex) {
+                return vDbResult;
+            } catch (IllegalArgumentException | HttpException | NullPointerException ex) {
                 LOGGER.warn(EELFLoggerDelegate.auditLogger,
                         "Error when trying to retrieve results. " + UserUtils.getStackTrace(ex));
                 continue;
@@ -315,7 +360,7 @@ public final class NexusExecutorClient {
         return null;
     }
 
-    public ValidationNexusTestResult getLastResultBasedOnOutcome(@Nonnull String name, @Nonnull String version,
+    public ValidationDbTestResult getLastResultBasedOnOutcome(@Nonnull String name, @Nonnull String version,
             @Nonnull String siloText, Boolean allLayers, Boolean optional, boolean outcome)
                     throws ClientHandlerException, UniformInterfaceException, JsonParseException, JsonMappingException,
                     IOException, KeyManagementException, NoSuchAlgorithmException, ParseException, NullPointerException {
@@ -353,18 +398,18 @@ public final class NexusExecutorClient {
             try {
                 String elementTimestamp = element.getElementsByTag("td").get(0).getElementsByTag("a").get(0).text();
                 elementTimestamp = elementTimestamp.substring(0, elementTimestamp.length() - 1);
-                ValidationNexusTestResult vNexusResult = this.getResult(name, version, siloText, elementTimestamp);
-                if (vNexusResult.getResult() != outcome) {
+                ValidationDbTestResult vDbResult = this.getResult(name, version, siloText, elementTimestamp);
+                if (vDbResult.getResult() != outcome) {
                     continue;
                 }
-                if (optional != null && vNexusResult.getOptional() != optional) {
+                if (optional != null && vDbResult.getOptional() != optional) {
                     continue;
                 }
-                if (allLayers != null && vNexusResult.getAllLayers() != allLayers) {
+                if (allLayers != null && vDbResult.getAllLayers() != allLayers) {
                     continue;
                 }
-                return vNexusResult;
-            } catch (HttpException ex) {
+                return vDbResult;
+            } catch (IllegalArgumentException | HttpException | NullPointerException ex) {
                 LOGGER.warn(EELFLoggerDelegate.auditLogger,
                         "Error when trying to retrieve results. " + UserUtils.getStackTrace(ex));
                 continue;
@@ -399,11 +444,12 @@ public final class NexusExecutorClient {
                 }
                 List<RobotTestResult> robotTestResults = getRobotTestResults(nexusUrl + "/" + layer);
                 WRobotNexusTestResult wrapper = new WRobotNexusTestResult();
-                wrapper.setBlueprintLayer(BlueprintLayer.valueOf(layer));
-                wrapper.setRobotTestResults(robotTestResults);
+                wrapper.setLayer(layer);
+                wrapper.setRobotNexusTestResults(robotTestResults);
                 listOfwrappers.add(wrapper);
-            } catch (HttpException | IllegalArgumentException ex) {
-                LOGGER.warn(EELFLoggerDelegate.auditLogger, "Exception occured while retrieving robot results");
+            } catch (IllegalArgumentException | HttpException | NullPointerException ex) {
+                LOGGER.warn(EELFLoggerDelegate.auditLogger,
+                        "Exception occured while retrieving robot results. " + UserUtils.getStackTrace(ex));
                 continue;
             }
         }
@@ -451,7 +497,7 @@ public final class NexusExecutorClient {
     private boolean determineResult(List<WRobotNexusTestResult> wTestResults) {
         boolean result = true;
         for (WRobotNexusTestResult wTestResult : wTestResults) {
-            for (RobotTestResult robotTestResult : wTestResult.getRobotTestResults()) {
+            for (RobotTestResult robotTestResult : wTestResult.getRobotNexusTestResults()) {
                 for (Status status : robotTestResult.getRobot().getStatistics().getTotal().getStat()) {
                     if (status.getContent().trim().equals("All Tests") && status.getFail() > 0) {
                         result = false;

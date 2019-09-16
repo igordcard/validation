@@ -16,21 +16,25 @@
 package org.akraino.validation.ui.entity;
 
 import java.io.Serializable;
+import java.util.HashSet;
+import java.util.Set;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
+import javax.persistence.JoinTable;
+import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
-import org.akraino.validation.ui.data.BlueprintLayer;
-
 @Entity
-@Table(name = "blueprint_instance_for_validation")
-public class BlueprintInstanceForValidation implements Serializable {
+@Table(name = "blueprint_instance")
+public class BlueprintInstance implements Serializable {
 
     /**
      *
@@ -49,11 +53,11 @@ public class BlueprintInstanceForValidation implements Serializable {
     @Column(name = "version")
     private String version;
 
-    @Column(name = "layer")
-    private BlueprintLayer layer;
-
-    @Column(name = "layer_description")
-    private String layerDescription;
+    @ManyToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    @JoinTable(name = "blueprint_instance_blueprint_layer", joinColumns = {
+            @JoinColumn(name = "blueprint_instance_id") }, inverseJoinColumns = {
+                    @JoinColumn(name = "blueprint_layer_id") })
+    private Set<BlueprintLayer> blueprintLayers = new HashSet<>();
 
     public int getBlueprintInstanceId() {
         return blueprintInstId;
@@ -79,19 +83,12 @@ public class BlueprintInstanceForValidation implements Serializable {
         return version;
     }
 
-    public BlueprintLayer getLayer() {
-        return layer;
+    public Set<BlueprintLayer> getBlueprintLayers() {
+        return blueprintLayers;
     }
 
-    public void setLayer(BlueprintLayer layer) {
-        this.layer = layer;
+    public void setBlueprintLayers(Set<BlueprintLayer> blueprintLayers) {
+        this.blueprintLayers = blueprintLayers;
     }
 
-    public void setLayerDescription(String layerDescription) {
-        this.layerDescription = layerDescription;
-    }
-
-    public String getLayerDescription() {
-        return layerDescription;
-    }
 }

@@ -20,9 +20,7 @@ import java.text.SimpleDateFormat;
 import java.util.List;
 import java.util.Set;
 
-import org.akraino.validation.ui.client.nexus.resources.ValidationNexusTestResult;
-import org.akraino.validation.ui.data.BlueprintLayer;
-import org.akraino.validation.ui.data.Lab;
+import org.akraino.validation.ui.entity.ValidationDbTestResult;
 import org.akraino.validation.ui.service.DbResultAdapter;
 import org.akraino.validation.ui.service.IntegratedResultService;
 import org.onap.portalsdk.core.controller.RestrictedBaseController;
@@ -52,18 +50,8 @@ public class ResultController extends RestrictedBaseController {
         super();
     }
 
-    @RequestMapping(value = { "/getlabs/" }, method = RequestMethod.GET)
-    public ResponseEntity<Set<Lab>> getLabs() {
-        try {
-            return new ResponseEntity<>(resultService.getLabsFromDb(), HttpStatus.OK);
-        } catch (Exception e) {
-            LOGGER.error(EELFLoggerDelegate.errorLogger, "Error when retrieving labs. " + UserUtils.getStackTrace(e));
-        }
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
-    }
-
     @RequestMapping(value = { "/getblueprintnamesoflab/{lab}" }, method = RequestMethod.GET)
-    public ResponseEntity<Set<String>> getBlueprintNamesOfLab(@PathVariable("lab") Lab lab) {
+    public ResponseEntity<Set<String>> getBlueprintNamesOfLab(@PathVariable("lab") String lab) {
         try {
             return new ResponseEntity<>(resultService.getBlueprintNamesOfLabFromDb(lab), HttpStatus.OK);
         } catch (Exception e) {
@@ -75,7 +63,7 @@ public class ResultController extends RestrictedBaseController {
 
     @RequestMapping(value = { "/getblueprintversions/{name}/{lab}" }, method = RequestMethod.GET)
     public ResponseEntity<Set<String>> getBlueprintVersions(@PathVariable("name") String name,
-            @PathVariable("lab") Lab lab) {
+            @PathVariable("lab") String lab) {
         try {
             return new ResponseEntity<>(resultService.getBlueprintVersionsFromDb(name, lab), HttpStatus.OK);
         } catch (Exception e) {
@@ -86,7 +74,7 @@ public class ResultController extends RestrictedBaseController {
     }
 
     @RequestMapping(value = { "/getbysubmissionid/{id}" }, method = RequestMethod.GET)
-    public ResponseEntity<ValidationNexusTestResult> getBySubmissionId(@PathVariable("id") String submissionId) {
+    public ResponseEntity<ValidationDbTestResult> getBySubmissionId(@PathVariable("id") String submissionId) {
         try {
             return new ResponseEntity<>(resultService.getResults(submissionId), HttpStatus.OK);
         } catch (Exception e) {
@@ -97,8 +85,8 @@ public class ResultController extends RestrictedBaseController {
     }
 
     @RequestMapping(value = { "/getmostrecent/{name}/{version}/{lab}" }, method = RequestMethod.GET)
-    public ResponseEntity<List<ValidationNexusTestResult>> getMostRecent(@PathVariable("name") String name,
-            @PathVariable("version") String version, @PathVariable("lab") Lab lab) {
+    public ResponseEntity<List<ValidationDbTestResult>> getMostRecent(@PathVariable("name") String name,
+            @PathVariable("version") String version, @PathVariable("lab") String lab) {
         try {
             return new ResponseEntity<>(dbAdapter.readResultFromDb(name, version, lab, null, null, null, null),
                     HttpStatus.OK);
@@ -110,7 +98,7 @@ public class ResultController extends RestrictedBaseController {
     }
 
     @RequestMapping(value = { "/getbytimestamp/{lab}/{name}/{version}/{timestamp}" }, method = RequestMethod.GET)
-    public ResponseEntity<ValidationNexusTestResult> getByTimestamp(@PathVariable("lab") Lab lab,
+    public ResponseEntity<ValidationDbTestResult> getByTimestamp(@PathVariable("lab") String lab,
             @PathVariable("name") String name, @PathVariable("version") String version,
             @PathVariable("timestamp") String timestamp) {
         try {
@@ -124,7 +112,7 @@ public class ResultController extends RestrictedBaseController {
 
     @RequestMapping(value = {
     "/getlastrun/{lab}/{name}/{version}/{allLayers}/{optional}/{outcome}" }, method = RequestMethod.GET)
-    public ResponseEntity<ValidationNexusTestResult> getLastRun(@PathVariable("lab") Lab lab,
+    public ResponseEntity<ValidationDbTestResult> getLastRun(@PathVariable("lab") String lab,
             @PathVariable("name") String name, @PathVariable("version") String version,
             @PathVariable("allLayers") Boolean allLayers, @PathVariable("optional") Boolean optional,
             @PathVariable("outcome") boolean outcome) {
@@ -141,9 +129,9 @@ public class ResultController extends RestrictedBaseController {
 
     @RequestMapping(value = {
     "/getlastrunoflayers/{lab}/{name}/{version}/{layers}/{optional}/{outcome}" }, method = RequestMethod.GET)
-    public ResponseEntity<ValidationNexusTestResult> getLastRunOfLayers(@PathVariable("lab") Lab lab,
+    public ResponseEntity<ValidationDbTestResult> getLastRunOfLayers(@PathVariable("lab") String lab,
             @PathVariable("name") String name, @PathVariable("version") String version,
-            @PathVariable("layers") List<BlueprintLayer> layers, @PathVariable("optional") Boolean optional,
+            @PathVariable("layers") List<String> layers, @PathVariable("optional") Boolean optional,
             @PathVariable("outcome") boolean outcome) {
         try {
             return new ResponseEntity<>(
@@ -157,7 +145,7 @@ public class ResultController extends RestrictedBaseController {
     }
 
     @RequestMapping(value = { "/getbasedondate/{lab}/{name}/{version}/{date}" }, method = RequestMethod.GET)
-    public ResponseEntity<List<ValidationNexusTestResult>> getBasedOnDate(@PathVariable("lab") Lab lab,
+    public ResponseEntity<List<ValidationDbTestResult>> getBasedOnDate(@PathVariable("lab") String lab,
             @PathVariable("name") String name, @PathVariable("version") String version,
             @PathVariable("date") String date) {
         try {

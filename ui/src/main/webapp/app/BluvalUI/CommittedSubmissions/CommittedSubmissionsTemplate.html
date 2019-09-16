@@ -35,36 +35,37 @@ body {
                 ng-click="refreshCommittedSubmissions()">Refresh</button>
         </div>
         <table ng-table="tableParams" class="table" show-filter="true">
-            <tr ng-repeat="submissionData in $data">
+            <tr ng-repeat="submission in $data">
                 <td title="'Id'" filter="{ submissionId: 'text'}"
                     sortable="'submissionId'">{{
-                    submissionData.submissionId }}</td>
+                    submission.submissionId }}</td>
                 <td title="'Timeslot'" filter="{ timeslot: 'text'}"
                     sortable="'timeslot'">Lab: {{
-                    submissionData.timeslot.lab.lab }} Start date and
-                    time: {{ submissionData.timeslot.startDateTime }} <!-- duration(in sec) :
+                    submission.timeslot.labInfo.lab }} Start date and
+                    time: {{ submission.timeslot.startDateTime }} <!-- duration(in sec) :
                                 {{submission.timeslot.duration}}-->
                 </td>
                 <td title="'Blueprint Name'">{{
-                    submissionData.validationNexusTestResult.blueprintName
+                    submission.validationDbTestResult.blueprintInstance.blueprint.blueprintName
                     }}</td>
                 <td title="'Version'">{{
-                    submissionData.validationNexusTestResult.version }}</td>
-                <td title="'Layer(s)'">{{
-                    getLayer(submissionData.validationNexusTestResult)
+                    submission.validationDbTestResult.blueprintInstance.version
                     }}</td>
+                <td title="'Layer(s)'">{{
+                    getLayer(submission.validationDbTestResult) }}</td>
                 <td title="'Optional Test Cases'">{{
-                    submissionData.validationNexusTestResult.optional}}</td>
+                    submission.validationDbTestResult.optional}}</td>
                 <td title="'Status'" filter="{ status: 'text'}"
-                    sortable="'status'">{{ submissionData.status }}</td>
+                    sortable="'status'">{{
+                    submission.submissionStatus }}</td>
                 <td title="'Nexus URL result'"><a
-                    href="{{getResultUrl(submissionData)}}">{{getResultUrl(submissionData)}}</a></td>
+                    href="{{getResultUrl(submission)}}">{{getResultUrl(submission)}}</a></td>
                 <td title="'Result'">
                     <button
                         style="margin-left: 25px; margin-top: 4px; float: right; background-color: #337ab7;"
                         type="submit" class="btn-alt btn-small"
-                        ng-click="getValidationResults(submissionData);">{{
-                        mapResult(submissionData.validationNexusTestResult)}}</button>
+                        ng-click="getValidationResults(submission);">{{
+                        mapResult(submission.validationDbTestResult)}}</button>
                 </td>
             </tr>
         </table>

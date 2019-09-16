@@ -17,19 +17,22 @@ package org.akraino.validation.ui.dao;
 
 import java.util.List;
 
-import org.akraino.validation.ui.entity.BlueprintInstanceForValidation;
+import org.akraino.validation.ui.entity.Blueprint;
+import org.akraino.validation.ui.entity.BlueprintInstance;
 
-public interface BlueprintInstanceForValidationDAO {
+public interface BlueprintInstanceDAO {
 
-    void saveOrUpdate(BlueprintInstanceForValidation blueprintInst);
+    void saveOrUpdate(BlueprintInstance blueprintInst);
 
-    void merge(BlueprintInstanceForValidation blueprintInst);
+    void merge(BlueprintInstance blueprintInst);
 
-    List<BlueprintInstanceForValidation> getBlueprintInstancesForValidation();
+    List<BlueprintInstance> getBlueprintInstances();
 
-    BlueprintInstanceForValidation getBlueprintInstanceForValidation(Integer instId);
+    BlueprintInstance getBlueprintInstance(Integer instId);
 
-    void deleteBlueprintInstanceForValidation(BlueprintInstanceForValidation blueprintInst);
+    BlueprintInstance getBlueprintInstance(Blueprint blueprint, String version);
+
+    void deleteBlueprintInstance(BlueprintInstance blueprintInst);
 
     void deleteAll();
 

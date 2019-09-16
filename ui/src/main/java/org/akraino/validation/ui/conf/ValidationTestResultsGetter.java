@@ -15,13 +15,11 @@
  */
 package org.akraino.validation.ui.conf;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 
-import org.akraino.validation.ui.client.nexus.resources.ValidationNexusTestResult;
-import org.akraino.validation.ui.data.Lab;
+import org.akraino.validation.ui.entity.ValidationDbTestResult;
 import org.akraino.validation.ui.service.DbResultAdapter;
 import org.akraino.validation.ui.service.IntegratedResultService;
 import org.akraino.validation.ui.service.utils.PrioritySupplier;
@@ -36,10 +34,9 @@ import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.stereotype.Component;
 
 @Component
-public class ValidationNexusTestResultsGetter implements ApplicationListener<ContextRefreshedEvent> {
+public class ValidationTestResultsGetter implements ApplicationListener<ContextRefreshedEvent> {
 
-    private static final EELFLoggerDelegate LOGGER = EELFLoggerDelegate
-            .getLogger(ValidationNexusTestResultsGetter.class);
+    private static final EELFLoggerDelegate LOGGER = EELFLoggerDelegate.getLogger(ValidationTestResultsGetter.class);
 
     @Autowired
     IntegratedResultService integratedService;
@@ -51,59 +48,64 @@ public class ValidationNexusTestResultsGetter implements ApplicationListener<Con
     public void onApplicationEvent(final ContextRefreshedEvent event) {
         ApplicationContext context = new AnnotationConfigApplicationContext(ExecutorServiceInitializer.class);
         ExecutorService service = (ExecutorService) context.getBean("executorService");
-        ValidationNexusTestResultsGetterExecution task = new ValidationNexusTestResultsGetterExecution();
-        CompletableFuture<List<List<ValidationNexusTestResult>>> completableFuture = CompletableFuture
+        ValidationTestResultsGetterExecution task = new ValidationTestResultsGetterExecution();
+        CompletableFuture<Boolean> completableFuture = CompletableFuture
                 .supplyAsync(new PrioritySupplier<>(1, task::execute), service);
-        completableFuture.thenAcceptAsync(results -> this.callbackNotify(results));
+        completableFuture.thenAcceptAsync(callOutcome -> this.callbackNotify(callOutcome));
     }
 
-    private void callbackNotify(List<List<ValidationNexusTestResult>> results) {
+    private void callbackNotify(Boolean outcome) {
+        LOGGER.debug(EELFLoggerDelegate.debugLogger, "Result of validation result getter execution: " + outcome);
         try {
-            for (List<ValidationNexusTestResult> result : results) {
-
-                LOGGER.debug(EELFLoggerDelegate.debugLogger,
-                        "Validation test results retrieved from nexus with size : " + result.size());
-                dbAdapter.deleteUnreferencedEntries(result);
-                dbAdapter.storeResultInDb(result);
-            }
             Thread.sleep(Integer.valueOf(PortalApiProperties.getProperty("thread_sleep")));
         } catch (Exception e) {
-            LOGGER.error(EELFLoggerDelegate.errorLogger,
-                    "Error in callback notification. " + UserUtils.getStackTrace(e));
+            LOGGER.error(EELFLoggerDelegate.errorLogger, "Error in thread sleep. " + UserUtils.getStackTrace(e));
         }
         // Trigger the next retrieval of results
         ApplicationContext context = new AnnotationConfigApplicationContext(ExecutorServiceInitializer.class);
         ExecutorService service = (ExecutorService) context.getBean("executorService");
-        ValidationNexusTestResultsGetterExecution task = new ValidationNexusTestResultsGetterExecution();
-        CompletableFuture<List<List<ValidationNexusTestResult>>> completableFuture = CompletableFuture
+        ValidationTestResultsGetterExecution task = new ValidationTestResultsGetterExecution();
+        CompletableFuture<Boolean> completableFuture = CompletableFuture
                 .supplyAsync(new PrioritySupplier<>(1, task::execute), service);
-        completableFuture.thenAcceptAsync(newResults -> this.callbackNotify(newResults));
+        completableFuture.thenAcceptAsync(callOutcome -> this.callbackNotify(callOutcome));
     }
 
-    private class ValidationNexusTestResultsGetterExecution {
+    private class ValidationTestResultsGetterExecution {
 
-        public ValidationNexusTestResultsGetterExecution() {
+        public ValidationTestResultsGetterExecution() {
         }
 
-        public List<List<ValidationNexusTestResult>> execute() {
-            List<List<ValidationNexusTestResult>> results = new ArrayList<List<ValidationNexusTestResult>>();
+        public Boolean execute() {
             try {
-                for (Lab lab : integratedService.getLabsFromNexus()) {
+                for (String lab : integratedService.getLabsFromNexus()) {
                     for (String blueprintName : integratedService.getBlueprintNamesOfLabFromNexus(lab)) {
                         for (String version : integratedService.getBlueprintVersionsFromNexus(blueprintName, lab)) {
                             LOGGER.debug(EELFLoggerDelegate.debugLogger,
-                                    "Trying to retrieve validation test result from nexus for: blueprint name: "
-                                            + blueprintName + ", version: " + version + " and lab: " + lab.name());
-                            results.add(integratedService.getResultsFromNexus(blueprintName, version, lab,
-                                    Integer.valueOf(PortalApiProperties.getProperty("no_last_timestamps"))));
+                                    "Trying to retrieve validation test result from nexus for blueprint name: "
+                                            + blueprintName + ", version: " + version + " and lab: " + lab);
+                            try {
+                                List<ValidationDbTestResult> results = integratedService.getResultsFromNexus(
+                                        blueprintName, version, lab,
+                                        Integer.valueOf(PortalApiProperties.getProperty("no_last_timestamps")));
+                                LOGGER.debug(EELFLoggerDelegate.debugLogger,
+                                        "Validation test results retrieved from nexus with size : " + results.size());
+                                dbAdapter.deleteUnreferencedEntries(results);
+                                dbAdapter.storeResultsInDb(results);
+                            } catch (Exception e) {
+                                LOGGER.error(EELFLoggerDelegate.errorLogger,
+                                        "Error when trying to receive results from nexus for blueprint name: "
+                                                + blueprintName + ", version: " + version + " and lab: " + lab + ". "
+                                                + UserUtils.getStackTrace(e));
+                            }
                         }
                     }
                 }
             } catch (Exception e) {
                 LOGGER.error(EELFLoggerDelegate.errorLogger,
                         "Error when retrieving Nexus results. " + UserUtils.getStackTrace(e));
+                return false;
             }
-            return results;
+            return true;
         }
     }
 

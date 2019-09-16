@@ -25,13 +25,13 @@ app
                     $scope.mapResult = generalValidationResultsSvc.mapResult;
                     $scope.filterWithLayer = generalValidationResultsSvc.filterWithLayer;
                     $scope.filterWithResult = generalValidationResultsSvc.filterWithResult;
-                    $scope.getLab = generalValidationResultsSvc.getLab;
+                    $scope.filterWithTimestamp = generalValidationResultsSvc.filterWithTimestamp;
 
                     initialize();
 
                     function initialize() {
                         $scope.loadingResults = true;
-                        $scope.validationNexusTestResults = [];
+                        $scope.validationDbTestResults = [];
                         $scope.silos = [];
                         var searchObject = $location.search();
                         var submissionId = searchObject.submissionId;
@@ -77,21 +77,13 @@ app
                                         reqUrl,
                                         function(resultData) {
                                             if (resultData) {
-                                                restAPISvc
-                                                        .getRestAPI(
-                                                                "/api/v1/silo/",
-                                                                function(
-                                                                        siloData) {
-                                                                    $scope.silos = siloData;
-                                                                    $scope.loadingResults = false;
-                                                                    if (!Array
-                                                                            .isArray(resultData)) {
-                                                                        $scope.validationNexusTestResults
-                                                                                .push(resultData);
-                                                                    } else {
-                                                                        $scope.validationNexusTestResults = resultData;
-                                                                    }
-                                                                });
+                                                $scope.loadingResults = false;
+                                                if (!Array.isArray(resultData)) {
+                                                    $scope.validationDbTestResults
+                                                            .push(resultData);
+                                                } else {
+                                                    $scope.validationDbTestResults = resultData;
+                                                }
                                             } else {
                                                 confirm("No data was found");
                                                 $scope.loadingResults = false;
@@ -100,8 +92,8 @@ app
                         $scope.descending = true;
                     }
 
-                    $scope.dateTimeSort = function(validationNexusTestResult) {
-                        return new Date(validationNexusTestResult.dateOfStorage)
+                    $scope.dateTimeSort = function(validationDbTestResult) {
+                        return new Date(validationDbTestResult.dateStorage)
                                 .getTime();
                     }
 
@@ -118,13 +110,13 @@ app
                     }
 
                     $scope.getTestSuiteResults = function(
-                            validationNexusTestResult) {
+                            validationDbTestResult) {
                         if (!generalValidationResultsSvc
-                                .mapResult(validationNexusTestResult)) {
+                                .mapResult(validationDbTestResult)) {
                             return;
                         }
                         var scope = $rootScope.$new();
-                        scope.params = validationNexusTestResult;
+                        scope.params = validationDbTestResult;
                         $modal
                                 .open({
                                     scope : scope,

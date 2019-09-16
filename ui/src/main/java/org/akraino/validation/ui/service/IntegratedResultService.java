@@ -33,12 +33,8 @@ import java.util.Set;
 import javax.annotation.Nonnull;
 
 import org.akraino.validation.ui.client.nexus.NexusExecutorClient;
-import org.akraino.validation.ui.client.nexus.resources.ValidationNexusTestResult;
-import org.akraino.validation.ui.data.BlueprintLayer;
-import org.akraino.validation.ui.data.Lab;
-import org.akraino.validation.ui.data.SubmissionData;
 import org.akraino.validation.ui.entity.LabInfo;
-import org.akraino.validation.ui.entity.LabSilo;
+import org.akraino.validation.ui.entity.Submission;
 import org.akraino.validation.ui.entity.ValidationDbTestResult;
 import org.onap.portalsdk.core.logging.logic.EELFLoggerDelegate;
 import org.onap.portalsdk.core.web.support.UserUtils;
@@ -61,9 +57,6 @@ public class IntegratedResultService {
     private DbSubmissionAdapter submissionService;
 
     @Autowired
-    private SiloService siloService;
-
-    @Autowired
     NexusExecutorClient nexusService;
 
     @Autowired
@@ -72,194 +65,174 @@ public class IntegratedResultService {
     @Autowired
     DbResultAdapter dbAdapter;
 
-    public List<Lab> getLabsFromNexus()
+    public List<String> getLabsFromNexus()
             throws JsonParseException, JsonMappingException, KeyManagementException, ClientHandlerException,
             UniformInterfaceException, NoSuchAlgorithmException, IOException, IllegalArgumentException, ParseException {
-        List<Lab> labs = new ArrayList<Lab>();
+        List<String> labs = new ArrayList<String>();
         for (String cLabSilo : nexusService.getResource(null)) {
-            for (LabSilo silo : siloService.getSilos()) {
-                if (silo.getSilo().equals(cLabSilo)) {
-                    labs.add(silo.getLab().getLab());
+            for (LabInfo labInfo : labService.getLabs()) {
+                if (labInfo.getSilo().equals(cLabSilo)) {
+                    labs.add(labInfo.getLab());
                 }
             }
         }
         return labs;
     }
 
-    public List<String> getBlueprintNamesOfLabFromNexus(@Nonnull Lab lab)
+    public List<String> getBlueprintNamesOfLabFromNexus(@Nonnull String lab)
             throws JsonParseException, JsonMappingException, KeyManagementException, ClientHandlerException,
             UniformInterfaceException, NoSuchAlgorithmException, IOException, IllegalArgumentException, ParseException {
-        String siloText = null;
-        for (LabSilo silo : siloService.getSilos()) {
-            if (silo.getLab().getLab().equals(lab)) {
-                siloText = silo.getSilo();
+        LabInfo labInfo = labService.getLab(lab);
+        if (labInfo == null) {
+            throw new IllegalArgumentException("Could not retrieve lab : " + lab.toString());
+        }
+        List<String> cNames = nexusService.getResource(labService.getLab(lab).getSilo());
+        List<String> rNames = new ArrayList<String>();
+        for (String cName : cNames) {
+            if (cName.equals("family") || cName.equals("ta") || cName.equals("job")) {
+                continue;
             }
+            rNames.add(cName);
         }
-        if (siloText == null) {
-            throw new IllegalArgumentException("Could not retrieve blueprint names of lab : " + lab.toString());
-        }
-        List<String> blueprintNames = new ArrayList<String>();
-        List<String> cBlueprintNames = nexusService.getResource(siloText);
-        for (String cBlueprintName : cBlueprintNames) {
-            if (!cBlueprintName.equals("job")) {
-                blueprintNames.add(cBlueprintName);
-            }
-        }
-        return blueprintNames;
+        return rNames;
     }
 
-    public List<String> getBlueprintVersionsFromNexus(@Nonnull String name, @Nonnull Lab lab)
+    public List<String> getBlueprintVersionsFromNexus(@Nonnull String name, @Nonnull String lab)
             throws JsonParseException, JsonMappingException, KeyManagementException, ClientHandlerException,
             UniformInterfaceException, NoSuchAlgorithmException, IOException, IllegalArgumentException, ParseException {
-        String siloText = null;
-        for (LabSilo silo : siloService.getSilos()) {
-            if (silo.getLab().getLab().equals(lab)) {
-                siloText = silo.getSilo();
-            }
+        LabInfo labInfo = labService.getLab(lab);
+        if (labInfo == null) {
+            throw new IllegalArgumentException("Could not retrieve lab : " + lab.toString());
         }
-        if (siloText == null) {
-            throw new IllegalArgumentException("Could not retrieve silo of the lab : " + lab.toString());
-        }
-        return nexusService.getResource(siloText, name);
+        return nexusService.getResource(labInfo.getSilo(), name);
     }
 
-    public List<String> getBlueprintTimeStampsFromNexus(@Nonnull String name, @Nonnull String version, @Nonnull Lab lab)
-            throws JsonParseException, JsonMappingException, KeyManagementException, ClientHandlerException,
-            UniformInterfaceException, NoSuchAlgorithmException, IOException, ParseException {
-        String siloText = null;
-        for (LabSilo silo : siloService.getSilos()) {
-            if (silo.getLab().getLab().equals(lab)) {
-                siloText = silo.getSilo();
-            }
+    public List<String> getBlueprintTimeStampsFromNexus(@Nonnull String name, @Nonnull String version,
+            @Nonnull String lab) throws JsonParseException, JsonMappingException, KeyManagementException,
+    ClientHandlerException, UniformInterfaceException, NoSuchAlgorithmException, IOException, ParseException {
+        LabInfo labInfo = labService.getLab(lab);
+        if (labInfo == null) {
+            throw new IllegalArgumentException("Could not retrieve lab : " + lab.toString());
         }
-        if (siloText == null) {
-            throw new IllegalArgumentException("Could not retrieve silo of the lab : " + lab.toString());
-        }
-        return nexusService.getResource(siloText, name, version);
+        return nexusService.getResource(labInfo.getSilo(), name, version);
     }
 
-    public List<ValidationNexusTestResult> getResultsFromNexus(@Nonnull String name, @Nonnull String version,
-            @Nonnull Lab lab, int noTimestamps)
+    public List<ValidationDbTestResult> getResultsFromNexus(@Nonnull String name, @Nonnull String version,
+            @Nonnull String lab, int noTimestamps)
                     throws JsonParseException, JsonMappingException, KeyManagementException, ClientHandlerException,
                     UniformInterfaceException, NoSuchAlgorithmException, IOException, IllegalArgumentException, ParseException {
-        String siloText = null;
-        for (LabSilo silo : siloService.getSilos()) {
-            if (silo.getLab().getLab().equals(lab)) {
-                siloText = silo.getSilo();
-            }
+        LabInfo labInfo = labService.getLab(lab);
+        if (labInfo == null) {
+            throw new IllegalArgumentException("Could not retrieve lab : " + lab.toString());
         }
-        if (siloText == null) {
-            throw new IllegalArgumentException("Could not retrieve silo of the lab : " + lab.toString());
-        }
-        return nexusService.getResults(name, version, siloText, noTimestamps);
+        return nexusService.getResults(name, version, labInfo.getSilo(), noTimestamps);
     }
 
-    public ValidationNexusTestResult getResultFromNexus(@Nonnull String name, @Nonnull String version, @Nonnull Lab lab,
+    public ValidationDbTestResult getResultFromNexus(@Nonnull String name, @Nonnull String version, @Nonnull String lab,
             @Nonnull String timestamp) throws JsonParseException, JsonMappingException, IOException,
     KeyManagementException, ClientHandlerException, UniformInterfaceException, NoSuchAlgorithmException,
     NullPointerException, ParseException {
-        String siloText = null;
-        for (LabSilo silo : siloService.getSilos()) {
-            if (silo.getLab().getLab().equals(lab)) {
-                siloText = silo.getSilo();
-            }
+        LabInfo labInfo = labService.getLab(lab);
+        if (labInfo == null) {
+            throw new IllegalArgumentException("Could not retrieve lab : " + lab.toString());
         }
-        if (siloText == null) {
-            throw new IllegalArgumentException("Could not retrieve silo of the lab : " + lab.toString());
+        ValidationDbTestResult vNexusResult = nexusService.getResult(name, version, labInfo.getSilo(), timestamp);
+        if (!dbAdapter.checkValidityOfNexusResult(vNexusResult)) {
+            return null;
         }
-        return nexusService.getResult(name, version, siloText, timestamp);
+        vNexusResult.setLab(labInfo);
+        return vNexusResult;
     }
 
-    public ValidationNexusTestResult getLastResultBasedOnOutcomeFromNexus(@Nonnull String name, @Nonnull String version,
-            @Nonnull Lab lab, Boolean allLayers, Boolean optional, boolean outcome)
+    public ValidationDbTestResult getLastResultBasedOnOutcomeFromNexus(@Nonnull String name, @Nonnull String version,
+            @Nonnull String lab, Boolean allLayers, Boolean optional, boolean outcome)
                     throws JsonParseException, JsonMappingException, KeyManagementException, ClientHandlerException,
                     UniformInterfaceException, NoSuchAlgorithmException, NullPointerException, IOException, ParseException {
-        String siloText = null;
-        for (LabSilo silo : siloService.getSilos()) {
-            if (silo.getLab().getLab().equals(lab)) {
-                siloText = silo.getSilo();
-            }
+        LabInfo labInfo = labService.getLab(lab);
+        if (labInfo == null) {
+            throw new IllegalArgumentException("Could not retrieve lab : " + lab.toString());
         }
-        if (siloText == null) {
-            throw new IllegalArgumentException("Lab does not exist: " + lab.toString());
+        ValidationDbTestResult vNexusResult = nexusService.getLastResultBasedOnOutcome(name, version, labInfo.getSilo(),
+                allLayers, optional, outcome);
+        if (!dbAdapter.checkValidityOfNexusResult(vNexusResult)) {
+            return null;
         }
-        return nexusService.getLastResultBasedOnOutcome(name, version, siloText, allLayers, optional, outcome);
+        vNexusResult.setLab(labInfo);
+        return vNexusResult;
     }
 
-    public ValidationNexusTestResult getLastResultBasedOnOutcomeFromNexus(@Nonnull String name, @Nonnull String version,
-            @Nonnull Lab lab, @Nonnull List<BlueprintLayer> layers, Boolean optional, boolean outcome)
+    public ValidationDbTestResult getLastResultBasedOnOutcomeFromNexus(@Nonnull String name, @Nonnull String version,
+            @Nonnull String lab, @Nonnull List<String> layers, Boolean optional, boolean outcome)
                     throws JsonParseException, JsonMappingException, KeyManagementException, ClientHandlerException,
                     UniformInterfaceException, NoSuchAlgorithmException, NullPointerException, IOException, ParseException {
-        String siloText = null;
-        for (LabSilo silo : siloService.getSilos()) {
-            if (silo.getLab().getLab().equals(lab)) {
-                siloText = silo.getSilo();
-            }
+        LabInfo labInfo = labService.getLab(lab);
+        if (labInfo == null) {
+            throw new IllegalArgumentException("Could not retrieve lab : " + lab.toString());
         }
-        if (siloText == null) {
-            throw new IllegalArgumentException("Lab does not exist: " + lab.toString());
+        ValidationDbTestResult vNexusResult = nexusService.getLastResultBasedOnOutcome(name, version, labInfo.getSilo(),
+                layers, optional, outcome);
+        if (!dbAdapter.checkValidityOfNexusResult(vNexusResult)) {
+            return null;
         }
-        return nexusService.getLastResultBasedOnOutcome(name, version, siloText, layers, optional, outcome);
+        vNexusResult.setLab(labInfo);
+        return vNexusResult;
     }
 
-    public List<ValidationNexusTestResult> getBasedOnDateFromNexus(@Nonnull String name, @Nonnull String version,
-            @Nonnull Lab lab, @Nonnull Date date)
+    public List<ValidationDbTestResult> getBasedOnDateFromNexus(@Nonnull String name, @Nonnull String version,
+            @Nonnull String lab, @Nonnull Date date)
                     throws JsonParseException, JsonMappingException, IOException, ParseException, KeyManagementException,
                     ClientHandlerException, UniformInterfaceException, NoSuchAlgorithmException, NullPointerException {
-        String siloText = null;
-        for (LabSilo silo : siloService.getSilos()) {
-            if (silo.getLab().getLab().equals(lab)) {
-                siloText = silo.getSilo();
+        LabInfo labInfo = labService.getLab(lab);
+        if (labInfo == null) {
+            throw new IllegalArgumentException("Could not retrieve lab : " + lab.toString());
+        }
+        List<ValidationDbTestResult> vNexusResults = new ArrayList<ValidationDbTestResult>();
+        List<ValidationDbTestResult> vResults = nexusService.getResults(name, version, labInfo.getSilo(), date);
+        if (vResults != null && vResults.size() > 1) {
+            for (ValidationDbTestResult vNexusResult : vResults) {
+                if (dbAdapter.checkValidityOfNexusResult(vNexusResult)) {
+                    vNexusResult.setLab(labInfo);
+                    vNexusResults.add(vNexusResult);
+                }
             }
         }
-        if (siloText == null) {
-            throw new IllegalArgumentException("Lab does not exist: " + lab.toString());
-        }
-        return nexusService.getResults(name, version, siloText, date);
+        return vNexusResults;
     }
 
-    public Set<Lab> getLabsFromDb() {
-        Set<Lab> labs = new HashSet<Lab>();
-        for (ValidationDbTestResult result : dbAdapter.getValidationTestResults()) {
-            labs.add(result.getLab().getLab());
-        }
-        return labs;
-    }
-
-    public Set<String> getBlueprintNamesOfLabFromDb(Lab lab) {
+    public Set<String> getBlueprintNamesOfLabFromDb(String lab) {
         Set<String> blueprintNames = new HashSet<String>();
         for (ValidationDbTestResult result : dbAdapter.getValidationTestResults()) {
             if (result.getLab().getLab().equals(lab)) {
-                blueprintNames.add(result.getBlueprintName());
+                blueprintNames.add(result.getBlueprintInstance().getBlueprint().getBlueprintName());
             }
         }
         return blueprintNames;
     }
 
-    public Set<String> getBlueprintVersionsFromDb(String name, Lab lab) {
+    public Set<String> getBlueprintVersionsFromDb(String name, String lab) {
         Set<String> blueprintVersions = new HashSet<String>();
         for (ValidationDbTestResult result : dbAdapter.getValidationTestResults()) {
-            if (result.getLab().getLab().equals(lab) && result.getBlueprintName().equals(name)) {
-                blueprintVersions.add(result.getVersion());
+            if (result.getLab().getLab().equals(lab)
+                    && result.getBlueprintInstance().getBlueprint().getBlueprintName().equals(name)) {
+                blueprintVersions.add(result.getBlueprintInstance().getVersion());
             }
         }
         return blueprintVersions;
     }
 
-    public ValidationNexusTestResult getResults(@Nonnull String submissionId)
+    public ValidationDbTestResult getResults(@Nonnull String submissionId)
             throws JsonParseException, JsonMappingException, KeyManagementException, ClientHandlerException,
             UniformInterfaceException, NoSuchAlgorithmException, IOException, NullPointerException, ParseException {
-        SubmissionData submissionData = submissionService.getSubmissionData(submissionId);
-        ValidationNexusTestResult vNexusResult = dbAdapter.readResultFromDb(submissionId);
-        return vNexusResult == null
-                ? this.getResultFromNexus(submissionData.getValidationNexusTestResult().getBlueprintName(),
-                        submissionData.getValidationNexusTestResult().getVersion(),
-                        submissionData.getTimeslot().getLab().getLab(),
-                        submissionData.getValidationNexusTestResult().getTimestamp())
-                        : vNexusResult;
+        Submission submission = submissionService.getSubmission(submissionId);
+        ValidationDbTestResult vDbResult = dbAdapter.readResultFromDb(submissionId);
+        return vDbResult == null ? this.getResultFromNexus(
+                submission.getValidationDbTestResult().getBlueprintInstance().getBlueprint().getBlueprintName(),
+                submission.getValidationDbTestResult().getBlueprintInstance().getVersion(),
+                submission.getTimeslot().getLabInfo().getLab(), submission.getValidationDbTestResult().getTimestamp())
+                : vDbResult;
     }
 
-    public ValidationNexusTestResult getResult(@Nonnull String name, @Nonnull String version, @Nonnull Lab lab,
+    public ValidationDbTestResult getResult(@Nonnull String name, @Nonnull String version, @Nonnull String lab,
             @Nonnull String timestamp)
                     throws JsonParseException, JsonMappingException, KeyManagementException, ClientHandlerException,
                     UniformInterfaceException, NoSuchAlgorithmException, NullPointerException, IOException, ParseException {
@@ -267,29 +240,29 @@ public class IntegratedResultService {
         if (actualLabInfo == null) {
             return null;
         }
-        ValidationNexusTestResult vNexusResult = dbAdapter.readResultFromDb(lab, timestamp);
-        return vNexusResult == null ? this.getResultFromNexus(name, version, lab, timestamp) : vNexusResult;
+        ValidationDbTestResult vDbResult = dbAdapter.readResultFromDb(lab, timestamp);
+        return vDbResult == null ? this.getResultFromNexus(name, version, lab, timestamp) : vDbResult;
     }
 
-    public ValidationNexusTestResult getLastResultBasedOnOutcome(@Nonnull String name, @Nonnull String version,
-            @Nonnull Lab lab, Boolean allLayers, Boolean optional, boolean outcome)
+    public ValidationDbTestResult getLastResultBasedOnOutcome(@Nonnull String name, @Nonnull String version,
+            @Nonnull String lab, Boolean allLayers, Boolean optional, boolean outcome)
                     throws JsonParseException, JsonMappingException, KeyManagementException, ClientHandlerException,
                     UniformInterfaceException, NoSuchAlgorithmException, IOException, NullPointerException, ParseException {
         LabInfo actualLabInfo = labService.getLab(lab);
         if (actualLabInfo == null) {
             return null;
         }
-        List<ValidationNexusTestResult> vNexusResults = dbAdapter.readResultFromDb(name, version, lab, null, allLayers,
+        List<ValidationDbTestResult> vDbResults = dbAdapter.readResultFromDb(name, version, lab, null, allLayers,
                 optional, outcome);
-        if (vNexusResults != null) {
-            vNexusResults.removeIf(entry -> entry.getDateOfStorage() == null);
+        if (vDbResults != null) {
+            vDbResults.removeIf(entry -> entry.getDateStorage() == null);
             DateFormat dateFormat = new SimpleDateFormat("EEE MMM dd HH:mm:ss zzz yyyy", Locale.US);
-            Collections.sort(vNexusResults, new Comparator<ValidationNexusTestResult>() {
+            Collections.sort(vDbResults, new Comparator<ValidationDbTestResult>() {
                 @Override
-                public int compare(ValidationNexusTestResult vNexusResult1, ValidationNexusTestResult vNexusResult2) {
+                public int compare(ValidationDbTestResult vDbResult1, ValidationDbTestResult vDbResult2) {
                     try {
-                        return dateFormat.parse(vNexusResult2.getDateOfStorage())
-                                .compareTo(dateFormat.parse(vNexusResult1.getDateOfStorage()));
+                        return dateFormat.parse(vDbResult2.getDateStorage())
+                                .compareTo(dateFormat.parse(vDbResult1.getDateStorage()));
                     } catch (ParseException e) {
                         LOGGER.error(EELFLoggerDelegate.errorLogger,
                                 "Error when parsing date. " + UserUtils.getStackTrace(e));
@@ -297,30 +270,30 @@ public class IntegratedResultService {
                     }
                 }
             });
-            return vNexusResults.get(0);
+            return vDbResults.get(0);
         }
         return this.getLastResultBasedOnOutcomeFromNexus(name, version, lab, allLayers, optional, outcome);
     }
 
-    public ValidationNexusTestResult getLastResultBasedOnOutcome(@Nonnull String name, @Nonnull String version,
-            @Nonnull Lab lab, List<BlueprintLayer> layers, Boolean optional, boolean outcome)
+    public ValidationDbTestResult getLastResultBasedOnOutcome(@Nonnull String name, @Nonnull String version,
+            @Nonnull String lab, List<String> layers, Boolean optional, boolean outcome)
                     throws JsonParseException, JsonMappingException, KeyManagementException, ClientHandlerException,
                     UniformInterfaceException, NoSuchAlgorithmException, IOException, NullPointerException, ParseException {
         LabInfo actualLabInfo = labService.getLab(lab);
         if (actualLabInfo == null) {
             return null;
         }
-        List<ValidationNexusTestResult> vNexusResults = dbAdapter.readResultFromDb(name, version, lab, layers, null,
-                optional, outcome);
-        if (vNexusResults != null) {
-            vNexusResults.removeIf(entry -> entry.getDateOfStorage() == null);
+        List<ValidationDbTestResult> vDbResults = dbAdapter.readResultFromDb(name, version, lab, layers, null, optional,
+                outcome);
+        if (vDbResults != null && vDbResults.size() > 0) {
+            vDbResults.removeIf(entry -> entry.getDateStorage() == null);
             DateFormat dateFormat = new SimpleDateFormat("EEE MMM dd HH:mm:ss zzz yyyy", Locale.US);
-            Collections.sort(vNexusResults, new Comparator<ValidationNexusTestResult>() {
+            Collections.sort(vDbResults, new Comparator<ValidationDbTestResult>() {
                 @Override
-                public int compare(ValidationNexusTestResult vNexusResult1, ValidationNexusTestResult vNexusResult2) {
+                public int compare(ValidationDbTestResult vDbResult1, ValidationDbTestResult vDbResult2) {
                     try {
-                        return dateFormat.parse(vNexusResult2.getDateOfStorage())
-                                .compareTo(dateFormat.parse(vNexusResult1.getDateOfStorage()));
+                        return dateFormat.parse(vDbResult2.getDateStorage())
+                                .compareTo(dateFormat.parse(vDbResult2.getDateStorage()));
                     } catch (ParseException e) {
                         LOGGER.error(EELFLoggerDelegate.errorLogger,
                                 "Error when parsing date. " + UserUtils.getStackTrace(e));
@@ -328,7 +301,7 @@ public class IntegratedResultService {
                     }
                 }
             });
-            return vNexusResults.get(0);
+            return vDbResults.get(0);
         }
         return this.getLastResultBasedOnOutcomeFromNexus(name, version, lab, layers, optional, outcome);
     }

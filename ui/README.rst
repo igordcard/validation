@@ -41,23 +41,20 @@ In order for the blueprint validation UI to be functional, the following items a
 - An appropriate mariadb instance is up and running (look at the Database subsection).
   This prerequisite concerns both of the UI modes.
 
-- The available labs for blueprint validation execution are defined by the corresponding lab owners (look at the Database subsection). It is their responsibility to publish them. Currently, this data is statically stored in the blueprint validation UI mariadb database. In order for a lab owner to update them, he/her must update the corresponding table entries. This inconvenience will be handled in the future.
+- The available labs and their silos (i.e. which silo is used by a lab in order to store results in Nexus) for blueprint validation execution are defined by the corresponding lab owners (look at the Database subsection). It is their responsibility to publish them. Currently, this data is statically stored in the blueprint validation UI mariadb database. In order for a lab owner to update them, he/her must update the corresponding table entries. This inconvenience will be handled in the future.
   This prerequisite concerns only the full control loop mode.
 
 - The available timeslots for blueprint validation execution of every lab are defined by the corresponding lab owners (look at the Database subsection). It is their responsibility to publish them. Currently, this data is statically stored in the blueprint validation UI mariadb database. In order for a lab owner to update them, he/her must update the corresponding table entries. This inconvenience will be handled in the future.
   This prerequisite concerns only the full control loop mode.
 
-- The data of the lab silos (i.e. which silo is used by a lab in order to store results in Nexus) is stored in the mariadb database (look at the Database subsection). It is the blueprint owner's responsibility to publish it. Currently, this data is statically stored in the blueprint validation UI mariadb database. In order for a blueprint owner to update it, he/her must update the corresponding table entries. This inconvenience will be handled in the future.
+- The data of available blueprints (i.e. blueprint name) is stored in the mariadb database (look at the Database subsection). This data is automatically updated using info from Nexus. If a blueprint owner's is not satisfied with this info, he/her must update the corresponding table entries.
   This prerequisite concerns only the full control loop mode.
 
-- The data of available blueprints (i.e. blueprint name) is stored in the mariadb database (look at the Database subsection). It is the blueprint owner's responsibility to publish it. Currently, this data is statically stored in the blueprint validation UI mariadb database. In order for a blueprint owner to update it, he/her must update the corresponding table entries. This inconvenience will be handled in the future.
-  This prerequisite concerns only the full control loop mode.
-
-- The data of an available blueprint instance for validation (i.e. version, layer and description of the layer) is stored in the mariadb database (look at the Database subsection). It is the blueprint owner's responsibility to publish it. Currently, this data is statically stored in the blueprint validation UI mariadb database. In order for a blueprint owner to update it, he/her must update the corresponding table entries. This inconvenience will be handled in the future.
+- The data of an available blueprint instance for validation (i.e. version and layer) is stored in the mariadb database (look at the Database subsection). This data is automatically updated using info from Nexus. If a blueprint owner's is not satisfied with this info, he/her must update the corresponding table entries.
   This prerequisite concerns only the full control loop mode.
 
 - A Jenkins instance exists capable of executing blueprint validation tests on the specified lab and storing the results to Nexus server (look at the Jenkins configuration subsection).
-  This prerequisite concerns only the full control loop mode.
+  Also, this data is updated using info from results fetched from Nexus. This prerequisite concerns only the full control loop mode.
 
 - A Nexus server exists where all the blueprint validation results are stored (look at the Nexus subsection).
   This prerequisite concerns both of the UI modes.
@@ -236,44 +233,48 @@ To this end, after the image build process, the following commands should be exe
 
 In the context of the full control loop mode, the following tables must be initialized with appropriate data:
 
-- lab (here every lab owner should store the name of the lab)
+- lab (here every lab owner should store the name of the lab and the silo used for storing results in Nexus)
 - timeslot (here every lab owner should register the available timeslots that can be used for blueprint validation test execution)
-- silo (here every lab owner should register the silo which is used for storing results in Nexus, for example for AT&T lab the value is 'att-blu-val')
+- blueprint_layer (here all the blueprint layers should be registered. These layers will be referenced by the blueprint instances)
 - blueprint (here every blueprint owner should register the name of the blueprint)
-- blueprint_instance_for_validation (here every blueprint owner should register the blueprint instances for validation, i.e. version, layer and description of a layer)
+- blueprint_instance_for_validation (here every blueprint owner should register the blueprint instances for validation, i.e. version and layer)
+- blueprint_instance_blueprint_layer (here the many-to-many relationship between blueprint instances and layers is formulated)
 
-The following file can be used for initializing the aforementioned data (as it was performed in the above example using the 'mysql -p<MARIADB_AKRAINO_PASSWORD> -uakraino -h <IP of the mariadb container> < ../../ui/db-scripts/examples/initialize_db_example.sql' command):
+As it has been already mentioned, these tables are initialized automatically by the UI by fetching data from Nexus.
+
+However, a user may wish to extend or change this data (for example a new blueprint has been created and no results have been pushed to Nexus yet). To this end, the following file can be used (that's why the command 'mysql -p<MARIADB_AKRAINO_PASSWORD> -uakraino -h <IP of the mariadb container> < ../../ui/db-scripts/examples/initialize_db_example.sql' has been used previously):
 
     db-scripts/examples/initialize_db_example.sql
 
-Some of this data is illustrated below (refer to 'org.akraino.validation.ui.data' package for more info regarding available values):
+Some of this data is illustrated below:
 
 .. code-block:: console
 
-    Lab
-    id:1, lab:0 (0 stands for AT&T)
+    Labs:
+    id:1, lab:'att', silo:'att-blu-val'
 
     Timeslots:
     id:1 , start date and time: 'now', duration: null, lab: 1
 
-    Silo
-    id:1, silo: 'att-blu-val', lab: 1
+    Blueprint layers:
+    id:1, layer: 'hardware';
 
     Blueprints:
-    id: 3 , name : 'REC'
+    id: 2 , blueprint_name : 'rec'
 
     Blueprint Instances:
-    id: 2, blueprint_id: 3 (i.e. REC), version: "latest", layer: 0 (i.e. Hardware), layer_description: "AT&T Hardware"
+    id: 2, blueprint_id: 2 (i.e. rec), version: "master"
+    
+    blueprint_instances_blueprint_layers
+    blueprint_id: 2 (i.e. rec), layer_id: 1 (i.e. hardware)
 
 It should be noted that currently the start date and time and the duration of the timeslot are not taken into account by the UI (see limitation section). Therefore, a user should define 'now' and null respectively for their content.
 
 Based on this data, the UI enables the user to select an appropriate blueprint instance for validation.
 
-Currently, this data cannot be retrieved dynamically by the UI (see limitations subsection). For this reason, in cases of new data, a user should define new entries in this database.
-
 For example, if a user wants to define a new lab with the following data:
 
-    lab: Community
+    lab: community, silo : 'community' 
 
 the following file should be created:
 
@@ -281,9 +282,7 @@ name: dbscript
 content:
     SET FOREIGN_KEY_CHECKS=1;
     use akraino;
-    insert into lab values(2, 2);
-
-2 stands for community lab. Refer to 'org.akraino.validation.ui.data' package for more info.
+    insert into lab (id, lab, silo) values(2, 'community', 'community');
 
 Then, the following command should be executed:
 
@@ -301,27 +300,7 @@ name: dbscript
 content:
     SET FOREIGN_KEY_CHECKS=1;
     use akraino;
-    insert into timeslot values(2, 'now', null, 1);
-
-1 is the id of the AT&T lab.
-
-Then, the following command should be executed:
-
-.. code-block:: console
-
-    mysql -p<MARIADB_AKRAINO_PASSWORD> -uakraino -h <IP of the mariadb container> < ./dbscript.sql
-
-For example, if a user wants to define a new silo with the following data:
-
-    silo: 'community-blu-val', lab: AT&T
-
-the following file should be created:
-
-name: dbscript
-content:
-    SET FOREIGN_KEY_CHECKS=1;
-    use akraino;
-    insert into silo values(2, 'community-blu-val', 2);
+    insert into timeslot values(2, 'now', null, 2);
 
 2 is the id of the community lab.
 
@@ -333,7 +312,7 @@ Then, the following command should be executed:
 
 Furthermore, if a user wants to define a new blueprint, namely "newBlueprint" and a new instance of this blueprint with the following data:
 
-    version: "latest", layer: 2 (i.e. K8s), layer_description: "K8s with High Availability Ingress controller"
+    version: "master", layer: k8s
 
 the following file should be created:
 
@@ -341,8 +320,10 @@ name: dbscript
 content:
     SET FOREIGN_KEY_CHECKS=1;
     use akraino;
-    insert into blueprint (blueprint_id, blueprint_name) values(4, 'newBlueprint');
-    insert into blueprint_instance (blueprint_instance_id, blueprint_id, version, layer, layer_description) values(6, 4, 'latest', 2, 'K8s with High Availability Ingress controller');
+    insert into blueprint (id, blueprint_name) values(3, 'newBlueprint');
+    insert into blueprint_instance (id, blueprint_id, version) values(3, 3, 'master');
+    insert into blueprint_layer (id, layer) values(4, 'k8s');
+    insert into blueprint_instance_blueprint_layer (blueprint_instance_id, blueprint_layer_id) values(3, 4);
 
 Then, the following command should be executed:
 
@@ -360,9 +341,9 @@ It should be noted that it is not the UI responsibility to deploy a Jenkins inst
 
 Furthermore, this instance must have the following option enabled: "Manage Jenkins -> Configure Global Security -> Prevent Cross Site Request Forgery exploits".
 
-Also, currently, the corresponding Jenkins job should accept the following as input parameters: "SUBMISSION_ID", "BLUEPRINT", "VERSION", "LAYER", "LAB" and "UI_IP".
+Also, currently, the corresponding Jenkins job should accept the following as input parameters: "SUBMISSION_ID", "BLUEPRINT", "VERSION", "LAYER", "OPTIONAL", "LAB" and "UI_IP".
 The "SUBMISSION_ID" and "UI_IP" parameters (i.e. IP address of the UI host machine-this is needed by the Jenkins instance in order to send back Job completion notification) are created and provided by the back-end part of the UI.
-The "BLUEPRINT", "VERSION", "LAYER" and "LAB" parameters are configured by the UI user.
+The "BLUEPRINT", "VERSION", "LAYER" and "LAB" parameters are configured by the UI user. The parameter "OPTIONAL" defines whether the optional test cases should be included or not.
 
 Moreover, as the Jenkins notification plugin (https://wiki.jenkins.io/display/JENKINS/Notification+Plugin) seems to ignore proxy settings, the corresponding Jenkins job must be configured to execute the following commands at the end (Post-build Actions)
 
@@ -455,4 +436,3 @@ Limitations
 - The UI has been tested using Chrome and Firefox browsers.
 - The back-end part of the UI does not take into account the start date and time and duration of the configured timeslot. It immediately triggers the corresponding Jenkins Job.
 - Results data manipulation (filtering, graphical representation, indexing in time order, etc) is not supported.
-- The silos, labs, and the available blueprints and timeslots must be manually configured in the mariadb database.

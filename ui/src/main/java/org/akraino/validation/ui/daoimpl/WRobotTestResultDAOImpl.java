@@ -45,12 +45,14 @@ public class WRobotTestResultDAOImpl implements WRobotTestResultDAO {
     @Override
     public List<WRobotDbTestResult> getWRobotTestResults() {
         Criteria criteria = getSession().createCriteria(WRobotDbTestResult.class);
+        criteria.setResultTransformer(Criteria.DISTINCT_ROOT_ENTITY);
         return criteria.list();
     }
 
     @Override
     public WRobotDbTestResult getWRobotTestResult(@Nonnull Integer wRobotResultId) {
         Criteria criteria = getSession().createCriteria(WRobotDbTestResult.class);
+        criteria.setResultTransformer(Criteria.DISTINCT_ROOT_ENTITY);
         criteria.add(Restrictions.eq("id", wRobotResultId));
         return criteria.list() == null || criteria.list().size() < 1 ? null
                 : (WRobotDbTestResult) criteria.list().get(0);
@@ -59,7 +61,8 @@ public class WRobotTestResultDAOImpl implements WRobotTestResultDAO {
     @Override
     public List<WRobotDbTestResult> getWRobotTestResult(@Nonnull ValidationDbTestResult vResult) {
         Criteria criteria = getSession().createCriteria(WRobotDbTestResult.class);
-        criteria.add(Restrictions.eq("vResult", vResult));
+        criteria.setResultTransformer(Criteria.DISTINCT_ROOT_ENTITY);
+        criteria.add(Restrictions.eq("validationDbTestResult", vResult));
         return criteria.list() == null || criteria.list().size() == 0 ? null
                 : (List<WRobotDbTestResult>) criteria.list();
     }
@@ -67,8 +70,9 @@ public class WRobotTestResultDAOImpl implements WRobotTestResultDAO {
     @Override
     public WRobotDbTestResult getWRobotTestResult(@Nonnull String layer, @Nonnull ValidationDbTestResult vResult) {
         Criteria criteria = getSession().createCriteria(WRobotDbTestResult.class);
+        criteria.setResultTransformer(Criteria.DISTINCT_ROOT_ENTITY);
         criteria.add(Restrictions.eq("layer", layer));
-        criteria.add(Restrictions.eq("vResult", vResult));
+        criteria.add(Restrictions.eq("validationDbTestResult", vResult));
         return criteria.list() == null || criteria.list().size() < 1 ? null
                 : (WRobotDbTestResult) criteria.list().get(0);
     }

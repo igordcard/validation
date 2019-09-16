@@ -18,8 +18,8 @@ package org.akraino.validation.ui.controller;
 
 import java.util.List;
 
-import org.akraino.validation.ui.entity.LabSilo;
-import org.akraino.validation.ui.service.SiloService;
+import org.akraino.validation.ui.entity.LabInfo;
+import org.akraino.validation.ui.service.LabService;
 import org.onap.portalsdk.core.controller.RestrictedBaseController;
 import org.onap.portalsdk.core.logging.logic.EELFLoggerDelegate;
 import org.onap.portalsdk.core.web.support.UserUtils;
@@ -31,25 +31,25 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 
 @Controller
-@RequestMapping("/api/v1/silo")
-public class SiloController extends RestrictedBaseController {
+@RequestMapping("/api/v1/lab")
+public class LabController extends RestrictedBaseController {
 
-    private static final EELFLoggerDelegate LOGGER = EELFLoggerDelegate.getLogger(SiloController.class);
+    private static final EELFLoggerDelegate LOGGER = EELFLoggerDelegate.getLogger(LabController.class);
 
     @Autowired
-    SiloService service;
+    LabService service;
 
-    public SiloController() {
+    public LabController() {
         super();
     }
 
     @RequestMapping(value = { "/" }, method = RequestMethod.GET)
-    public ResponseEntity<List<LabSilo>> getSilos() {
+    public ResponseEntity<List<LabInfo>> getLabs() {
         try {
-            return new ResponseEntity<>(service.getSilos(), HttpStatus.OK);
+            return new ResponseEntity<>(service.getLabs(), HttpStatus.OK);
         } catch (Exception e) {
             LOGGER.error(EELFLoggerDelegate.errorLogger,
-                    "Error when trying to get lab silos. " + UserUtils.getStackTrace(e));
+                    "Error when trying to get labs. " + UserUtils.getStackTrace(e));
         }
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
     }

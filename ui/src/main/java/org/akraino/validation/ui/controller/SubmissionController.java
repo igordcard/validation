@@ -17,7 +17,7 @@ package org.akraino.validation.ui.controller;
 
 import java.util.List;
 
-import org.akraino.validation.ui.data.SubmissionData;
+import org.akraino.validation.ui.entity.Submission;
 import org.akraino.validation.ui.service.DbSubmissionAdapter;
 import org.onap.portalsdk.core.controller.RestrictedBaseController;
 import org.onap.portalsdk.core.logging.logic.EELFLoggerDelegate;
@@ -45,9 +45,9 @@ public class SubmissionController extends RestrictedBaseController {
     }
 
     @RequestMapping(value = { "/" }, method = RequestMethod.GET)
-    public ResponseEntity<List<SubmissionData>> getSubmissions() {
+    public ResponseEntity<List<Submission>> getSubmissions() {
         try {
-            return new ResponseEntity<>(service.getSubmissionDatas(), HttpStatus.OK);
+            return new ResponseEntity<>(service.getSubmissions(), HttpStatus.OK);
         } catch (Exception e) {
             LOGGER.error(EELFLoggerDelegate.errorLogger, "Get of submissions failed. " + UserUtils.getStackTrace(e));
         }
@@ -55,9 +55,9 @@ public class SubmissionController extends RestrictedBaseController {
     }
 
     @RequestMapping(value = { "/{id}" }, method = RequestMethod.GET)
-    public ResponseEntity<SubmissionData> getSubmission(@PathVariable("id") String submissionId) {
+    public ResponseEntity<Submission> getSubmission(@PathVariable("id") String submissionId) {
         try {
-            return new ResponseEntity<>(service.getSubmissionData(submissionId), HttpStatus.OK);
+            return new ResponseEntity<>(service.getSubmission(submissionId), HttpStatus.OK);
         } catch (Exception e) {
             LOGGER.error(EELFLoggerDelegate.errorLogger, "Get of submission failed. " + UserUtils.getStackTrace(e));
         }
@@ -65,9 +65,9 @@ public class SubmissionController extends RestrictedBaseController {
     }
 
     @RequestMapping(value = { "/" }, method = RequestMethod.POST)
-    public ResponseEntity<SubmissionData> postSubmission(@RequestBody SubmissionData submissionData) {
+    public ResponseEntity<Submission> postSubmission(@RequestBody Submission submission) {
         try {
-            return new ResponseEntity<>(service.saveSubmission(submissionData), HttpStatus.OK);
+            return new ResponseEntity<>(service.saveSubmission(submission), HttpStatus.OK);
         } catch (Exception e) {
             LOGGER.error(EELFLoggerDelegate.errorLogger, "Post of submission failed. " + UserUtils.getStackTrace(e));
         }

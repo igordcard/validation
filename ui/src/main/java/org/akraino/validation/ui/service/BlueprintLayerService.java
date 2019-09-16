@@ -17,37 +17,37 @@ package org.akraino.validation.ui.service;
 
 import java.util.List;
 
-import org.akraino.validation.ui.dao.LabDAO;
-import org.akraino.validation.ui.entity.LabInfo;
+import org.akraino.validation.ui.dao.BlueprintLayerDAO;
+import org.akraino.validation.ui.entity.BlueprintLayer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @Transactional
-public class LabService {
+public class BlueprintLayerService {
 
     @Autowired
-    private LabDAO labDAO;
+    private BlueprintLayerDAO layerDAO;
 
-    public void saveLab(LabInfo lab) {
-        labDAO.saveOrUpdate(lab);
+    public void saveBlueprintLayer(BlueprintLayer layer) {
+        layerDAO.saveOrUpdate(layer);
     }
 
-    public LabInfo getLab(String lab) {
-        return labDAO.getLab(lab);
+    public BlueprintLayer getBlueprintLayer(Integer layerId) {
+        return layerDAO.getBlueprintLayer(layerId);
     }
 
-    public LabInfo getLabBasedOnSilo(String silo) {
-        return labDAO.getLabBasedOnSilo(silo);
+    public BlueprintLayer getBlueprintLayer(String layerData) {
+        return layerDAO.getBlueprintLayer(layerData);
     }
 
-    public List<LabInfo> getLabs() {
-        return labDAO.getLabs();
+    public List<BlueprintLayer> getBlueprintLayers() {
+        return layerDAO.getBlueprintLayers();
     }
 
     public void deleteAll() {
-        labDAO.deleteAll();
+        layerDAO.deleteAll();
     }
 
 }

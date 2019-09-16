@@ -22,13 +22,11 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
 @Entity
-@Table(name = "silo")
-public class LabSilo implements Serializable {
+@Table(name = "blueprint_layer")
+public class BlueprintLayer implements Serializable {
 
     /**
      *
@@ -38,36 +36,25 @@ public class LabSilo implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
-    private int siloId;
+    private int blueprintLayerId;
 
-    @Column(name = "silo")
-    private String silo;
+    @Column(name = "layer")
+    private String layer;
 
-    @ManyToOne
-    @JoinColumn(name = "lab_id")
-    private LabInfo lab;
-
-    public void setSiloId(int siloId) {
-        this.siloId = siloId;
+    public int getBlueprintLayerId() {
+        return blueprintLayerId;
     }
 
-    public int getSiloId() {
-        return siloId;
+    public void setblueprintLayerId(int blueprintLayerId) {
+        this.blueprintLayerId = blueprintLayerId;
     }
 
-    public void setSilo(String silo) {
-        this.silo = silo;
+    public String getLayer() {
+        return layer;
     }
 
-    public String getSilo() {
-        return silo;
+    public void setLayer(String layer) {
+        this.layer = layer;
     }
 
-    public void setLab(LabInfo lab) {
-        this.lab = lab;
-    }
-
-    public LabInfo getLab() {
-        return lab;
-    }
 }

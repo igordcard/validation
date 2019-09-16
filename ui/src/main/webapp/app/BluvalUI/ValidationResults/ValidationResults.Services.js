@@ -16,86 +16,104 @@
 
 var app = angular.module('ValidationResults');
 
-app.factory('generalValidationResultsSvc', [ function() {
-    var svc = [];
-    svc.getBlueprintLayers = function(wRobotNexusTestResults) {
-        var layers = [];
-        angular.forEach(wRobotNexusTestResults,
-                function(wRobotNexusTestResult) {
-                    if (wRobotNexusTestResult.blueprintLayer !== undefined) {
-                        layers.push(wRobotNexusTestResult.blueprintLayer);
-                    }
-                });
-        return layers;
-    };
-    svc.mapResult = function(validationNexusTestResult) {
-        if (!validationNexusTestResult.timestamp) {
-            return null;
-        }
-        if (!validationNexusTestResult.wRobotNexusTestResults) {
-            return null;
-        }
-        if (validationNexusTestResult.wRobotNexusTestResults.length === 0) {
-            return null;
-        }
-        var resultExistence = false;
-        angular.forEach(validationNexusTestResult.wRobotNexusTestResults,
-                function(result) {
-                    if (result.robotTestResults
-                            && result.robotTestResults.length > 0) {
-                        resultExistence = true;
-                    }
-                });
-        if (resultExistence) {
-            if (validationNexusTestResult.result === true) {
-                return 'SUCCESS';
-            }
-            return 'FAILURE'
-        }
-        return null;
-    };
-    svc.filterWithLayer = function(validationNexusTestResults, filterLayer) {
-        if (filterLayer === undefined || filterLayer === '') {
-            return validationNexusTestResults;
-        }
-        var filteredResults = [];
-        angular.forEach(validationNexusTestResults, function(
-                validationNexusTestResult) {
-            angular.forEach(validationNexusTestResult.wRobotNexusTestResults,
-                    function(wRobotNexusTestResult) {
-                        if (wRobotNexusTestResult.blueprintLayer.toLowerCase()
-                                .includes(filterLayer.toLowerCase())) {
-                            filteredResults.push(validationNexusTestResult);
+app
+        .factory(
+                'generalValidationResultsSvc',
+                [ function() {
+                    var svc = [];
+                    svc.getBlueprintLayers = function(wrobotDbTestResults) {
+                        if (!wrobotDbTestResults
+                                || wrobotDbTestResults.length === 0) {
+                            return null;
                         }
-                    });
-        });
-        return filteredResults;
-    }
-    svc.filterWithResult = function(validationNexusTestResults, filterResult) {
-        if (filterResult === undefined || filterResult === '') {
-            return validationNexusTestResults;
-        }
-        var filteredResults = [];
-        angular.forEach(validationNexusTestResults, function(
-                validationNexusTestResult) {
-            if (validationNexusTestResult.result === true
-                    && 'success'.includes(filterResult.toLowerCase())) {
-                filteredResults.push(validationNexusTestResult);
-            } else if (validationNexusTestResult.result === false
-                    && 'failure'.includes(filterResult.toLowerCase())) {
-                filteredResults.push(validationNexusTestResult);
-            }
-        });
-        return filteredResults;
-    }
-    svc.getLab = function(silo, silos) {
-        var lab = null;
-        angular.forEach(silos, function(siloData) {
-            if (silo === siloData.silo) {
-                lab = siloData.lab.lab;
-            }
-        });
-        return lab;
-    }
-    return svc;
-} ]);
+                        var layers = [];
+                        angular
+                                .forEach(
+                                        angular.fromJson(wrobotDbTestResults),
+                                        function(wrobotDbTestResult) {
+                                            if (wrobotDbTestResult.layer !== undefined) {
+                                                layers
+                                                        .push(wrobotDbTestResult.layer);
+                                            }
+                                        });
+                        return layers;
+                    };
+                    svc.mapResult = function(validationDbTestResult) {
+                        if (validationDbTestResult
+                                && validationDbTestResult.dateStorage) {
+                            if (validationDbTestResult.result === true) {
+                                return 'SUCCESS';
+                            }
+                            return 'FAILURE'
+                        }
+                        return null;
+                    };
+                    svc.filterWithLayer = function(validationDbTestResults,
+                            filterLayer) {
+                        if (filterLayer === undefined || filterLayer === '') {
+                            return validationDbTestResults;
+                        }
+                        var filteredResults = [];
+                        angular
+                                .forEach(
+                                        validationDbTestResults,
+                                        function(validationDbTestResult) {
+                                            angular
+                                                    .forEach(
+                                                            angular
+                                                                    .fromJson(validationDbTestResult.wrobotDbTestResults),
+                                                            function(
+                                                                    wrobotDbTestResult) {
+                                                                if (wrobotDbTestResult.layer
+                                                                        .toLowerCase()
+                                                                        .includes(
+                                                                                filterLayer
+                                                                                        .toLowerCase())) {
+                                                                    filteredResults
+                                                                            .push(validationDbTestResult);
+                                                                }
+                                                            });
+                                        });
+                        return filteredResults;
+                    }
+                    svc.filterWithResult = function(validationDbTestResults,
+                            filterResult) {
+                        if (filterResult === undefined || filterResult === '') {
+                            return validationDbTestResults;
+                        }
+                        var filteredResults = [];
+                        angular.forEach(validationDbTestResults, function(
+                                validationDbTestResult) {
+                            if (validationDbTestResult.result === true
+                                    && 'success'.includes(filterResult
+                                            .toLowerCase())) {
+                                filteredResults.push(validationDbTestResult);
+                            } else if (validationDbTestResult.result === false
+                                    && 'failure'.includes(filterResult
+                                            .toLowerCase())) {
+                                filteredResults.push(validationDbTestResult);
+                            }
+                        });
+                        return filteredResults;
+                    }
+                    svc.filterWithTimestamp = function(validationDbTestResults,
+                            filterTimestamp) {
+                        if (filterTimestamp === undefined
+                                || filterTimestamp === '') {
+                            return validationDbTestResults;
+                        }
+                        var filteredResults = [];
+                        angular.forEach(validationDbTestResults, function(
+                                validationDbTestResult) {
+                            if (validationDbTestResult.timestamp
+                                    && validationDbTestResult.timestamp
+                                            .toLowerCase().includes(
+                                                    filterTimestamp
+                                                            .toLowerCase())) {
+                                filteredResults.push(validationDbTestResult);
+                            }
+                        });
+                        return filteredResults;
+                    }
+                    return svc;
+                } ]);

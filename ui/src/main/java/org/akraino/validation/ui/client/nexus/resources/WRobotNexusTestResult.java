@@ -17,32 +17,22 @@ package org.akraino.validation.ui.client.nexus.resources;
 
 import java.util.List;
 
-import org.akraino.validation.ui.data.BlueprintLayer;
+import org.akraino.validation.ui.entity.WRobotDbTestResult;
 
-public class WRobotNexusTestResult {
+public class WRobotNexusTestResult extends WRobotDbTestResult {
 
-    private BlueprintLayer blueprintLayer;
-
-    private List<RobotTestResult> robotTestResult;
+    private List<RobotTestResult> robotNexusTestResult;
 
     public WRobotNexusTestResult() {
 
     }
 
-    public BlueprintLayer getBlueprintLayer() {
-        return this.blueprintLayer;
+    public List<RobotTestResult> getRobotNexusTestResults() {
+        return this.robotNexusTestResult;
     }
 
-    public void setBlueprintLayer(BlueprintLayer blueprintLayer) {
-        this.blueprintLayer = blueprintLayer;
-    }
-
-    public List<RobotTestResult> getRobotTestResults() {
-        return this.robotTestResult;
-    }
-
-    public void setRobotTestResults(List<RobotTestResult> robotTestResult) {
-        this.robotTestResult = robotTestResult;
+    public void setRobotNexusTestResults(List<RobotTestResult> robotNexusTestResult) {
+        this.robotNexusTestResult = robotNexusTestResult;
     }
 
 }

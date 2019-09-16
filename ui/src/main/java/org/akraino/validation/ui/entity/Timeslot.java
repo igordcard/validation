@@ -48,7 +48,7 @@ public class Timeslot implements Serializable {
 
     @ManyToOne
     @JoinColumn(name = "lab_id")
-    private LabInfo lab;
+    private LabInfo labInfo;
 
     public void setTimeslotId(int timeslotId) {
         this.timeslotId = timeslotId;
@@ -74,11 +74,11 @@ public class Timeslot implements Serializable {
         return duration;
     }
 
-    public void setLab(LabInfo lab) {
-        this.lab = lab;
+    public void setLabInfo(LabInfo labInfo) {
+        this.labInfo = labInfo;
     }
 
-    public LabInfo getLab() {
-        return lab;
+    public LabInfo getLabInfo() {
+        return labInfo;
     }
 }

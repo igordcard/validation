@@ -18,20 +18,26 @@ SET FOREIGN_KEY_CHECKS=1;
 
 use akraino;
 
-insert into lab values(1, 0); /* 0 stands for AT&T lab */
+insert into lab (id, lab, silo) values(1, 'att', 'att-blu-val');
 
 insert into timeslot values(1, 'now', null, 1);
 
-insert into silo values(1, 'att-blu-val', 1);
-
 insert into blueprint (id, blueprint_name) values(1, 'dummy');
-insert into blueprint (id, blueprint_name) values(2, 'unicycle');
-insert into blueprint (id, blueprint_name) values(3, 'rec');
+insert into blueprint (id, blueprint_name) values(2, 'rec');
 
-insert into blueprint_instance_for_validation (id, blueprint_id, version, layer, layer_description) values(1, 1, 'master', 0, 'Dummy Hardware');  /* 0 Stands for hardware layer */
-insert into blueprint_instance_for_validation (id, blueprint_id, version, layer, layer_description) values(2, 3, 'master', 0, 'AT&T Hardware'); /* 0 Stands for hardware layer */
-insert into blueprint_instance_for_validation (id, blueprint_id, version, layer, layer_description) values(3, 3, 'master', 1, 'OS of the AT&T platform'); /* 1 Stands for OS layer */
-insert into blueprint_instance_for_validation (id, blueprint_id, version, layer, layer_description) values(4, 3, 'master', 2, 'K8s of the AT&T platform'); /* 2 Stands for K8s layer */
-insert into blueprint_instance_for_validation (id, blueprint_id, version, layer, layer_description) values(6, 2, 'master', 0, 'Unicycle Hardware'); /* 0 Stands for hardware layer */
+insert into blueprint_layer (id, layer) values(1, 'hardware');
+insert into blueprint_layer (id, layer) values(2, 'os');
+insert into blueprint_layer (id, layer) values(3, 'container');
+insert into blueprint_layer (id, layer) values(4, 'k8s');
+insert into blueprint_layer (id, layer) values(5, 'helm');
+insert into blueprint_layer (id, layer) values(6, 'openstack');
+
+insert into blueprint_instance (id, blueprint_id, version) values(1, 1, 'master'); /* master version is assigned to dummy */
+insert into blueprint_instance (id, blueprint_id, version) values(2, 2, 'master'); /* master version is assigned to rec */
+
+insert into blueprint_instance_blueprint_layer (blueprint_instance_id, blueprint_layer_id) values(1, 1); /* hardware layer is assigned to dummy*/
+insert into blueprint_instance_blueprint_layer (blueprint_instance_id, blueprint_layer_id) values(2, 1); /* hardware layer is assigned to rec*/
+insert into blueprint_instance_blueprint_layer (blueprint_instance_id, blueprint_layer_id) values(2, 2); /* os layer is assigned to rec*/
+insert into blueprint_instance_blueprint_layer (blueprint_instance_id, blueprint_layer_id) values(2, 4); /* k8s layer is assigned to rec*/
 
 commit;

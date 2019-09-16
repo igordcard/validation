@@ -90,8 +90,7 @@ div.box {
 
         <br> <br> <br>
 
-        <div
-            ng-hide="selectedLayer == null || selectedTestSuiteName == null">
+        <div ng-hide="!selectedLayer || !selectedTestSuiteName">
             <div>
                 <h2 class="heading-small"></h2>
                 <div class="box">

@@ -55,10 +55,12 @@ ignore = ui/target/**,
     ui/src/main/java/org/akraino/validation/ui/filter/SecurityXssFilter.java,
     ui/src/main/java/org/akraino/validation/ui/client/jenkins/resources/**.java,
     ui/src/main/java/org/akraino/validation/ui/client/nexus/resources/**.java,
-    ui/src/main/java/org/akraino/validation/ui/data/SubmissionData.java,
     ui/src/main/java/org/akraino/validation/ui/service/DbResultAdapter.java,
     ui/src/main/java/org/akraino/validation/ui/client/nexus/NexusExecutorClient.java,
-    ui/src/main/java/org/akraino/validation/ui/daoimpl/ValidationTestResultDAOImpl.java
+    ui/src/main/java/org/akraino/validation/ui/daoimpl/ValidationTestResultDAOImpl.java,
+    ui/src/main/java/org/akraino/validation/ui/entity/ValidationDbTestResult.java,
+    ui/src/main/java/org/akraino/validation/ui/entity/WRobotDbTestResult.java,
+    ui/src/main/java/org/akraino/validation/ui/entity/Submission.java
 
 [all.JS]
 bears = ESLintBear,JSComplexityBear

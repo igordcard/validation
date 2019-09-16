@@ -13,33 +13,26 @@
  * implied. See the License for the specific language governing
  * permissions and limitations under the License.
  */
-package org.akraino.validation.ui.service;
+package org.akraino.validation.ui.dao;
 
 import java.util.List;
 
-import org.akraino.validation.ui.dao.SiloDAO;
-import org.akraino.validation.ui.entity.LabSilo;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+import org.akraino.validation.ui.entity.BlueprintLayer;
 
-@Service
-@Transactional
-public class SiloService {
+public interface BlueprintLayerDAO {
 
-    @Autowired
-    private SiloDAO siloDAO;
+    void saveOrUpdate(BlueprintLayer blueprintLayer);
 
-    public void saveSilo(LabSilo silo) {
-        siloDAO.saveOrUpdate(silo);
-    }
+    void merge(BlueprintLayer blueprintLayer);
 
-    public List<LabSilo> getSilos() {
-        return siloDAO.getSilos();
-    }
+    List<BlueprintLayer> getBlueprintLayers();
 
-    public void deleteAll() {
-        siloDAO.deleteAll();
-    }
+    BlueprintLayer getBlueprintLayer(Integer bluLayerId);
+
+    BlueprintLayer getBlueprintLayer(String layer);
+
+    void deleteBlueprintLayer(BlueprintLayer blueprintLayer);
+
+    void deleteAll();
 
 }

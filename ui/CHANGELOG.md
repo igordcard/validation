@@ -154,3 +154,13 @@ All notable changes to this project will be documented in this file.
 
 ### Removed
 
+## [0.2.1-SNAPSHOT] - 16 September 2019
+### Added
+- Blueprint names and versions are retrieved from Nexus and stored in database.
+
+### Changed
+- A common class is used for manipulating the Nexus and database validation results.
+- If a result had been fetched in the past from Nexus, it is not being fetched again.
+
+### Removed
+

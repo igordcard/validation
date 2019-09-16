@@ -17,6 +17,7 @@ package org.akraino.validation.ui.dao;
 
 import java.util.List;
 
+import org.akraino.validation.ui.entity.BlueprintInstance;
 import org.akraino.validation.ui.entity.LabInfo;
 import org.akraino.validation.ui.entity.Submission;
 import org.akraino.validation.ui.entity.ValidationDbTestResult;
@@ -31,7 +32,7 @@ public interface ValidationTestResultDAO {
 
     ValidationDbTestResult getValidationTestResult(Integer resultId);
 
-    List<ValidationDbTestResult> getValidationTestResults(String blueprintName, String version, LabInfo labInfo,
+    List<ValidationDbTestResult> getValidationTestResults(BlueprintInstance bluInst, LabInfo labInfo,
             Boolean allLayers, Boolean optional, Boolean outcome);
 
     ValidationDbTestResult getValidationTestResult(LabInfo labInfo, String timestamp);

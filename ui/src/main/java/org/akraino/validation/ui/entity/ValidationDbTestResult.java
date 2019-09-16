@@ -15,17 +15,26 @@
  */
 package org.akraino.validation.ui.entity;
 
+import java.io.IOException;
 import java.io.Serializable;
+import java.util.Set;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
+
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.databind.SerializerProvider;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.databind.ser.std.StdSerializer;
 
 @Entity
 @Table(name = "validation_test_result")
@@ -41,11 +50,9 @@ public class ValidationDbTestResult implements Serializable {
     @Column(name = "id")
     private int resultId;
 
-    @Column(name = "blueprint_name")
-    private String blueprintName;
-
-    @Column(name = "version")
-    private String version;
+    @ManyToOne
+    @JoinColumn(name = "blueprint_instance_id")
+    private BlueprintInstance blueprintInstance;
 
     @ManyToOne
     @JoinColumn(name = "lab_id")
@@ -68,7 +75,11 @@ public class ValidationDbTestResult implements Serializable {
 
     @OneToOne
     @JoinColumn(name = "submission_id")
+    @JsonSerialize(using = SubmissionSerializer.class)
     private Submission submission;
+
+    @OneToMany(mappedBy = "validationDbTestResult", targetEntity = WRobotDbTestResult.class, fetch = FetchType.EAGER)
+    private Set<WRobotDbTestResult> wRobotDbTestResults;
 
     public int getResultId() {
         return resultId;
@@ -78,20 +89,12 @@ public class ValidationDbTestResult implements Serializable {
         this.resultId = resultId;
     }
 
-    public String getBlueprintName() {
-        return blueprintName;
+    public BlueprintInstance getBlueprintInstance() {
+        return blueprintInstance;
     }
 
-    public void setBlueprintName(String blueprintName) {
-        this.blueprintName = blueprintName;
-    }
-
-    public String getVersion() {
-        return version;
-    }
-
-    public void setVersion(String version) {
-        this.version = version;
+    public void setBlueprintInstance(BlueprintInstance blueprintInstance) {
+        this.blueprintInstance = blueprintInstance;
     }
 
     public Boolean getAllLayers() {
@@ -148,6 +151,35 @@ public class ValidationDbTestResult implements Serializable {
 
     public void setSubmission(Submission submission) {
         this.submission = submission;
+    }
+
+    public Set<WRobotDbTestResult> getWRobotDbTestResults() {
+        return this.wRobotDbTestResults;
+    }
+
+    public void setWRobotDbTestResults(Set<WRobotDbTestResult> wRobotDbTestResults) {
+        this.wRobotDbTestResults = wRobotDbTestResults;
+    }
+
+    static class SubmissionSerializer extends StdSerializer<Submission> {
+
+        public SubmissionSerializer() {
+            this(null);
+        }
+
+        public SubmissionSerializer(Class<Submission> t) {
+            super(t);
+        }
+
+        @Override
+        public void serialize(Submission submission, JsonGenerator gen, SerializerProvider provider)
+                throws IOException {
+            Submission result = new Submission();
+            result.setSubmissionId(submission.getSubmissionId());
+            result.setSubmissionStatus(submission.getSubmissionStatus());
+            result.setTimeslot(submission.getTimeslot());
+            gen.writeObject(result);
+        }
     }
 
 }

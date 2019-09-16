@@ -44,14 +44,16 @@ public class TimeslotDAOImpl implements TimeslotDAO {
     @Override
     public List<Timeslot> getTimeslots() {
         Criteria criteria = getSession().createCriteria(Timeslot.class);
+        criteria.setResultTransformer(Criteria.DISTINCT_ROOT_ENTITY);
         return criteria.list();
     }
 
     @Override
     public Timeslot getTimeslot(@Nonnull Integer timeslotId) {
         Criteria criteria = getSession().createCriteria(Timeslot.class);
-        criteria.add(Restrictions.eq("id", String.valueOf(timeslotId)));
-        return criteria.list() == null ? null : (Timeslot) criteria.list().get(0);
+        criteria.setResultTransformer(Criteria.DISTINCT_ROOT_ENTITY);
+        criteria.add(Restrictions.eq("id", timeslotId));
+        return criteria.list() == null || criteria.list().size() < 1 ? null : (Timeslot) criteria.list().get(0);
     }
 
     @Override

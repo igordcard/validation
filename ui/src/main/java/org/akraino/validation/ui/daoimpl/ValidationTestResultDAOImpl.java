@@ -20,6 +20,7 @@ import java.util.List;
 import javax.annotation.Nonnull;
 
 import org.akraino.validation.ui.dao.ValidationTestResultDAO;
+import org.akraino.validation.ui.entity.BlueprintInstance;
 import org.akraino.validation.ui.entity.LabInfo;
 import org.akraino.validation.ui.entity.Submission;
 import org.akraino.validation.ui.entity.ValidationDbTestResult;
@@ -46,25 +47,26 @@ public class ValidationTestResultDAOImpl implements ValidationTestResultDAO {
     @Override
     public List<ValidationDbTestResult> getValidationTestResults() {
         Criteria criteria = getSession().createCriteria(ValidationDbTestResult.class);
+        criteria.setResultTransformer(Criteria.DISTINCT_ROOT_ENTITY);
         return criteria.list();
     }
 
     @Override
     public ValidationDbTestResult getValidationTestResult(@Nonnull Integer resultId) {
         Criteria criteria = getSession().createCriteria(ValidationDbTestResult.class);
-        criteria.add(Restrictions.eq("id", String.valueOf(resultId)));
-        return criteria.list() == null ? null : (ValidationDbTestResult) criteria.list().get(0);
+        criteria.setResultTransformer(Criteria.DISTINCT_ROOT_ENTITY);
+        criteria.add(Restrictions.eq("id", resultId));
+        return (criteria.list() == null || criteria.list().size() < 1) ? null
+                : (ValidationDbTestResult) criteria.list().get(0);
     }
 
     @Override
-    public List<ValidationDbTestResult> getValidationTestResults(String blueprintName, String version, LabInfo labInfo,
+    public List<ValidationDbTestResult> getValidationTestResults(BlueprintInstance bluInst, LabInfo labInfo,
             Boolean allLayers, Boolean optional, Boolean outcome) {
         Criteria criteria = getSession().createCriteria(ValidationDbTestResult.class);
-        if (blueprintName != null) {
-            criteria.add(Restrictions.eq("blueprintName", String.valueOf(blueprintName)));
-        }
-        if (version != null) {
-            criteria.add(Restrictions.eq("version", String.valueOf(version)));
+        criteria.setResultTransformer(Criteria.DISTINCT_ROOT_ENTITY);
+        if (bluInst != null) {
+            criteria.add(Restrictions.eq("blueprintInstance", bluInst));
         }
         if (labInfo != null) {
             criteria.add(Restrictions.eq("lab", labInfo));
@@ -85,6 +87,7 @@ public class ValidationTestResultDAOImpl implements ValidationTestResultDAO {
     @Override
     public ValidationDbTestResult getValidationTestResult(LabInfo labInfo, String timestamp) {
         Criteria criteria = getSession().createCriteria(ValidationDbTestResult.class);
+        criteria.setResultTransformer(Criteria.DISTINCT_ROOT_ENTITY);
         if (labInfo != null) {
             criteria.add(Restrictions.eq("lab", labInfo));
         }
@@ -98,6 +101,7 @@ public class ValidationTestResultDAOImpl implements ValidationTestResultDAO {
     @Override
     public ValidationDbTestResult getValidationTestResult(@Nonnull Submission submission) {
         Criteria criteria = getSession().createCriteria(ValidationDbTestResult.class);
+        criteria.setResultTransformer(Criteria.DISTINCT_ROOT_ENTITY);
         criteria.add(Restrictions.eq("submission", submission));
         return criteria.list() == null || criteria.list().size() == 0 ? null
                 : (ValidationDbTestResult) criteria.list().get(0);

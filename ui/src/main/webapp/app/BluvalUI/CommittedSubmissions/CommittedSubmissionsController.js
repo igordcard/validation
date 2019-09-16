@@ -16,44 +16,52 @@
 
 var app = angular.module('CommittedSubmissions');
 
-app.controller('CommittedSubmissionsController', function($scope, restAPISvc,
-        $interval, refreshPeriod, committedSubmissionsSvc, NgTableParams,
-        appContext, $window) {
+app
+        .controller(
+                'CommittedSubmissionsController',
+                function($scope, restAPISvc, $interval, refreshPeriod,
+                        committedSubmissionsSvc, NgTableParams, appContext,
+                        $window) {
 
-    $scope.getLayer = committedSubmissionsSvc.getLayer;
-    $scope.getResultUrl = committedSubmissionsSvc.getResultUrl;
-    $scope.mapResult = committedSubmissionsSvc.mapResult;
+                    $scope.getLayer = committedSubmissionsSvc.getLayer;
+                    $scope.getResultUrl = committedSubmissionsSvc.getResultUrl;
+                    $scope.mapResult = committedSubmissionsSvc.mapResult;
 
-    initialize();
+                    initialize();
 
-    function initialize() {
-        restAPISvc.getRestAPI("/api/v1/submission/", function(submissions) {
-            $scope.submissionDatas = submissions;
-            var data = submissions;
-            $scope.tableParams = new NgTableParams({
-                page : 1,
-                count : 5
-            }, {
-                dataset : data
-            });
-        });
-    }
+                    function initialize() {
+                        restAPISvc.getRestAPI("/api/v1/submission/", function(
+                                submissions) {
+                            $scope.submissions = submissions;
+                            var data = submissions;
+                            $scope.tableParams = new NgTableParams({
+                                page : 1,
+                                count : 5
+                            }, {
+                                dataset : data
+                            });
+                        });
+                    }
 
-    $scope.refreshCommittedSubmissions = function() {
-        initialize();
-    }
+                    $scope.refreshCommittedSubmissions = function() {
+                        initialize();
+                    }
 
-    $scope.getValidationResults = function(submissionData) {
-        if (!submissionData.validationNexusTestResult.timestamp) {
-            return;
-        }
-        $window.location.href = appContext
-                + "/validationresults#?submissionId="
-                + submissionData.submissionId;
-    }
+                    $scope.getValidationResults = function(submission) {
+                        if (!submission.validationDbTestResult
+                                || !submission.validationDbTestResult.timestamp
+                                || !submission.validationDbTestResult.wrobotDbTestResults
+                                || submission.validationDbTestResult.wrobotDbTestResults.length === 0) {
+                            return;
+                        }
+                        $window.location.href = appContext
+                                + "/validationresults#?submissionId="
+                                + submission.submissionId;
+                    }
 
-    $interval(function() {
-        $scope.refreshCommittedSubmissions();
-    }, refreshPeriod);
+                    /*
+                     * $interval(function() {
+                     * $scope.refreshCommittedSubmissions(); }, refreshPeriod);
+                     */
 
-});
+                });

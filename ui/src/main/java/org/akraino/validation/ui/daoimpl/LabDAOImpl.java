@@ -20,7 +20,6 @@ import java.util.List;
 import javax.annotation.Nonnull;
 
 import org.akraino.validation.ui.dao.LabDAO;
-import org.akraino.validation.ui.data.Lab;
 import org.akraino.validation.ui.entity.LabInfo;
 import org.hibernate.Criteria;
 import org.hibernate.Session;
@@ -45,21 +44,32 @@ public class LabDAOImpl implements LabDAO {
     @Override
     public List<LabInfo> getLabs() {
         Criteria criteria = getSession().createCriteria(LabInfo.class);
+        criteria.setResultTransformer(Criteria.DISTINCT_ROOT_ENTITY);
         return criteria.list();
     }
 
     @Override
     public LabInfo getLab(@Nonnull Integer labId) {
         Criteria criteria = getSession().createCriteria(LabInfo.class);
-        criteria.add(Restrictions.eq("id", String.valueOf(labId)));
-        return criteria.list() == null ? null : (LabInfo) criteria.list().get(0);
+        criteria.setResultTransformer(Criteria.DISTINCT_ROOT_ENTITY);
+        criteria.add(Restrictions.eq("id", labId));
+        return criteria.list() == null || criteria.list().size() < 1 ? null : (LabInfo) criteria.list().get(0);
     }
 
     @Override
-    public LabInfo getLab(@Nonnull Lab lab) {
+    public LabInfo getLab(@Nonnull String lab) {
         Criteria criteria = getSession().createCriteria(LabInfo.class);
+        criteria.setResultTransformer(Criteria.DISTINCT_ROOT_ENTITY);
         criteria.add(Restrictions.eq("lab", lab));
-        return criteria.list() == null ? null : (LabInfo) criteria.list().get(0);
+        return criteria.list() == null || criteria.list().size() < 1 ? null : (LabInfo) criteria.list().get(0);
+    }
+
+    @Override
+    public LabInfo getLabBasedOnSilo(String silo) {
+        Criteria criteria = getSession().createCriteria(LabInfo.class);
+        criteria.setResultTransformer(Criteria.DISTINCT_ROOT_ENTITY);
+        criteria.add(Restrictions.eq("silo", silo));
+        return criteria.list() == null || criteria.list().size() < 1 ? null : (LabInfo) criteria.list().get(0);
     }
 
     @Override
