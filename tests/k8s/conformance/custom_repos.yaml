@@ -1,0 +1,6 @@
+dockerLibraryRegistry: {{ registry }}
+e2eRegistry: {{ registry }}
+gcRegistry: {{ registry }}
+etcdRegistry: {{ registry }}
+privateRegistry: {{ registry }}
+sampleRegistry: {{ registry }}
