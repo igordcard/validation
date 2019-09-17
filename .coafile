@@ -1,6 +1,7 @@
 [all]
 ignore = .tox/**,
     .py35/**,
+    .py36/**,
     .git/**,
     .gitignore,
     .gitreview,
