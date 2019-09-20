@@ -73,4 +73,6 @@ Run Tempest Refstack Tests
    ...                   stdout=${WORKDIR}/logs/tempest_run.log
    ...                   stderr=STDOUT
    Copy Files          ${WORKDIR}/logs/*  ${REPORTDIR}/
+   Copy Files          ${WORKDIR}/etc/tempest.conf  ${REPORTDIR}/
+   Run Process         subunit2html  ${WORKDIR}/.stestr/0  ${REPORTDIR}/tempest_report.html
    Should Contain      ${result.stdout}  - Failed: 0
