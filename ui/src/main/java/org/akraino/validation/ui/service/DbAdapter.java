@@ -8,6 +8,11 @@ import java.util.Set;
 
 import javax.annotation.Nonnull;
 
+import org.akraino.validation.ui.dao.BlueprintDAO;
+import org.akraino.validation.ui.dao.BlueprintInstanceDAO;
+import org.akraino.validation.ui.dao.BlueprintLayerDAO;
+import org.akraino.validation.ui.dao.LabDAO;
+import org.akraino.validation.ui.dao.TimeslotDAO;
 import org.akraino.validation.ui.dao.ValidationTestResultDAO;
 import org.akraino.validation.ui.dao.WRobotTestResultDAO;
 import org.akraino.validation.ui.data.JnksJobNotify;
@@ -16,6 +21,7 @@ import org.akraino.validation.ui.entity.BlueprintInstance;
 import org.akraino.validation.ui.entity.BlueprintLayer;
 import org.akraino.validation.ui.entity.LabInfo;
 import org.akraino.validation.ui.entity.Submission;
+import org.akraino.validation.ui.entity.Timeslot;
 import org.akraino.validation.ui.entity.ValidationDbTestResult;
 import org.akraino.validation.ui.entity.WRobotDbTestResult;
 import org.onap.portalsdk.core.logging.logic.EELFLoggerDelegate;
@@ -28,13 +34,10 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 
 @Service
 @Transactional
-public class DbResultAdapter {
+public class DbAdapter {
 
-    private static final EELFLoggerDelegate LOGGER = EELFLoggerDelegate.getLogger(DbResultAdapter.class);
+    private static final EELFLoggerDelegate LOGGER = EELFLoggerDelegate.getLogger(DbAdapter.class);
     private static final Object LOCK = new Object();
-
-    @Autowired
-    LabService labService;
 
     @Autowired
     private ValidationTestResultDAO vTestResultDAO;
@@ -43,24 +46,48 @@ public class DbResultAdapter {
     private WRobotTestResultDAO wRobotDAO;
 
     @Autowired
+    private LabDAO labDAO;
+
+    @Autowired
+    private BlueprintLayerDAO layerDAO;
+
+    @Autowired
+    private BlueprintInstanceDAO bluInstDao;
+
+    @Autowired
+    private BlueprintDAO blueprintDAO;
+
+    @Autowired
+    private TimeslotDAO timeslotDAO;
+
+    @Autowired
     DbSubmissionAdapter subService;
-
-    @Autowired
-    BlueprintService blueprintService;
-
-    @Autowired
-    BlueprintInstanceService blueprintInstService;
-
-    @Autowired
-    BlueprintLayerService layerService;
 
     public void associateSubmissionWithValidationResult(Submission submission)
             throws JsonParseException, JsonMappingException, IOException {
         synchronized (LOCK) {
             if (!compareBluInstances(submission.getValidationDbTestResult().getBlueprintInstance(),
-                    blueprintInstService.getBlueprintInstance(
+                    bluInstDao.getBlueprintInstance(
                             submission.getValidationDbTestResult().getBlueprintInstance().getBlueprintInstanceId()))) {
                 throw new RuntimeException("Blueprint instance data changed.");
+            }
+            if (!compareTimeslots(submission.getTimeslot(),
+                    timeslotDAO.getTimeslot(submission.getTimeslot().getTimeslotId()))) {
+                throw new RuntimeException("Timeslot data changed.");
+            }
+
+            boolean canContinue = false;
+            for (Timeslot timeslot : bluInstDao
+                    .getBlueprintInstance(
+                            submission.getValidationDbTestResult().getBlueprintInstance().getBlueprintInstanceId())
+                    .getTimeslots()) {
+                if (compareTimeslots(timeslot, submission.getTimeslot())) {
+                    canContinue = true;
+                    break;
+                }
+            }
+            if (!canContinue) {
+                throw new RuntimeException("Configured timeslot is no longer assigned to the blueprint instance.");
             }
             submission.getValidationDbTestResult().setSubmission(submission);
             vTestResultDAO.saveOrUpdate(submission.getValidationDbTestResult());
@@ -86,24 +113,24 @@ public class DbResultAdapter {
                 if (!checkValidityOfNexusResult(vNexusResult)) {
                     continue;
                 }
-                LabInfo labInfo = labService.getLabBasedOnSilo(vNexusResult.getLab().getSilo());
+                LabInfo labInfo = labDAO.getLabBasedOnSilo(vNexusResult.getLab().getSilo());
                 ValidationDbTestResult vDbResult = vTestResultDAO.getValidationTestResult(labInfo,
                         vNexusResult.getTimestamp());
                 if (vDbResult == null) {
                     vDbResult = vNexusResult;
                     vDbResult.setLab(labInfo);
-                    Blueprint blueprint = blueprintService
+                    Blueprint blueprint = blueprintDAO
                             .getBlueprint(vNexusResult.getBlueprintInstance().getBlueprint().getBlueprintName());
                     if (blueprint == null) {
                         blueprint = vNexusResult.getBlueprintInstance().getBlueprint();
-                        blueprintService.saveBlueprint(blueprint);
+                        blueprintDAO.saveOrUpdate(blueprint);
                     }
-                    BlueprintInstance blueprintInst = blueprintInstService.getBlueprintInstance(blueprint,
+                    BlueprintInstance blueprintInst = bluInstDao.getBlueprintInstance(blueprint,
                             (vNexusResult.getBlueprintInstance().getVersion()));
                     if (blueprintInst == null) {
                         blueprintInst = vNexusResult.getBlueprintInstance();
                         blueprintInst.setBlueprint(blueprint);
-                        blueprintInstService.saveBlueprintInstance(blueprintInst);
+                        bluInstDao.saveOrUpdate(blueprintInst);
                     }
                     vDbResult.setBlueprintInstance(blueprintInst);
                 }
@@ -181,19 +208,19 @@ public class DbResultAdapter {
         synchronized (LOCK) {
             LabInfo actualLabInfo = null;
             if (lab != null) {
-                actualLabInfo = labService.getLab(lab);
+                actualLabInfo = labDAO.getLab(lab);
                 if (actualLabInfo == null) {
                     return null;
                 }
             }
             Blueprint blueprint = null;
             if (blueprintName != null) {
-                blueprint = blueprintService.getBlueprint(blueprintName);
+                blueprint = blueprintDAO.getBlueprint(blueprintName);
                 if (blueprint == null) {
                     return null;
                 }
             }
-            BlueprintInstance blueprintInst = blueprintInstService.getBlueprintInstance(blueprint, version);
+            BlueprintInstance blueprintInst = bluInstDao.getBlueprintInstance(blueprint, version);
             if (blueprintInst == null) {
                 return null;
             }
@@ -226,7 +253,7 @@ public class DbResultAdapter {
     public ValidationDbTestResult readResultFromDb(@Nonnull String lab, @Nonnull String timestamp)
             throws JsonParseException, JsonMappingException, IOException {
         synchronized (LOCK) {
-            LabInfo actualLabInfo = labService.getLab(lab);
+            LabInfo actualLabInfo = labDAO.getLab(lab);
             ValidationDbTestResult vDbResult = vTestResultDAO.getValidationTestResult(actualLabInfo, timestamp);
             if (vDbResult == null) {
                 return null;
@@ -247,16 +274,16 @@ public class DbResultAdapter {
             if (vNexusResults == null || vNexusResults.size() < 1) {
                 return;
             }
-            LabInfo labInfo = labService.getLabBasedOnSilo(vNexusResults.get(0).getLab().getSilo());
+            LabInfo labInfo = labDAO.getLabBasedOnSilo(vNexusResults.get(0).getLab().getSilo());
             if (labInfo == null) {
                 return;
             }
-            Blueprint blueprint = blueprintService
+            Blueprint blueprint = blueprintDAO
                     .getBlueprint(vNexusResults.get(0).getBlueprintInstance().getBlueprint().getBlueprintName());
             if (blueprint == null) {
                 return;
             }
-            BlueprintInstance blueInst = blueprintInstService.getBlueprintInstance(blueprint,
+            BlueprintInstance blueInst = bluInstDao.getBlueprintInstance(blueprint,
                     vNexusResults.get(0).getBlueprintInstance().getVersion());
             if (blueInst == null) {
                 return;
@@ -274,7 +301,7 @@ public class DbResultAdapter {
                 String dbTimestamp = vDbResult.getTimestamp();
                 LabInfo dbLabInfo = vDbResult.getLab();
                 for (ValidationDbTestResult vNexusResult : vNexusResults) {
-                    LabInfo nexusLabInfo = labService.getLabBasedOnSilo(vNexusResult.getLab().getSilo());
+                    LabInfo nexusLabInfo = labDAO.getLabBasedOnSilo(vNexusResult.getLab().getSilo());
                     if (nexusLabInfo == null) {
                         continue;
                     }
@@ -313,12 +340,12 @@ public class DbResultAdapter {
         synchronized (LOCK) {
             Blueprint blueprint = null;
             if (blueprintName != null) {
-                blueprint = blueprintService.getBlueprint(blueprintName);
+                blueprint = blueprintDAO.getBlueprint(blueprintName);
                 if (blueprint == null) {
                     return null;
                 }
             }
-            BlueprintInstance bluInst = blueprintInstService.getBlueprintInstance(blueprint, version);
+            BlueprintInstance bluInst = bluInstDao.getBlueprintInstance(blueprint, version);
             if (bluInst == null) {
                 return null;
             }
@@ -334,7 +361,7 @@ public class DbResultAdapter {
 
     public ValidationDbTestResult getValidationTestResult(String labSilo, String timestamp) {
         synchronized (LOCK) {
-            return vTestResultDAO.getValidationTestResult(labService.getLabBasedOnSilo(labSilo), timestamp);
+            return vTestResultDAO.getValidationTestResult(labDAO.getLabBasedOnSilo(labSilo), timestamp);
         }
     }
 
@@ -362,16 +389,194 @@ public class DbResultAdapter {
         }
     }
 
+    public void saveLab(LabInfo lab) {
+        synchronized (LOCK) {
+            labDAO.saveOrUpdate(lab);
+        }
+    }
+
+    public void deleteLab(LabInfo lab) {
+        synchronized (LOCK) {
+            labDAO.deleteLab(lab);
+        }
+    }
+
+    public LabInfo getLab(String lab) {
+        synchronized (LOCK) {
+            return labDAO.getLab(lab);
+        }
+    }
+
+    public LabInfo getLabBasedOnSilo(String silo) {
+        synchronized (LOCK) {
+            return labDAO.getLabBasedOnSilo(silo);
+        }
+    }
+
+    public List<LabInfo> getLabs() {
+        synchronized (LOCK) {
+            return labDAO.getLabs();
+        }
+    }
+
+    public void deleteLabAll() {
+        synchronized (LOCK) {
+            labDAO.deleteAll();
+        }
+    }
+
+    public void saveBlueprintInstance(BlueprintInstance blueprintIns) {
+        synchronized (LOCK) {
+            Set<Timeslot> timeslots = blueprintIns.getTimeslots();
+            if (timeslots != null && timeslots.size() > 1) {
+                for (Timeslot timeslot : timeslots) {
+                    if (!compareTimeslots(timeslot, timeslotDAO.getTimeslot(timeslot.getTimeslotId()))) {
+                        throw new RuntimeException("Timeslot instance data changed.");
+                    }
+                }
+                bluInstDao.merge(blueprintIns);
+                return;
+            }
+            bluInstDao.saveOrUpdate(blueprintIns);
+        }
+    }
+
+    public List<BlueprintInstance> getBlueprintInstances() {
+        synchronized (LOCK) {
+            return bluInstDao.getBlueprintInstances();
+        }
+    }
+
+    public BlueprintInstance getBlueprintInstance(int instId) {
+        synchronized (LOCK) {
+            return bluInstDao.getBlueprintInstance(instId);
+        }
+    }
+
+    public BlueprintInstance getBlueprintInstance(Blueprint blueprint, String version) {
+        synchronized (LOCK) {
+            return bluInstDao.getBlueprintInstance(blueprint, version);
+        }
+    }
+
+    public void deleteBlueprintInstance(BlueprintInstance blueprintIns) {
+        synchronized (LOCK) {
+            bluInstDao.deleteBlueprintInstance(blueprintIns);
+        }
+    }
+
+    public void deleteBluInstAll() {
+        synchronized (LOCK) {
+            bluInstDao.deleteAll();
+        }
+    }
+
+    public void saveBlueprintLayer(BlueprintLayer layer) {
+        synchronized (LOCK) {
+            layerDAO.saveOrUpdate(layer);
+        }
+    }
+
+    public BlueprintLayer getBlueprintLayer(Integer layerId) {
+        synchronized (LOCK) {
+            return layerDAO.getBlueprintLayer(layerId);
+        }
+    }
+
+    public BlueprintLayer getBlueprintLayer(String layerData) {
+        synchronized (LOCK) {
+            return layerDAO.getBlueprintLayer(layerData);
+        }
+    }
+
+    public List<BlueprintLayer> getBlueprintLayers() {
+        synchronized (LOCK) {
+            return layerDAO.getBlueprintLayers();
+        }
+    }
+
+    public void deleteBlueprintLayer(BlueprintLayer layer) {
+        synchronized (LOCK) {
+            layerDAO.deleteBlueprintLayer(layer);
+        }
+    }
+
+    public void deleteBluLayersAll() {
+        synchronized (LOCK) {
+            layerDAO.deleteAll();
+        }
+    }
+
+    public void saveBlueprint(Blueprint blueprint) {
+        synchronized (LOCK) {
+            blueprintDAO.saveOrUpdate(blueprint);
+        }
+    }
+
+    public Blueprint getBlueprint(String name) {
+        synchronized (LOCK) {
+            return blueprintDAO.getBlueprint(name);
+        }
+    }
+
+    public List<Blueprint> getBlueprints() {
+        synchronized (LOCK) {
+            return blueprintDAO.getBlueprints();
+        }
+    }
+
+    public void deleteBlueprint(Blueprint blueprint) {
+        synchronized (LOCK) {
+            blueprintDAO.deleteBlueprint(blueprint);
+        }
+    }
+
+    public void deleteBluAll() {
+        synchronized (LOCK) {
+            blueprintDAO.deleteAll();
+        }
+    }
+
+    public void saveTimeslot(Timeslot timeslot) {
+        synchronized (LOCK) {
+            LabInfo labInfo = timeslot.getLabInfo();
+            if (labInfo != null) {
+                if (!compareLabInfos(labInfo, labDAO.getLab(labInfo.getLabId()))) {
+                    throw new RuntimeException("Lab data changed.");
+                }
+            }
+            timeslotDAO.saveOrUpdate(timeslot);
+        }
+    }
+
+    public List<Timeslot> getTimeslots() {
+        synchronized (LOCK) {
+            return timeslotDAO.getTimeslots();
+        }
+    }
+
+    public void deleteTimeslot(Timeslot timeslot) {
+        synchronized (LOCK) {
+            timeslotDAO.deleteTimeslot(timeslot);
+        }
+    }
+
+    public void deleteTimeslotAll() {
+        synchronized (LOCK) {
+            timeslotDAO.deleteAll();
+        }
+    }
+
     public boolean checkValidityOfNexusResult(ValidationDbTestResult vNexusResult) {
         if (vNexusResult == null) {
             return true;
         }
-        LabInfo labInfo = labService.getLabBasedOnSilo(vNexusResult.getLab().getSilo());
+        LabInfo labInfo = labDAO.getLabBasedOnSilo(vNexusResult.getLab().getSilo());
         if (labInfo == null) {
             throw new RuntimeException("Lab silo : " + vNexusResult.getLab().getSilo() + " not found");
         }
         ValidationDbTestResult vDbResult = vTestResultDAO.getValidationTestResult(
-                labService.getLabBasedOnSilo(vNexusResult.getLab().getSilo()), vNexusResult.getTimestamp());
+                labDAO.getLabBasedOnSilo(vNexusResult.getLab().getSilo()), vNexusResult.getTimestamp());
         Blueprint blueprint = null;
         BlueprintInstance bluInst = null;
         List<WRobotDbTestResult> wRobotDbResults = null;
@@ -380,15 +585,14 @@ public class DbResultAdapter {
             labInfo = vDbResult.getLab();
             wRobotDbResults = wRobotDAO.getWRobotTestResult(vDbResult);
         } else {
-            blueprint = blueprintService
+            blueprint = blueprintDAO
                     .getBlueprint(vNexusResult.getBlueprintInstance().getBlueprint().getBlueprintName());
         }
         if (blueprint != null) {
             if (vDbResult != null) {
                 bluInst = vDbResult.getBlueprintInstance();
             } else {
-                bluInst = blueprintInstService.getBlueprintInstance(blueprint,
-                        vNexusResult.getBlueprintInstance().getVersion());
+                bluInst = bluInstDao.getBlueprintInstance(blueprint, vNexusResult.getBlueprintInstance().getVersion());
             }
         }
         // Start comparison, be elastic with allLayers and optional
@@ -488,7 +692,7 @@ public class DbResultAdapter {
                 .equals(vDbTimestamp.getBlueprintInstance().getBlueprint().getBlueprintName())
                 || !vDbSubmission.getBlueprintInstance().getVersion()
                 .equals(vDbTimestamp.getBlueprintInstance().getVersion())
-                || !vDbSubmission.getLab().equals(vDbTimestamp.getLab())) {
+                || !compareLabInfos(vDbSubmission.getLab(), vDbTimestamp.getLab())) {
             LOGGER.error(EELFLoggerDelegate.errorLogger, "No consistency exists in database records.");
             return false;
         }
@@ -496,7 +700,7 @@ public class DbResultAdapter {
     }
 
     private void updateBlueInstLayers(ValidationDbTestResult vNexusResult) {
-        for (BlueprintInstance blueprintInst : blueprintInstService.getBlueprintInstances()) {
+        for (BlueprintInstance blueprintInst : bluInstDao.getBlueprintInstances()) {
             if (!blueprintInst.getBlueprint().getBlueprintName()
                     .equals(vNexusResult.getBlueprintInstance().getBlueprint().getBlueprintName())) {
                 continue;
@@ -506,18 +710,18 @@ public class DbResultAdapter {
                 blueprintLayers = new HashSet<BlueprintLayer>();
             }
             for (WRobotDbTestResult nexusResult : vNexusResult.getWRobotDbTestResults()) {
-                BlueprintLayer layer = layerService.getBlueprintLayer(nexusResult.getLayer());
+                BlueprintLayer layer = layerDAO.getBlueprintLayer(nexusResult.getLayer());
                 if (layer == null) {
                     layer = new BlueprintLayer();
                     layer.setLayer(nexusResult.getLayer());
-                    layerService.saveBlueprintLayer(layer);
+                    layerDAO.saveOrUpdate(layer);
                 }
                 if (!blueprintLayers.contains(layer)) {
                     blueprintLayers.add(layer);
                 }
             }
             blueprintInst.setBlueprintLayers(blueprintLayers);
-            blueprintInstService.saveBlueprintInstance(blueprintInst);
+            bluInstDao.saveOrUpdate(blueprintInst);
         }
     }
 
@@ -557,13 +761,58 @@ public class DbResultAdapter {
                 return false;
             }
         }
-        Blueprint blueprint1 = inst1.getBlueprint();
-        Blueprint blueprint2 = inst2.getBlueprint();
-        if (blueprint1.getBlueprintId() != blueprint2.getBlueprintId()) {
+        if (!compareBlueprints(inst1.getBlueprint(), inst2.getBlueprint())) {
             return false;
         }
-        if (!blueprint1.getBlueprintName().equals(blueprint2.getBlueprintName())) {
+        return true;
+    }
+
+    private boolean compareTimeslots(Timeslot timeslot1, Timeslot timeslot2) {
+        if (!timeslot1.getStartDateTime().equals(timeslot2.getStartDateTime())
+                || timeslot1.getTimeslotId() != timeslot2.getTimeslotId()) {
             return false;
+        }
+        if (!compareLabInfos(timeslot1.getLabInfo(), timeslot2.getLabInfo())) {
+            return false;
+        }
+        return true;
+    }
+
+    private boolean compareBlueprints(Blueprint blueprint1, Blueprint blueprint2) {
+        if (blueprint1 != null || blueprint2 != null) {
+            if (blueprint1 != null && blueprint2 == null) {
+                return false;
+            }
+            if (blueprint1 == null && blueprint2 != null) {
+                return false;
+            }
+            if (blueprint1.getBlueprintId() != blueprint2.getBlueprintId()) {
+                return false;
+            }
+            if (!blueprint1.getBlueprintName().equals(blueprint2.getBlueprintName())) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private boolean compareLabInfos(LabInfo labInfo1, LabInfo labInfo2) {
+        if (labInfo1 != null || labInfo2 != null) {
+            if (labInfo1 != null && labInfo2 == null) {
+                return false;
+            }
+            if (labInfo1 == null && labInfo2 != null) {
+                return false;
+            }
+            if (labInfo1.getLabId() != labInfo2.getLabId()) {
+                return false;
+            }
+            if (!labInfo1.getSilo().equals(labInfo2.getSilo())) {
+                return false;
+            }
+            if (!labInfo1.getLab().equals(labInfo2.getLab())) {
+                return false;
+            }
         }
         return true;
     }

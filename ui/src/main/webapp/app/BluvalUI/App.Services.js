@@ -14,123 +14,123 @@
  * limitations under the License.
  */
 
-var services = angular.module('App.Services', ['App.Config']);
+var services = angular.module('App.Services', [ 'App.Config' ]);
 
 services.factory('restAPISvc', [
-    '$http',
-    'appContext',
-    function ($http, appContext) {
-        var svc = [];
-        svc.getRestAPI = function (path, cb) {
-            return $http({
-                method: 'GET',
-                url: appContext + path,
-                headers: {
-                    'Content-Type': "application/json",
-                    'Accept': "application/json"
-                }
-            }).then(
-                function (response) {
-                    if (response.status == 200) {
-                        cb(response.data);
-                    } else {
-                        /* eslint-disable no-console */
-                        console.log("Get REST API error: "
-                            + response.statusText);
-                        /* eslint-enable no-console */
-                        cb(null);
+        '$http',
+        'appContext',
+        function($http, appContext) {
+            var svc = [];
+            svc.getRestAPI = function(path, cb) {
+                return $http({
+                    method : 'GET',
+                    url : appContext + path,
+                    headers : {
+                        'Content-Type' : "application/json",
+                        'Accept' : "application/json"
                     }
-                },
-                function (error) {
-                    /* eslint-disable no-console */
-                    console.log("Get REST API error: "
-                        + error.statusText);
-                    /* eslint-enable no-console */
-                    cb(null);
-                });
-        };
-        svc.postRestAPI = function (path, json, cb) {
-            return $http({
-                method: 'POST',
-                url: appContext + path,
-                headers: {
-                    'Content-Type': "application/json",
-                    'Accept': "application/json"
-                },
-                data: json
-            }).then(
-                function (response) {
-                    if (response.status == 200
-                        || response.status == 201) {
-                        cb(response.data);
-                    } else {
-                        /* eslint-disable no-console */
-                        console.log("Post REST API error: "
-                            + response.statusText);
-                        /* eslint-enable no-console */
-                        cb(null);
-                    }
-                },
-                function (error) {
-                    /* eslint-disable no-console */
-                    console.log("Post REST API error: "
-                        + error.statusText);
-                    /* eslint-enable no-console */
-                    cb(null);
-                });
-        };
-        svc.deleteRestAPI = function (path, json) {
-            return $http({
-                method: 'DELETE',
-                url: appContext + path,
-                headers: {
-                    'Content-Type': "application/json",
-                    'Accept': "application/json"
-                },
-                data: json
-            }).then(
-                function (response) {
-                    if (response.status !== 200) {
-                        /* eslint-disable no-console */
-                        console.log("Delete REST API error: "
-                            + response.statusText);
-                        /* eslint-enable no-console */
-                    }
-                },
-                function (error) {
-                    /* eslint-disable no-console */
-                    console.log("Delete REST API error: "
-                        + error.statusText);
-                    /* eslint-enable no-console */
-                });
-        };
-        return svc;
-    }]);
+                }).then(
+                        function(response) {
+                            if (response.status == 200) {
+                                cb(response.data);
+                            } else {
+                                /* eslint-disable no-console */
+                                console.log("Get REST API error: "
+                                        + response.statusText);
+                                /* eslint-enable no-console */
+                                cb(null);
+                            }
+                        },
+                        function(error) {
+                            /* eslint-disable no-console */
+                            console.log("Get REST API error: "
+                                    + error.statusText);
+                            /* eslint-enable no-console */
+                            cb(null);
+                        });
+            };
+            svc.postRestAPI = function(path, json, cb) {
+                return $http({
+                    method : 'POST',
+                    url : appContext + path,
+                    headers : {
+                        'Content-Type' : "application/json",
+                        'Accept' : "application/json"
+                    },
+                    data : json
+                }).then(
+                        function(response) {
+                            if (response.status == 200
+                                    || response.status == 201) {
+                                cb(response.data);
+                            } else {
+                                /* eslint-disable no-console */
+                                console.log("Post REST API error: "
+                                        + response.statusText);
+                                /* eslint-enable no-console */
+                                cb(null);
+                            }
+                        },
+                        function(error) {
+                            /* eslint-disable no-console */
+                            console.log("Post REST API error: "
+                                    + error.statusText);
+                            /* eslint-enable no-console */
+                            cb(null);
+                        });
+            };
+            svc.deleteRestAPI = function(path, json, cb) {
+                return $http({
+                    method : 'DELETE',
+                    url : appContext + path,
+                    headers : {
+                        'Content-Type' : "application/json",
+                        'Accept' : "application/json"
+                    },
+                    data : json
+                }).then(
+                        function(response) {
+                            if (response.status !== 200) {
+                                /* eslint-disable no-console */
+                                console.log("Delete REST API error: "
+                                        + response.statusText);
+                                /* eslint-enable no-console */
+                                cb(null);
+                            }
+                            cb(response.data);
+                        },
+                        function(error) {
+                            /* eslint-disable no-console */
+                            console.log("Delete REST API error: "
+                                    + error.statusText);
+                            /* eslint-enable no-console */
+                            cb(null);
+                        });
+            };
+            return svc;
+        } ]);
 
-services.factory("sharedContext", function () {
+services.factory("sharedContext", function() {
     var context = [];
-    var addData = function (key, value) {
+    var addData = function(key, value) {
         var data = {
-            key: key,
-            value: value
+            key : key,
+            value : value
         };
         context.push(data);
     }
-    var getData = function (key) {
+    var getData = function(key) {
         var data = [];
-        angular
-            .forEach(
-                context,
-                function (pair) {
-                    if (pair.key === key) {
-                        data = pair.value;
-                    }
-                });
+        angular.forEach(context, function(pair) {
+            if (pair.key === key) {
+                data = pair.value;
+            }
+        });
         return data;
     }
 
     return {
-        addData: addData,
-        getData: getData
+        addData : addData,
+        getData : getData
     }
 });

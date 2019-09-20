@@ -19,7 +19,7 @@ package org.akraino.validation.ui.controller;
 import java.util.List;
 
 import org.akraino.validation.ui.entity.LabInfo;
-import org.akraino.validation.ui.service.LabService;
+import org.akraino.validation.ui.service.DbAdapter;
 import org.onap.portalsdk.core.controller.RestrictedBaseController;
 import org.onap.portalsdk.core.logging.logic.EELFLoggerDelegate;
 import org.onap.portalsdk.core.web.support.UserUtils;
@@ -27,6 +27,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 
@@ -37,7 +38,7 @@ public class LabController extends RestrictedBaseController {
     private static final EELFLoggerDelegate LOGGER = EELFLoggerDelegate.getLogger(LabController.class);
 
     @Autowired
-    LabService service;
+    DbAdapter service;
 
     public LabController() {
         super();
@@ -52,5 +53,27 @@ public class LabController extends RestrictedBaseController {
                     "Error when trying to get labs. " + UserUtils.getStackTrace(e));
         }
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+    }
+
+    @RequestMapping(value = { "/" }, method = RequestMethod.POST)
+    public ResponseEntity<LabInfo> saveLab(@RequestBody LabInfo labInfo) {
+        try {
+            service.saveLab(labInfo);
+            return new ResponseEntity<>(labInfo, HttpStatus.OK);
+        } catch (Exception e) {
+            LOGGER.error(EELFLoggerDelegate.errorLogger, "Save of lab failed. " + UserUtils.getStackTrace(e));
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
+    }
+
+    @RequestMapping(value = { "/" }, method = RequestMethod.DELETE)
+    public ResponseEntity<Boolean> deleteLab(@RequestBody LabInfo labInfo) {
+        try {
+            service.deleteLab(labInfo);
+            return new ResponseEntity<>(true, HttpStatus.OK);
+        } catch (Exception e) {
+            LOGGER.error(EELFLoggerDelegate.errorLogger, "Deletion of lab failed. " + UserUtils.getStackTrace(e));
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
     }
 }

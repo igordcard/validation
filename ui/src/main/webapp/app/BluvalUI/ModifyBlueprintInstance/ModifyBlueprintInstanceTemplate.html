@@ -1,0 +1,132 @@
+<!--
+Copyright (c) 2019 AT&T Intellectual Property. All rights reserved.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+-->
+
+<div id="page-content" class="content" style="padding: 25px;">
+    <style>
+$
+melon
+:
+
+#F97D75
+
+ ; $ black
+:
+
+#2E3641
+
+ ; *
+
+button {
+    background-color: $melon;
+    border: 0;
+    padding: 8px 20px;
+    color: white;
+    text-transform: uppercase;
+    cursor: pointer;
+    &:
+    focus
+    ,
+    &
+    :
+    active
+    {
+
+
+
+    outline
+    :
+
+
+
+    0;
+}
+
+}
+ul.ul-layer {
+    list-style: none;
+    padding-left: 0;
+    margin-top: 25px;
+}
+
+li.li-layer {
+    border: 1px solid black;
+    display: inline-block;
+    padding: 5px 10px;
+    margin-right: 5px;
+    margin-bottom: 5px;
+    text-transform: capitalize;
+}
+
+.fa-close {
+    cursor: pointer;
+}
+</style>
+    <div>
+        <h1 class="heading-page">Modify Blueprint Instance</h1>
+
+        <div>
+            <div class="form-row">
+                <label for="textinputID-3a">Select Blueprint
+                    Instance: </label> <select
+                    ng-model="selectedBlueprintInstance"
+                    ng-change="selectedBlueprintInstanceChange()"
+                    ng-options="v for v in declerativeInsts">
+                </select>
+            </div>
+        </div>
+        <br> <label for="textinputID-3a">Old layers: </label>
+        <ul class="ul-layer">
+            <li ng-repeat="oldLayer in oldLayers" class="li-layer">
+                {{oldLayer}}</li>
+        </ul>
+        <br>
+
+        <div ng-show="loadingBlueprintInstances || loadingLayers">
+            <img src=" static/fusion/images/giphy.gif" />
+        </div>
+
+        <div ng-if="selectedBlueprintInstance">
+            <label for="textinputID-3a">New Layers: </label>
+            <div>
+                <div class="form-row">
+                    <label for="textinputID-3a">Add Layer: </label> <select
+                        ng-model="selectedLayer"
+                        ng-change="selectedLayerChange()"
+                        ng-options="v for v in layers">
+                    </select>
+                    <button ng-disabled="!selectedLayer"
+                        ng-click="addConfiguredLayer(selectedLayer)">Add</button>
+                </div>
+            </div>
+            <br>
+
+            <ul class="ul-layer">
+                <li ng-repeat="configuredLayer in configuredLayers"
+                    class="li-layer"><span
+                    ng-click="deleteConfiguredLayer($index)"><i
+                        class="fa fa-close"></i></span> {{configuredLayer}}</li>
+            </ul>
+
+            <div class="fn-ebz-container"
+                style="position: relative; top: 25px;">
+                <button href="javascript:void(0)" id="addbtn"
+                    style="bottom: -17px;" size="small"
+                    att-accessibility-click="13,32"
+                    class="btn btn-alt btn-small" ng-click="modify();">Modify</button>
+            </div>
+        </div>
+    </div>
+</div>

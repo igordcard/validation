@@ -45,13 +45,10 @@ public class JenkinsJobNotificationService {
     private DbSubmissionAdapter submissionService;
 
     @Autowired
-    private DbResultAdapter dbAdapter;
+    private DbAdapter dbAdapter;
 
     @Autowired
     private IntegratedResultService iService;
-
-    @Autowired
-    private LabService labService;
 
     @Autowired
     private ValidationTestResultDAO vTestResultDAO;
@@ -66,7 +63,7 @@ public class JenkinsJobNotificationService {
             LOGGER.debug(EELFLoggerDelegate.debugLogger, "No related submission was found");
             return;
         }
-        LabInfo labInfo = labService.getLab(submission.getTimeslot().getLabInfo().getLab());
+        LabInfo labInfo = dbAdapter.getLab(submission.getTimeslot().getLabInfo().getLab());
         if (labInfo == null) {
             throw new IllegalArgumentException(
                     "Could not retrieve lab : " + submission.getTimeslot().getLabInfo().getLab().toString());

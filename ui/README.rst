@@ -41,16 +41,16 @@ In order for the blueprint validation UI to be functional, the following items a
 - An appropriate mariadb instance is up and running (look at the Database subsection).
   This prerequisite concerns both of the UI modes.
 
-- The available labs and their silos (i.e. which silo is used by a lab in order to store results in Nexus) for blueprint validation execution are defined by the corresponding lab owners (look at the Database subsection). It is their responsibility to publish them. Currently, this data is statically stored in the blueprint validation UI mariadb database. In order for a lab owner to update them, he/her must update the corresponding table entries. This inconvenience will be handled in the future.
+- The available labs and their silos (i.e. which silo is used by a lab in order to store results in Nexus) for blueprint validation execution are stored in mariadb (look at the Database subsection). It is the lab owner's responsibility to update them using the UI.
+  This prerequisite concerns both the partial and the full control loop modes.
+
+- The available timeslots for blueprint validation execution of every lab are stored in the mariadb (look at the Database subsection). It is the lab owner's responsibility to update them using the UI.
   This prerequisite concerns only the full control loop mode.
 
-- The available timeslots for blueprint validation execution of every lab are defined by the corresponding lab owners (look at the Database subsection). It is their responsibility to publish them. Currently, this data is statically stored in the blueprint validation UI mariadb database. In order for a lab owner to update them, he/her must update the corresponding table entries. This inconvenience will be handled in the future.
+- The data of available blueprints (i.e. blueprint name) is stored in the mariadb database (look at the Database subsection). This data is automatically updated by the UI using info from Nexus. If a blueprint owner's is not satisfied with this info, he/her must update it using the UI.
   This prerequisite concerns only the full control loop mode.
 
-- The data of available blueprints (i.e. blueprint name) is stored in the mariadb database (look at the Database subsection). This data is automatically updated using info from Nexus. If a blueprint owner's is not satisfied with this info, he/her must update the corresponding table entries.
-  This prerequisite concerns only the full control loop mode.
-
-- The data of an available blueprint instance for validation (i.e. version and layer) is stored in the mariadb database (look at the Database subsection). This data is automatically updated using info from Nexus. If a blueprint owner's is not satisfied with this info, he/her must update the corresponding table entries.
+- The data of an available blueprint instance for validation (i.e. version and layer) is stored in the mariadb database (look at the Database subsection). This data is automatically updated by the UI using info from Nexus. If a blueprint owner's is not satisfied with this info, he/her must update it using the UI.
   This prerequisite concerns only the full control loop mode.
 
 - A Jenkins instance exists capable of executing blueprint validation tests on the specified lab and storing the results to Nexus server (look at the Jenkins configuration subsection).
@@ -231,20 +231,24 @@ To this end, after the image build process, the following commands should be exe
     ./deploy.sh TAG_PRE=dev-mariadb MARIADB_ROOT_PASSWORD=<root user password> MARIADB_AKRAINO_PASSWORD=<mariadb akraino user password> UI_ADMIN_PASSWORD=<UI admin user password> UI_AKRAINO_PASSWORD=<UI akraino user password>
     mysql -p<MARIADB_AKRAINO_PASSWORD> -uakraino -h <IP of the mariadb container> < ../../ui/db-scripts/examples/initialize_db_example.sql
 
-In the context of the full control loop mode, the following tables must be initialized with appropriate data:
+In the context of the UI application, the following tables exist in the database:
 
-- lab (here every lab owner should store the name of the lab and the silo used for storing results in Nexus)
-- timeslot (here every lab owner should register the available timeslots that can be used for blueprint validation test execution)
-- blueprint_layer (here all the blueprint layers should be registered. These layers will be referenced by the blueprint instances)
-- blueprint (here every blueprint owner should register the name of the blueprint)
-- blueprint_instance_for_validation (here every blueprint owner should register the blueprint instances for validation, i.e. version and layer)
-- blueprint_instance_blueprint_layer (here the many-to-many relationship between blueprint instances and layers is formulated)
+- lab (here, every lab owner should store the name of the lab and the silo used for storing results in Nexus)
+- timeslot (here, every lab owner should register the available timeslots that can be used for blueprint validation test execution)
+- blueprint_layer (here, all the blueprint layers should be registered. These layers will be referenced by the blueprint instances)
+- blueprint (here, every blueprint owner should register the name of the blueprint)
+- blueprint_instance_for_validation (here, every blueprint owner should register the blueprint instances for validation, i.e. version and layer)
+- blueprint_instance_blueprint_layer (here, the many-to-many relationship between blueprint instances and layers is formulated)
+- blueprint_instance_timeslot (here, the many-to-many relationship between blueprint instances and timeslots is formulated)
 
-As it has been already mentioned, these tables are initialized automatically by the UI by fetching data from Nexus.
+As it has been already mentioned, a user can perform CRUD operations on these tables using the UI. Also, all these tables except from lab and timeslot are initialized and updated automatically
+by the UI by fetching data from Nexus. It is the lab owners responsibility to update them if a modifications is needed (especially the data related to lab and timeslot tables).
 
-However, a user may wish to extend or change this data (for example a new blueprint has been created and no results have been pushed to Nexus yet). To this end, the following file can be used (that's why the command 'mysql -p<MARIADB_AKRAINO_PASSWORD> -uakraino -h <IP of the mariadb container> < ../../ui/db-scripts/examples/initialize_db_example.sql' has been used previously):
+An example of data initialization is stored in the following file:
 
     db-scripts/examples/initialize_db_example.sql
+
+That is the reason why the command 'mysql -p<MARIADB_AKRAINO_PASSWORD> -uakraino -h <IP of the mariadb container> < ../../ui/db-scripts/examples/initialize_db_example.sql' has been used previously.
 
 Some of this data is illustrated below:
 
@@ -264,17 +268,22 @@ Some of this data is illustrated below:
 
     Blueprint Instances:
     id: 2, blueprint_id: 2 (i.e. rec), version: "master"
-    
+
     blueprint_instances_blueprint_layers
     blueprint_id: 2 (i.e. rec), layer_id: 1 (i.e. hardware)
+
+    blueprint_instances_timeslots
+    blueprint_instance_id: 2 (i.e. rec), timeslot_id: 1 (i.e. now in att lab)
 
 It should be noted that currently the start date and time and the duration of the timeslot are not taken into account by the UI (see limitation section). Therefore, a user should define 'now' and null respectively for their content.
 
 Based on this data, the UI enables the user to select an appropriate blueprint instance for validation.
 
+In the following lines it is explained how a user can update database using the mysql tool. However, it is advised that UI should be used for this purpose as it supports a more user-friendly way.
+
 For example, if a user wants to define a new lab with the following data:
 
-    lab: community, silo : 'community' 
+    lab: community, silo : 'community'
 
 the following file should be created:
 
@@ -310,11 +319,7 @@ Then, the following command should be executed:
 
     mysql -p<MARIADB_AKRAINO_PASSWORD> -uakraino -h <IP of the mariadb container> < ./dbscript.sql
 
-Furthermore, if a user wants to define a new blueprint, namely "newBlueprint" and a new instance of this blueprint with the following data:
-
-    version: "master", layer: k8s
-
-the following file should be created:
+Furthermore, if a user wants to define a new blueprint, namely "newBlueprint", and an instance of this blueprint with version "master" and layer "k8s" and assign a timeslot to it, the following file should be created:
 
 name: dbscript
 content:
@@ -324,6 +329,7 @@ content:
     insert into blueprint_instance (id, blueprint_id, version) values(3, 3, 'master');
     insert into blueprint_layer (id, layer) values(4, 'k8s');
     insert into blueprint_instance_blueprint_layer (blueprint_instance_id, blueprint_layer_id) values(3, 4);
+    insert into blueprint_instance_timeslot (blueprint_instance_id, timeslot_id) values(3, 2);
 
 Then, the following command should be executed:
 
@@ -357,17 +363,15 @@ It should be noted that it is not the UI responsibility to deploy a Nexus server
 
 These results must be available in the following url:
 
-    https://nexus.akraino.org/content/sites/logs/<lab_silo>/<Blueprint name>/<Blueprint version>/<timestamp>/results/<layer>/<name_of_the_test_suite>
+    https://nexus.akraino.org/content/sites/logs/<lab_silo>/bluval_results/<Blueprint name>/<Blueprint version>/<timestamp>/results/<layer>/<name_of_the_test_suite>
 
 where <lab_silo> is the silo used by a lab for storing results in Nexus (for example 'att-blu-val'), <Blueprint name> is the name of the blueprint, <Blueprint version> the the blueprint version, <timestamp> is the timestamp used for producinf the results, <layer> is the blueprint layer and <name_of_the_test_suite> is the name of the corresponding test suite.
 
 Below, an example URL is illustrated
 
-   https://nexus.akraino.org/content/sites/logs/att-blu-val/rec/master/20190611-132818/results/hardware/bios_version/
+   https://nexus.akraino.org/content/sites/logs/att-blu-val/bluval_results/rec/master/20190611-132818/results/hardware/bios_version/
 
-Moreover, the results should be stored in the 'output.xml' file and placed in the aforementioned URL using the following format:
-
-TBD
+Moreover, the results should be stored in the 'output.xml' file and placed in the aforementioned URL.
 
 Compiling
 ~~~~~~~~~
@@ -435,4 +439,3 @@ Limitations
 -----------
 - The UI has been tested using Chrome and Firefox browsers.
 - The back-end part of the UI does not take into account the start date and time and duration of the configured timeslot. It immediately triggers the corresponding Jenkins Job.
-- Results data manipulation (filtering, graphical representation, indexing in time order, etc) is not supported.

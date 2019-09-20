@@ -24,14 +24,17 @@ app
 
                     function initialize() {
                         $scope.blueprintInstances = [];
+                        $scope.blueprintInstance = '';
                         $scope.blueprintNames = [];
                         $scope.blueprintVersions = [];
+                        $scope.declerativeTimeslots = [];
                         $scope.blueprintLayers = [];
                         $scope.optionals = [];
-                        $scope.selectedBlueprintName = {};
-                        $scope.selectedBlueprintVersion = {};
-                        $scope.selectedBlueprintLayer = {};
-                        $scope.selectedOptional = "";
+                        $scope.selectedBlueprintName = '';
+                        $scope.selectedBlueprintVersion = '';
+                        $scope.selectedDeclerativeTimeslot = '';
+                        $scope.selectedBlueprintLayer = '';
+                        $scope.selectedOptional = '';
                         restAPISvc
                                 .getRestAPI(
                                         "/api/v1/blueprintinstance/",
@@ -51,33 +54,17 @@ app
                                                                 }
                                                             });
                                         });
-                        restAPISvc.getRestAPI("/api/v1/timeslots/", function(
-                                data) {
-                            $scope.timeslots = data;
-                            $scope.declerativeTimeslots = [];
-                            angular.forEach($scope.timeslots,
-                                    function(timeslot) {
-                                        var temp = "id: " + timeslot.timeslotId
-                                                + " Start date and time: "
-                                                + timeslot.startDateTime
-                                                /*
-                                                 * + " duration(in sec) :" +
-                                                 * blueprintInstance["timeslot"].duration
-                                                 */
-                                                + " lab :"
-                                                + timeslot.labInfo.lab;
-                                        $scope.declerativeTimeslots.push(temp);
-                                    });
-                        });
                     }
-
                     $scope.selectedBlueprintNameChange = function() {
+                        $scope.blueprintInstance = '';
                         $scope.blueprintVersions = [];
+                        $scope.declerativeTimeslots = [];
                         $scope.blueprintLayers = [];
                         $scope.optionals = [];
-                        $scope.selectedBlueprintVersion = {};
-                        $scope.selectedBlueprintLayer = {};
-                        $scope.selectedOptional = "";
+                        $scope.selectedBlueprintVersion = '';
+                        $scope.selectedDeclerativeTimeslot = '';
+                        $scope.selectedBlueprintLayer = '';
+                        $scope.selectedOptional = '';
                         angular
                                 .forEach(
                                         $scope.blueprintInstances,
@@ -99,10 +86,13 @@ app
                         if (!$scope.selectedBlueprintName) {
                             return;
                         }
+                        $scope.blueprintInstance = '';
+                        $scope.declerativeTimeslots = [];
                         $scope.blueprintLayers = [];
                         $scope.optionals = [];
-                        $scope.selectedBlueprintLayer = {};
-                        $scope.selectedOptional = "";
+                        $scope.selectedDeclerativeTimeslot = '';
+                        $scope.selectedBlueprintLayer = '';
+                        $scope.selectedOptional = '';
                         angular
                                 .forEach(
                                         $scope.blueprintInstances,
@@ -113,27 +103,53 @@ app
                                                 if ($scope.selectedBlueprintVersion
                                                         .trim() === blueprintInstance["version"]
                                                         .trim()) {
-                                                    angular
-                                                            .forEach(
-                                                                    blueprintInstance.blueprintLayers,
-                                                                    function(
-                                                                            layer) {
-                                                                        $scope.blueprintLayers
-                                                                                .push(layer.layer);
-                                                                    });
+                                                    $scope.blueprintInstance = blueprintInstance;
                                                 }
                                             }
                                         });
+                        if (!$scope.blueprintInstance
+                                || !$scope.blueprintInstance.timeslots
+                                || $scope.blueprintInstance.timeslots.length === 0) {
+                            confirm("No available timeslots for this blueprint instance in this lab");
+                            return;
+                        }
+                        angular.forEach($scope.blueprintInstance.timeslots,
+                                function(timeslot) {
+                                    var temp = "id: " + timeslot.timeslotId
+                                            + " Start date and time: "
+                                            + timeslot.startDateTime
+                                            /*
+                                             * + " duration(in sec) :" +
+                                             * blueprintInstance["timeslot"].duration
+                                             */
+                                            + " lab :" + timeslot.labInfo.lab;
+                                    $scope.declerativeTimeslots.push(temp);
+                                });
+                    }
+
+                    $scope.selectedDeclerativeTimeslotChange = function() {
+                        $scope.blueprintLayers = [];
+                        $scope.optionals = [];
+                        $scope.selectedBlueprintLayer = {};
+                        $scope.selectedOptional = "";
+                        angular.forEach(
+                                $scope.blueprintInstance.blueprintLayers,
+                                function(layer) {
+                                    $scope.blueprintLayers.push(layer.layer);
+                                });
                         $scope.blueprintLayers.push("all");
                     }
 
                     $scope.selectedBlueprintLayerChange = function() {
+                        $scope.optionals = [];
+                        $scope.selectedOptional = "";
                         $scope.optionals = [ 'true', 'false' ];
                     }
 
                     $scope.submit = function() {
                         if (!$scope.selectedBlueprintName
                                 || !$scope.selectedBlueprintVersion
+                                || !$scope.blueprintInstance
                                 || !$scope.selectedBlueprintLayer
                                 || !$scope.selectedOptional
                                 || !$scope.selectedDeclerativeTimeslot) {
@@ -149,7 +165,7 @@ app
                                                 .indexOf("Start date and time:") - 1);
                         angular
                                 .forEach(
-                                        $scope.timeslots,
+                                        $scope.blueprintInstance.timeslots,
                                         function(timeslot) {
                                             if (selectedDeclerativeTimeslotId
                                                     .toString().trim() === timeslot.timeslotId
@@ -168,23 +184,8 @@ app
                             } ];
                         }
 
-                        var blueprintInstanceData = "";
-                        angular
-                                .forEach(
-                                        $scope.blueprintInstances,
-                                        function(blueprintInstance) {
-                                            if ($scope.selectedBlueprintName
-                                                    .trim() === blueprintInstance["blueprint"]["blueprintName"]
-                                                    .trim()) {
-                                                if ($scope.selectedBlueprintVersion
-                                                        .trim() === blueprintInstance["version"]
-                                                        .trim()) {
-                                                    blueprintInstanceData = blueprintInstance;
-                                                }
-                                            }
-                                        });
                         var validationDbTestResult = {
-                            "blueprintInstance" : blueprintInstanceData,
+                            "blueprintInstance" : $scope.blueprintInstance,
                             "allLayers" : allLayers,
                             "wrobotDbTestResults" : wrobotTestResults,
                             "optional" : $scope.selectedOptional,
@@ -207,11 +208,12 @@ app
                                                 confirm("Error when committing the submission");
                                             }
                                         });
-                        $scope.selectedBlueprintName = {};
-                        $scope.selectedBlueprintVersion = {};
-                        $scope.selectedBlueprintLayer = {};
+                        $scope.selectedBlueprintName = '';
+                        $scope.selectedBlueprintVersion = '';
+                        $scope.selectedBlueprintLayer = '';
                         $scope.selectedOptional = "";
-                        $scope.selectedDeclerativeTimeslot = {};
+                        $scope.selectedDeclerativeTimeslot = '';
+                        $scope.blueprintInstance = '';
                     }
 
                 });

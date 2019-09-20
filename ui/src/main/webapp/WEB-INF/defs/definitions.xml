@@ -38,4 +38,52 @@
     <definition name="validationresults"
         template="/app/BluvalUI/ValidationResults/ValidationResults.html" />
 
+    <definition name="registerlab"
+        template="/app/BluvalUI/RegisterLab/RegisterLab.html" />
+
+    <definition name="unregisterlab"
+        template="/app/BluvalUI/UnRegisterLab/UnRegisterLab.html" />
+
+    <definition name="registerblueprint"
+        template="/app/BluvalUI/RegisterBlueprint/RegisterBlueprint.html" />
+
+    <definition name="unregisterblueprint"
+        template="/app/BluvalUI/UnRegisterBlueprint/UnRegisterBlueprint.html" />
+
+    <definition name="registerlayer"
+        template="/app/BluvalUI/RegisterLayer/RegisterLayer.html" />
+
+    <definition name="unregisterlayer"
+        template="/app/BluvalUI/UnRegisterLayer/UnRegisterLayer.html" />
+
+    <definition name="registertimeslot"
+        template="/app/BluvalUI/RegisterTimeslot/RegisterTimeslot.html" />
+
+    <definition name="registerblueprintinstance"
+        template="/app/BluvalUI/RegisterBlueprintInstance/RegisterBlueprintInstance.html" />
+
+    <definition name="unregisterblueprintinstance"
+        template="/app/BluvalUI/UnRegisterBlueprintInstance/UnRegisterBlueprintInstance.html" />
+
+    <definition name="modifylab"
+        template="/app/BluvalUI/ModifyLab/ModifyLab.html" />
+
+    <definition name="modifyblueprintinstance"
+        template="/app/BluvalUI/ModifyBlueprintInstance/ModifyBlueprintInstance.html" />
+
+    <definition name="getlabs"
+        template="/app/BluvalUI/GetLabs/GetLabs.html" />
+
+    <definition name="getblueprints"
+        template="/app/BluvalUI/GetBlueprints/GetBlueprints.html" />
+
+    <definition name="getlayers"
+        template="/app/BluvalUI/GetLayers/GetLayers.html" />
+
+    <definition name="gettimeslots"
+        template="/app/BluvalUI/GetTimeslots/GetTimeslots.html" />
+
+    <definition name="getblueprintinstances"
+        template="/app/BluvalUI/GetBlueprintInstances/GetBlueprintInstances.html" />
+
 </tiles-definitions>

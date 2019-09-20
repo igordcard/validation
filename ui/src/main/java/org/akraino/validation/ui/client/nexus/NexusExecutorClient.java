@@ -45,7 +45,7 @@ import org.akraino.validation.ui.entity.BlueprintInstance;
 import org.akraino.validation.ui.entity.LabInfo;
 import org.akraino.validation.ui.entity.ValidationDbTestResult;
 import org.akraino.validation.ui.entity.WRobotDbTestResult;
-import org.akraino.validation.ui.service.DbResultAdapter;
+import org.akraino.validation.ui.service.DbAdapter;
 import org.apache.commons.httpclient.HttpException;
 import org.json.JSONObject;
 import org.json.XML;
@@ -79,7 +79,7 @@ import com.sun.jersey.client.urlconnection.URLConnectionClientHandler;
 public final class NexusExecutorClient {
 
     @Autowired
-    DbResultAdapter dbAdapter;
+    DbAdapter dbAdapter;
 
     private static final EELFLoggerDelegate LOGGER = EELFLoggerDelegate.getLogger(NexusExecutorClient.class);
 
@@ -158,7 +158,7 @@ public final class NexusExecutorClient {
             @Nonnull String timestamp)
                     throws ClientHandlerException, UniformInterfaceException, JsonParseException, JsonMappingException,
                     IOException, KeyManagementException, NoSuchAlgorithmException, ParseException, NullPointerException {
-        String nexusUrl = this.baseurl + "/" + siloText + "/" + name + "/" + version;
+        String nexusUrl = this.baseurl + "/" + siloText + "/" + "bluval_results/" + name + "/" + version;
         LOGGER.info(EELFLoggerDelegate.applicationLogger, "Trying to get validation nexus test result");
         WebResource webResource = this.client.resource(nexusUrl + "/");
         LOGGER.debug(EELFLoggerDelegate.debugLogger, "Request URI of get: " + webResource.getURI().toString());
@@ -217,7 +217,7 @@ public final class NexusExecutorClient {
             @Nonnull String siloText, int noOfLastElements)
                     throws ClientHandlerException, UniformInterfaceException, JsonParseException, JsonMappingException,
                     IOException, KeyManagementException, NoSuchAlgorithmException, ParseException {
-        String nexusUrl = this.baseurl + "/" + siloText + "/" + name + "/" + version;
+        String nexusUrl = this.baseurl + "/" + siloText + "/" + "bluval_results/" + name + "/" + version;
         LOGGER.info(EELFLoggerDelegate.applicationLogger, "Trying to get validation Nexus test results");
         WebResource webResource = this.client.resource(nexusUrl + "/");
         LOGGER.debug(EELFLoggerDelegate.debugLogger, "Request URI of get: " + webResource.getURI().toString());
@@ -267,7 +267,7 @@ public final class NexusExecutorClient {
             @Nonnull String siloText, @Nonnull Date date)
                     throws ClientHandlerException, UniformInterfaceException, JsonParseException, JsonMappingException,
                     IOException, KeyManagementException, NoSuchAlgorithmException, ParseException, NullPointerException {
-        String nexusUrl = this.baseurl + "/" + siloText + "/" + name + "/" + version;
+        String nexusUrl = this.baseurl + "/" + siloText + "/" + "bluval_results/" + name + "/" + version;
         LOGGER.debug(EELFLoggerDelegate.applicationLogger, "Trying to get validation Nexus results based on date");
         WebResource webResource = this.client.resource(nexusUrl + "/");
         LOGGER.debug(EELFLoggerDelegate.debugLogger, "Request URI of get: " + webResource.getURI().toString());
@@ -300,7 +300,7 @@ public final class NexusExecutorClient {
             @Nonnull String siloText, List<String> layers, Boolean optional, boolean outcome)
                     throws ClientHandlerException, UniformInterfaceException, JsonParseException, JsonMappingException,
                     IOException, KeyManagementException, NoSuchAlgorithmException, ParseException, NullPointerException {
-        String nexusUrl = this.baseurl + "/" + siloText + "/" + name + "/" + version;
+        String nexusUrl = this.baseurl + "/" + siloText + "/" + "bluval_results/" + name + "/" + version;
         LOGGER.info(EELFLoggerDelegate.applicationLogger, "Trying to get last result based on outcome");
         WebResource webResource = this.client.resource(nexusUrl + "/");
         LOGGER.debug(EELFLoggerDelegate.debugLogger, "Request URI of get: " + webResource.getURI().toString());
@@ -364,7 +364,7 @@ public final class NexusExecutorClient {
             @Nonnull String siloText, Boolean allLayers, Boolean optional, boolean outcome)
                     throws ClientHandlerException, UniformInterfaceException, JsonParseException, JsonMappingException,
                     IOException, KeyManagementException, NoSuchAlgorithmException, ParseException, NullPointerException {
-        String nexusUrl = this.baseurl + "/" + siloText + "/" + name + "/" + version;
+        String nexusUrl = this.baseurl + "/" + siloText + "/" + "bluval_results/" + name + "/" + version;
         LOGGER.info(EELFLoggerDelegate.applicationLogger, "Trying to get last result based on outcome");
         WebResource webResource = this.client.resource(nexusUrl + "/");
         LOGGER.debug(EELFLoggerDelegate.debugLogger, "Request URI of get: " + webResource.getURI().toString());
@@ -422,7 +422,8 @@ public final class NexusExecutorClient {
             @Nonnull String siloText, @Nonnull String timestamp)
                     throws ClientHandlerException, UniformInterfaceException, JsonParseException, JsonMappingException,
                     IOException, KeyManagementException, NoSuchAlgorithmException {
-        String nexusUrl = this.baseurl + "/" + siloText + "/" + name + "/" + version + "/" + timestamp + "/results";
+        String nexusUrl = this.baseurl + "/" + siloText + "/" + "bluval_results/" + name + "/" + version + "/"
+                + timestamp + "/results";
         List<WRobotNexusTestResult> listOfwrappers = new ArrayList<WRobotNexusTestResult>();
         LOGGER.info(EELFLoggerDelegate.applicationLogger, "Trying to get the blueprint layers");
         WebResource webResource = this.client.resource(nexusUrl + "/");

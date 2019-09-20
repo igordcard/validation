@@ -19,7 +19,7 @@ package org.akraino.validation.ui.controller;
 import java.util.List;
 
 import org.akraino.validation.ui.entity.BlueprintInstance;
-import org.akraino.validation.ui.service.BlueprintInstanceService;
+import org.akraino.validation.ui.service.DbAdapter;
 import org.onap.portalsdk.core.controller.RestrictedBaseController;
 import org.onap.portalsdk.core.logging.logic.EELFLoggerDelegate;
 import org.onap.portalsdk.core.web.support.UserUtils;
@@ -27,6 +27,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 
@@ -37,7 +38,7 @@ public class BlueprintInstanceController extends RestrictedBaseController {
     private static final EELFLoggerDelegate LOGGER = EELFLoggerDelegate.getLogger(BlueprintInstanceController.class);
 
     @Autowired
-    BlueprintInstanceService service;
+    DbAdapter service;
 
     public BlueprintInstanceController() {
         super();
@@ -52,6 +53,30 @@ public class BlueprintInstanceController extends RestrictedBaseController {
                     "Error when trying to get blueprint instances for validation. " + UserUtils.getStackTrace(e));
         }
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+    }
+
+    @RequestMapping(value = { "/" }, method = RequestMethod.POST)
+    public ResponseEntity<BlueprintInstance> createBlueprintInstance(@RequestBody BlueprintInstance blueprintInstance) {
+        try {
+            service.saveBlueprintInstance(blueprintInstance);
+            return new ResponseEntity<>(blueprintInstance, HttpStatus.OK);
+        } catch (Exception e) {
+            LOGGER.error(EELFLoggerDelegate.errorLogger,
+                    "Creation of blueprintInstance failed. " + UserUtils.getStackTrace(e));
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
+    }
+
+    @RequestMapping(value = { "/" }, method = RequestMethod.DELETE)
+    public ResponseEntity<Boolean> deleteBlueprintInstance(@RequestBody BlueprintInstance inst) {
+        try {
+            service.deleteBlueprintInstance(inst);
+            return new ResponseEntity<>(true, HttpStatus.OK);
+        } catch (Exception e) {
+            LOGGER.error(EELFLoggerDelegate.errorLogger,
+                    "Deletion of blueprint instance failed. " + UserUtils.getStackTrace(e));
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
     }
 
 }
