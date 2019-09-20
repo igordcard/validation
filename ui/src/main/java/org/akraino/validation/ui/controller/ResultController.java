@@ -21,7 +21,7 @@ import java.util.List;
 import java.util.Set;
 
 import org.akraino.validation.ui.entity.ValidationDbTestResult;
-import org.akraino.validation.ui.service.DbResultAdapter;
+import org.akraino.validation.ui.service.DbAdapter;
 import org.akraino.validation.ui.service.IntegratedResultService;
 import org.onap.portalsdk.core.controller.RestrictedBaseController;
 import org.onap.portalsdk.core.logging.logic.EELFLoggerDelegate;
@@ -44,7 +44,7 @@ public class ResultController extends RestrictedBaseController {
     IntegratedResultService resultService;
 
     @Autowired
-    DbResultAdapter dbAdapter;
+    DbAdapter dbAdapter;
 
     public ResultController() {
         super();

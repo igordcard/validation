@@ -81,4 +81,5 @@ public class Timeslot implements Serializable {
     public LabInfo getLabInfo() {
         return labInfo;
     }
+
 }

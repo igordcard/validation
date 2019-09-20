@@ -40,4 +40,7 @@ insert into blueprint_instance_blueprint_layer (blueprint_instance_id, blueprint
 insert into blueprint_instance_blueprint_layer (blueprint_instance_id, blueprint_layer_id) values(2, 2); /* os layer is assigned to rec*/
 insert into blueprint_instance_blueprint_layer (blueprint_instance_id, blueprint_layer_id) values(2, 4); /* k8s layer is assigned to rec*/
 
+insert into blueprint_instance_timeslot (blueprint_instance_id, timeslot_id) values(1, 1); /* dummy blueprint instance validation tests can run on ATT lab*/
+insert into blueprint_instance_timeslot (blueprint_instance_id, timeslot_id) values(2, 1); /* rec blueprint instance validation tests can run on ATT lab*/
+
 commit;

@@ -61,10 +61,7 @@ public class DbSubmissionAdapter {
     private JenkinsExecutorClient jenkinsService;
 
     @Autowired
-    private DbResultAdapter dbAdapter;
-
-    @Autowired
-    BlueprintInstanceService bluInstService;
+    private DbAdapter dbAdapter;
 
     public Submission saveSubmission(Submission submission)
             throws JsonParseException, JsonMappingException, IOException {

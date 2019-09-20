@@ -20,7 +20,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 
 import org.akraino.validation.ui.entity.ValidationDbTestResult;
-import org.akraino.validation.ui.service.DbResultAdapter;
+import org.akraino.validation.ui.service.DbAdapter;
 import org.akraino.validation.ui.service.IntegratedResultService;
 import org.akraino.validation.ui.service.utils.PrioritySupplier;
 import org.onap.portalsdk.core.logging.logic.EELFLoggerDelegate;
@@ -42,7 +42,7 @@ public class ValidationTestResultsGetter implements ApplicationListener<ContextR
     IntegratedResultService integratedService;
 
     @Autowired
-    DbResultAdapter dbAdapter;
+    DbAdapter dbAdapter;
 
     @Override
     public void onApplicationEvent(final ContextRefreshedEvent event) {

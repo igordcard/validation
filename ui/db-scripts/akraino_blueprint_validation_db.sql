@@ -26,6 +26,7 @@ DROP TABLE IF EXISTS blueprint_instance;
 DROP TABLE IF EXISTS blueprint_layer;
 DROP TABLE IF EXISTS blueprint;
 DROP TABLE IF EXISTS timeslot;
+DROP TABLE IF EXISTS blueprint_instance_timeslot;
 DROP TABLE IF EXISTS lab;
 
 create table lab (
@@ -43,8 +44,7 @@ create table timeslot (
    CONSTRAINT id_pk PRIMARY KEY (id),
    CONSTRAINT lab_id_fk FOREIGN KEY (lab_id)
       REFERENCES lab (id) MATCH SIMPLE
-      ON UPDATE NO ACTION ON DELETE NO ACTION,
-   unique (start_date_time, lab_id)
+      ON UPDATE NO ACTION ON DELETE NO ACTION
 );
 
 CREATE TABLE blueprint
@@ -86,13 +86,26 @@ CREATE TABLE blueprint_instance_blueprint_layer
    unique (blueprint_instance_id, blueprint_layer_id)
 );
 
+CREATE TABLE blueprint_instance_timeslot
+(
+   blueprint_instance_id bigint not NULL,
+   timeslot_id bigint not NULL,
+   CONSTRAINT blueprint_instance_id_fk3 FOREIGN KEY (blueprint_instance_id)
+      REFERENCES blueprint_instance (id) MATCH SIMPLE
+      ON UPDATE NO ACTION ON DELETE NO ACTION,
+   CONSTRAINT timeslot_id_fk FOREIGN KEY (timeslot_id)
+      REFERENCES timeslot (id) MATCH SIMPLE
+      ON UPDATE NO ACTION ON DELETE NO ACTION,
+   unique (blueprint_instance_id, timeslot_id)
+);
+
 CREATE TABLE submission
 (
    id bigint not NULL AUTO_INCREMENT,
    status text not NULL,
    timeslot_id bigint not NULL,
    CONSTRAINT id_pk PRIMARY KEY (id),
-   CONSTRAINT timeslot_id_fk FOREIGN KEY (timeslot_id)
+   CONSTRAINT timeslot_id_fk2 FOREIGN KEY (timeslot_id)
       REFERENCES timeslot (id) MATCH SIMPLE
       ON UPDATE NO ACTION ON DELETE NO ACTION
 );
@@ -109,7 +122,7 @@ CREATE TABLE validation_test_result
    submission_id bigint,
    date_of_storage text,
    CONSTRAINT id_pk PRIMARY KEY (id),
-   CONSTRAINT lab_id_fk3 FOREIGN KEY (lab_id)
+   CONSTRAINT lab_id_fk2 FOREIGN KEY (lab_id)
       REFERENCES lab (id) MATCH SIMPLE
       ON UPDATE NO ACTION ON DELETE NO ACTION,
    CONSTRAINT submission_id_fk FOREIGN KEY (submission_id)

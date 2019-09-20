@@ -164,3 +164,12 @@ All notable changes to this project will be documented in this file.
 
 ### Removed
 
+## [0.3.1-SNAPSHOT] - 20 September 2019
+### Added
+- Tabs for CRUD operations regarding labs, blueprints, layers, timeslots and blueprint instances have been added.
+
+### Changed
+- Timeslot is now referenced by a blueprint instance
+- The UI searches for results only under the 'bluval_results' directory in Nexus
+
+### Removed

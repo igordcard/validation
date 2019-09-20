@@ -44,6 +44,17 @@ limitations under the License.
 
         <div>
             <div class="form-row">
+                <label for="textinputID-3a">Select Timeslot: </label> <select
+                    ng-model="selectedDeclerativeTimeslot"
+                    ng-change="selectedDeclerativeTimeslotChange()"
+                    ng-options="v for v in declerativeTimeslots">
+                </select>
+            </div>
+        </div>
+        <br>
+
+        <div>
+            <div class="form-row">
                 <label for="textinputID-3a">Select Blueprint
                     Layer: </label> <select ng-model="selectedBlueprintLayer"
                     ng-change="selectedBlueprintLayerChange()"
@@ -59,17 +70,6 @@ limitations under the License.
                 </label> <select ng-model="selectedOptional"
                     ng-change="selectedOptionalChange()"
                     ng-options="l for l in optionals">
-                </select>
-            </div>
-        </div>
-        <br>
-
-
-        <div>
-            <div class="form-row">
-                <label for="textinputID-3a">Select Timeslot: </label> <select
-                    ng-model="selectedDeclerativeTimeslot"
-                    ng-options="v for v in declerativeTimeslots">
                 </select>
             </div>
         </div>

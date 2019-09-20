@@ -19,7 +19,7 @@ package org.akraino.validation.ui.controller;
 import java.util.List;
 
 import org.akraino.validation.ui.entity.Blueprint;
-import org.akraino.validation.ui.service.BlueprintService;
+import org.akraino.validation.ui.service.DbAdapter;
 import org.onap.portalsdk.core.controller.RestrictedBaseController;
 import org.onap.portalsdk.core.logging.logic.EELFLoggerDelegate;
 import org.onap.portalsdk.core.web.support.UserUtils;
@@ -27,6 +27,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 
@@ -37,13 +38,13 @@ public class BlueprintController extends RestrictedBaseController {
     private static final EELFLoggerDelegate LOGGER = EELFLoggerDelegate.getLogger(BlueprintController.class);
 
     @Autowired
-    BlueprintService service;
+    DbAdapter service;
 
     public BlueprintController() {
         super();
     }
 
-    @RequestMapping(value = {"/"}, method = RequestMethod.GET)
+    @RequestMapping(value = { "/" }, method = RequestMethod.GET)
     public ResponseEntity<List<Blueprint>> getBlueprints() {
         try {
             return new ResponseEntity<>(service.getBlueprints(), HttpStatus.OK);
@@ -52,5 +53,27 @@ public class BlueprintController extends RestrictedBaseController {
                     "Error when trying to get blueprints. " + UserUtils.getStackTrace(e));
         }
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+    }
+
+    @RequestMapping(value = { "/" }, method = RequestMethod.POST)
+    public ResponseEntity<Blueprint> createBlueprint(@RequestBody Blueprint blueprint) {
+        try {
+            service.saveBlueprint(blueprint);
+            return new ResponseEntity<>(blueprint, HttpStatus.OK);
+        } catch (Exception e) {
+            LOGGER.error(EELFLoggerDelegate.errorLogger, "Creation of blueprint failed. " + UserUtils.getStackTrace(e));
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
+    }
+
+    @RequestMapping(value = { "/" }, method = RequestMethod.DELETE)
+    public ResponseEntity<Boolean> deleteBlueprint(@RequestBody Blueprint blueprint) {
+        try {
+            service.deleteBlueprint(blueprint);
+            return new ResponseEntity<>(true, HttpStatus.OK);
+        } catch (Exception e) {
+            LOGGER.error(EELFLoggerDelegate.errorLogger, "Deletion of blueprint failed. " + UserUtils.getStackTrace(e));
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
     }
 }

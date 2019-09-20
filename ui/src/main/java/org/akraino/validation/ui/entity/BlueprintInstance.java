@@ -15,6 +15,7 @@
  */
 package org.akraino.validation.ui.entity;
 
+import java.io.IOException;
 import java.io.Serializable;
 import java.util.HashSet;
 import java.util.Set;
@@ -32,9 +33,18 @@ import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
+import org.onap.portalsdk.core.logging.logic.EELFLoggerDelegate;
+import org.onap.portalsdk.core.web.support.UserUtils;
+
+import com.fasterxml.jackson.databind.SerializerProvider;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.databind.ser.std.StdSerializer;
+
 @Entity
 @Table(name = "blueprint_instance")
 public class BlueprintInstance implements Serializable {
+
+    private static final EELFLoggerDelegate LOGGER = EELFLoggerDelegate.getLogger(BlueprintInstance.class);
 
     /**
      *
@@ -58,6 +68,12 @@ public class BlueprintInstance implements Serializable {
             @JoinColumn(name = "blueprint_instance_id") }, inverseJoinColumns = {
                     @JoinColumn(name = "blueprint_layer_id") })
     private Set<BlueprintLayer> blueprintLayers = new HashSet<>();
+
+    @ManyToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    @JoinTable(name = "blueprint_instance_timeslot", joinColumns = {
+            @JoinColumn(name = "blueprint_instance_id") }, inverseJoinColumns = { @JoinColumn(name = "timeslot_id") })
+    @JsonSerialize(using = TimeslotsSerializer.class)
+    private Set<Timeslot> timeslots = new HashSet<>();
 
     public int getBlueprintInstanceId() {
         return blueprintInstId;
@@ -89,6 +105,45 @@ public class BlueprintInstance implements Serializable {
 
     public void setBlueprintLayers(Set<BlueprintLayer> blueprintLayers) {
         this.blueprintLayers = blueprintLayers;
+    }
+
+    public Set<Timeslot> getTimeslots() {
+        return timeslots;
+    }
+
+    public void setTimeslots(Set<Timeslot> timeslots) {
+        this.timeslots = timeslots;
+    }
+
+    static class TimeslotsSerializer extends StdSerializer<Set<Timeslot>> {
+
+        public TimeslotsSerializer() {
+            this(null);
+        }
+
+        public TimeslotsSerializer(Class<Set<Timeslot>> tclass) {
+            super(tclass);
+        }
+
+        @Override
+        public void serialize(Set<Timeslot> timeslots, com.fasterxml.jackson.core.JsonGenerator gen,
+                SerializerProvider provider) throws IOException {
+            Set<Timeslot> results = new HashSet<>();
+            for (Timeslot timeslot : timeslots) {
+                try {
+                    Timeslot result = new Timeslot();
+                    result.setDuration(timeslot.getDuration());
+                    result.setLabInfo(timeslot.getLabInfo());
+                    result.setStartDateTime(timeslot.getStartDateTime());
+                    result.setTimeslotId(timeslot.getTimeslotId());
+                    results.add(result);
+                } catch (Exception ex) {
+                    LOGGER.error(EELFLoggerDelegate.errorLogger,
+                            "Error when serializing." + UserUtils.getStackTrace(ex));
+                }
+            }
+            gen.writeObject(results);
+        }
     }
 
 }
