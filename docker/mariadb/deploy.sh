@@ -16,6 +16,8 @@
 
 # Use this script if the persistent storage does not exist
 
+set -ex
+
 DOCKER_VOLUME_NAME="akraino-validation-mariadb"
 # Container name
 CONTAINER_NAME="akraino-validation-mariadb"

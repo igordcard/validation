@@ -14,6 +14,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+set -ex
+
 # Container name
 CONTAINER_NAME="akraino-validation-ui"
 # Image data
@@ -23,13 +25,14 @@ TAG_PRE=ui
 TAG_VER=latest
 # Container input parameters
 MARIADB_AKRAINO_PASSWORD=""
-JENKINS_URL=""
-JENKINS_USERNAME=""
-JENKINS_USER_PASSWORD=""
-JENKINS_JOB_NAME=""
+JENKINS_URL="https://jenkins.akraino.org/"
+JENKINS_USERNAME="demo"
+JENKINS_USER_PASSWORD="demo"
+JENKINS_JOB_NAME="validation"
 DB_IP_PORT=""
 NEXUS_PROXY=""
 JENKINS_PROXY=""
+CERTDIR=$(pwd)
 
 for ARGUMENT in "$@"
 do
@@ -49,6 +52,7 @@ do
             CONTAINER_NAME)    CONTAINER_NAME=${VALUE} ;;
             NEXUS_PROXY) NEXUS_PROXY=${VALUE} ;;
             JENKINS_PROXY) JENKINS_PROXY=${VALUE} ;;
+            CERTDIR) CERTDIR=${VALUE} ;;
             *)
     esac
 done
@@ -65,30 +69,6 @@ if [ -z "$MARIADB_AKRAINO_PASSWORD" ]
     exit 1
 fi
 
-if [ -z "$JENKINS_URL" ]
-  then
-    echo "ERROR: You must specify the Jenkins Url"
-    exit 1
-fi
-
-if [ -z "$JENKINS_USERNAME" ]
-  then
-    echo "ERROR: You must specify the Jenkins username"
-    exit 1
-fi
-
-if [ -z "$JENKINS_USER_PASSWORD" ]
-  then
-    echo "ERROR: You must specify the Jenkins user password"
-    exit 1
-fi
-
-if [ -z "$JENKINS_JOB_NAME" ]
-  then
-    echo "ERROR: You must specify the Jenkins job name"
-    exit 1
-fi
-
 IMAGE="$REGISTRY"/"$NAME":"$TAG_PRE"-"$TAG_VER"
-docker run --detach --name $CONTAINER_NAME --network="host" -e DB_IP_PORT="$DB_IP_PORT" -e MARIADB_AKRAINO_PASSWORD="$MARIADB_AKRAINO_PASSWORD" -e JENKINS_URL="$JENKINS_URL" -e JENKINS_USERNAME="$JENKINS_USERNAME" -e JENKINS_USER_PASSWORD="$JENKINS_USER_PASSWORD" -e JENKINS_JOB_NAME="$JENKINS_JOB_NAME" -e NEXUS_PROXY="$NEXUS_PROXY" -e JENKINS_PROXY="$JENKINS_PROXY" $IMAGE
+docker run --detach --name $CONTAINER_NAME --network="host" -v "$(pwd)/server.xml:/usr/local/tomcat/conf/server.xml" -v "$CERTDIR/bluval.key:/usr/local/tomcat/bluval.key" -v "$CERTDIR/bluval.crt:/usr/local/tomcat/bluval.crt" -v "$(pwd)/root_index.jsp:/usr/local/tomcat/webapps/ROOT/index.jsp" -e DB_IP_PORT="$DB_IP_PORT" -e MARIADB_AKRAINO_PASSWORD="$MARIADB_AKRAINO_PASSWORD" -e JENKINS_URL="$JENKINS_URL" -e JENKINS_USERNAME="$JENKINS_USERNAME" -e JENKINS_USER_PASSWORD="$JENKINS_USER_PASSWORD" -e JENKINS_JOB_NAME="$JENKINS_JOB_NAME" -e NEXUS_PROXY="$NEXUS_PROXY" -e JENKINS_PROXY="$JENKINS_PROXY" $IMAGE
 sleep 10

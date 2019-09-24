@@ -169,17 +169,18 @@ REGISTRY, the registry of the mariadb image, default value is akraino
 NAME, the name of the mariadb image, default value is validation
 TAG_PRE, the first part of the image version, default value is ui
 TAG_VER, the last part of the image version, default value is latest
-JENKINS_URL, the URL of the Jenkins instance (http or https must be defined), this variable is required
-JENKINS_USERNAME, the Jenkins user name, this variable is required
-JENKINS_USER_PASSWORD, the Jenkins user password, this variable is required
-JENKINS_JOB_NAME, the name of Jenkins job capable of executing the blueprint validation tests, this variable is required
+JENKINS_URL, the URL of the Jenkins instance (http or https must be defined), the default value is 'https://jenkins.akraino.org/'
+JENKINS_USERNAME, the Jenkins user name, the default value is 'demo' (in the context of UI full control loop mode, this parameter must be changed to include a real Jenkins user)
+JENKINS_USER_PASSWORD, the Jenkins user password, the default value is 'demo' (in the context of UI full control loop mode, this parameter must be changed to include a real Jenkins user password)
+JENKINS_JOB_NAME, the name of Jenkins job capable of executing the blueprint validation tests, the default value is 'validation' (in the context of UI full control loop mode, this parameter must be changed to include a real Jenkins job name)
 NEXUS_PROXY, the needed proxy in order for the Nexus server to be reachable, default value is none
 JENKINS_PROXY, the needed proxy in order for the Jenkins server to be reachable, default value is none
+CERTDIR, the directory where the SSL certificates can be found, default value is the working directory where self signed certificates exist only for demo purposes
 
 Note that, for a functional UI, the following prerequisites are needed:
 
 - The mariadb container in up and running state
-- A Jenkins instance capable of running the blueprint validation test
+- A Jenkins instance capable of running the blueprint validation test (this is optional and is needed only for UI full control loop mode)
 - A Nexus repo in which all the test results are stored.
 
 More info can be found at the UI README file.
@@ -191,7 +192,7 @@ Example (assuming the default variables have been utilized for building the imag
 .. code-block:: console
 
     cd validation/docker/ui
-    ./deploy.sh DB_IP_PORT=172.17.0.3:3306 MARIADB_AKRAINO_PASSWORD=akraino_password JENKINS_URL=http://192.168.2.2:8080 JENKINS_USERNAME=name JENKINS_USER_PASSWORD=jenkins_pwd JENKINS_JOB_NAME=job1
+    ./deploy.sh DB_IP_PORT=172.17.0.3:3306 MARIADB_AKRAINO_PASSWORD=akraino_password
 
 The kube-conformance container
 ==============================

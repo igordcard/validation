@@ -16,6 +16,8 @@
 
 # Use this script if the persistent storage already exists and you want to use its data
 
+set -ex
+
 DOCKER_VOLUME_NAME="akraino-validation-mariadb"
 # Container name
 CONTAINER_NAME="akraino-validation-mariadb"

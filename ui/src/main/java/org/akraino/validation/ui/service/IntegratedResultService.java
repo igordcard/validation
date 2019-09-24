@@ -147,11 +147,11 @@ public class IntegratedResultService {
             throw new IllegalArgumentException("Could not retrieve lab : " + lab.toString());
         }
         ValidationDbTestResult vNexusResult = nexusService.getResult(name, version, labInfo.getSilo(), timestamp);
-        if (!dbAdapter.checkValidityOfNexusResult(vNexusResult)) {
-            return null;
+        if (vNexusResult != null && dbAdapter.checkValidityOfNexusResult(vNexusResult)) {
+            vNexusResult.setLab(labInfo);
+            return vNexusResult;
         }
-        vNexusResult.setLab(labInfo);
-        return vNexusResult;
+        return null;
     }
 
     public ValidationDbTestResult getLastResultBasedOnOutcomeFromNexus(@Nonnull String name, @Nonnull String version,
@@ -164,11 +164,11 @@ public class IntegratedResultService {
         }
         ValidationDbTestResult vNexusResult = nexusService.getLastResultBasedOnOutcome(name, version, labInfo.getSilo(),
                 allLayers, optional, outcome);
-        if (!dbAdapter.checkValidityOfNexusResult(vNexusResult)) {
-            return null;
+        if (vNexusResult != null && dbAdapter.checkValidityOfNexusResult(vNexusResult)) {
+            vNexusResult.setLab(labInfo);
+            return vNexusResult;
         }
-        vNexusResult.setLab(labInfo);
-        return vNexusResult;
+        return null;
     }
 
     public ValidationDbTestResult getLastResultBasedOnOutcomeFromNexus(@Nonnull String name, @Nonnull String version,
@@ -181,11 +181,11 @@ public class IntegratedResultService {
         }
         ValidationDbTestResult vNexusResult = nexusService.getLastResultBasedOnOutcome(name, version, labInfo.getSilo(),
                 layers, optional, outcome);
-        if (!dbAdapter.checkValidityOfNexusResult(vNexusResult)) {
-            return null;
+        if (vNexusResult != null && dbAdapter.checkValidityOfNexusResult(vNexusResult)) {
+            vNexusResult.setLab(labInfo);
+            return vNexusResult;
         }
-        vNexusResult.setLab(labInfo);
-        return vNexusResult;
+        return null;
     }
 
     public List<ValidationDbTestResult> getBasedOnDateFromNexus(@Nonnull String name, @Nonnull String version,

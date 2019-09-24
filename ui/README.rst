@@ -384,9 +384,16 @@ Compiling
 Deploying
 ~~~~~~~~~
 
-The pom.xml file supports the building of an appropriate container image using the produced war file. Also, a script has been developed, namely validation/docker/ui/deploy.sh which easily deploys the container.
+The pom.xml file supports the building of an appropriate container image using the produced war file.
 
-This script accepts the following as input parameters:
+In order to build the image, the following commands should be executed:
+
+.. code-block:: console
+
+    cd validation/ui
+    mvn docker:build -Ddocker.filter=akraino/validation:dev-ui-latest
+
+Also, a script has been developed, namely validation/docker/ui/deploy.sh which easily deploys the container. This script accepts the following as input parameters:
 
 CONTAINER_NAME, the name of the contaner, default value is akraino-validation-ui
 DB_IP_PORT, the IP and port of the maridb instance, this variable is required
@@ -395,29 +402,25 @@ REGISTRY, the registry of the mariadb image, default value is akraino
 NAME, the name of the mariadb image, default value is validation
 TAG_PRE, the first part of the image version, default value is ui
 TAG_VER, the last part of the image version, default value is latest
-JENKINS_URL, the URL of the Jenkins instance (http or https must be defined), this variable is required
-JENKINS_USERNAME, the Jenkins user name, this variable is required
-JENKINS_USER_PASSWORD, the Jenkins user password, this variable is required
-JENKINS_JOB_NAME, the name of Jenkins job capable of executing the blueprint validation tests, this variable is required
+JENKINS_URL, the URL of the Jenkins instance (http or https must be defined), the default value is 'https://jenkins.akraino.org/'
+JENKINS_USERNAME, the Jenkins user name, the default value is 'demo' (in the context of UI full control loop mode, this parameter must be changed to include a real Jenkins user)
+JENKINS_USER_PASSWORD, the Jenkins user password, the default value is 'demo' (in the context of UI full control loop mode, this parameter must be changed to include a real Jenkins user password)
+JENKINS_JOB_NAME, the name of Jenkins job capable of executing the blueprint validation tests, the default value is 'validation' (in the context of UI full control loop mode, this parameter must be changed to include a real Jenkins job name)
 NEXUS_PROXY, the needed proxy in order for the Nexus server to be reachable, default value is none
 JENKINS_PROXY, the needed proxy in order for the Jenkins server to be reachable, default value is none
+CERTDIR, the directory where the SSL certificates can be found, default value is the working directory where self signed certificates exist only for demo purposes
 
-In order to build the image using only the required parameters, the following data is needed:
+So, for a functional UI, the following prerequisites are needed:
 
-- The mariadb akraino user password (look at the Database subsection)
-- The IP and port of the mariadb
-- The Jenkins url
-- The Jenkins username and password
-- The name of Jenkins Job
+- The mariadb container in up and running state
+- A Jenkins instance capable of running the blueprint validation test (this is optional and is needed only for UI full control loop mode)
+- A Nexus repo in which all the test results are stored.
 
-Then, the following commands can be executed in order to build and deploy the UI container:
+Then, the following commands can be executed in order to deploy the UI container:
 
 .. code-block:: console
-
-    cd validation/ui
-    mvn docker:build -Ddocker.filter=akraino/validation:dev-ui-latest
     cd ../docker/ui
-    ./deploy.sh TAG_PRE=dev-ui DB_IP_PORT=<IP and port of the mariadb> MARIADB_AKRAINO_PASSWORD=<mariadb akraino password> JENKINS_URL=<http://jenkinsIP:port> JENKINS_USERNAME=<Jenkins user> JENKINS_USER_PASSWORD=<Jenkins password> JENKINS_JOB_NAME=<Jenkins job name>
+    ./deploy.sh TAG_PRE=dev-ui DB_IP_PORT=<IP and port of the mariadb> MARIADB_AKRAINO_PASSWORD=<mariadb akraino password>
 
 The content of the DB_IP_PORT can be for example '172.17.0.3:3306'.
 
@@ -427,9 +430,14 @@ If no proxy exists, the proxy ip and port variables should not be defined.
 
 The UI should be available in the following url:
 
-    http://localhost:8080/bluvalui/
+    https://localhost:8443/bluvalui/
 
-Note that the deployment uses the network host mode, so the 8080 must be available on the host.
+Note that the deployment uses the network host mode, so the ports 8080 and 8443 must be available on the host.
+
+As far as the SSL certificates are concerned, self-signed built-in certificates exist in the 'validation/docker/ui' directory which are used by default. It should be noted that these
+certificates should be used only for demo purposes. If a user wants to use different ones which are more appropriate for a production environment, the directory that contains these new
+certificates must be defined using the 'CERTDIR' parameter of the 'validation/docker/ui/deploy.sh' script. It should be noted that the certificates must have specific names, that are 'bluval.crt'
+and 'bluval.key' for the certificate and the key respectively.
 
 User's guide
 -----------------
