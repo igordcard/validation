@@ -173,3 +173,12 @@ All notable changes to this project will be documented in this file.
 - The UI searches for results only under the 'bluval_results' directory in Nexus
 
 ### Removed
+
+## [0.3.2-SNAPSHOT] - 24 September 2019
+### Added
+- Redirection of all HTTP requests to the corresponding HTTPS resource.
+
+### Changed
+
+### Removed
+
