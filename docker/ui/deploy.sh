@@ -33,6 +33,7 @@ DB_IP_PORT=""
 NEXUS_PROXY=""
 JENKINS_PROXY=""
 CERTDIR=$(pwd)
+ENCRYPTION_KEY=""
 
 for ARGUMENT in "$@"
 do
@@ -53,6 +54,7 @@ do
             NEXUS_PROXY) NEXUS_PROXY=${VALUE} ;;
             JENKINS_PROXY) JENKINS_PROXY=${VALUE} ;;
             CERTDIR) CERTDIR=${VALUE} ;;
+            ENCRYPTION_KEY) ENCRYPTION_KEY=${VALUE} ;;
             *)
     esac
 done
@@ -69,6 +71,12 @@ if [ -z "$MARIADB_AKRAINO_PASSWORD" ]
     exit 1
 fi
 
+if [ -z "$ENCRYPTION_KEY" ]
+  then
+    echo "ERROR: You must specify the encryption key"
+    exit 1
+fi
+
 IMAGE="$REGISTRY"/"$NAME":"$TAG_PRE"-"$TAG_VER"
-docker run --detach --name $CONTAINER_NAME --network="host" -v "$(pwd)/server.xml:/usr/local/tomcat/conf/server.xml" -v "$CERTDIR/bluval.key:/usr/local/tomcat/bluval.key" -v "$CERTDIR/bluval.crt:/usr/local/tomcat/bluval.crt" -v "$(pwd)/root_index.jsp:/usr/local/tomcat/webapps/ROOT/index.jsp" -e DB_IP_PORT="$DB_IP_PORT" -e MARIADB_AKRAINO_PASSWORD="$MARIADB_AKRAINO_PASSWORD" -e JENKINS_URL="$JENKINS_URL" -e JENKINS_USERNAME="$JENKINS_USERNAME" -e JENKINS_USER_PASSWORD="$JENKINS_USER_PASSWORD" -e JENKINS_JOB_NAME="$JENKINS_JOB_NAME" -e NEXUS_PROXY="$NEXUS_PROXY" -e JENKINS_PROXY="$JENKINS_PROXY" $IMAGE
+docker run --detach --name $CONTAINER_NAME --network="host" -v "$(pwd)/server.xml:/usr/local/tomcat/conf/server.xml" -v "$CERTDIR/bluval.key:/usr/local/tomcat/bluval.key" -v "$CERTDIR/bluval.crt:/usr/local/tomcat/bluval.crt" -v "$(pwd)/root_index.jsp:/usr/local/tomcat/webapps/ROOT/index.jsp" -e DB_IP_PORT="$DB_IP_PORT" -e MARIADB_AKRAINO_PASSWORD="$MARIADB_AKRAINO_PASSWORD" -e JENKINS_URL="$JENKINS_URL" -e JENKINS_USERNAME="$JENKINS_USERNAME" -e JENKINS_USER_PASSWORD="$JENKINS_USER_PASSWORD" -e JENKINS_JOB_NAME="$JENKINS_JOB_NAME" -e NEXUS_PROXY="$NEXUS_PROXY" -e JENKINS_PROXY="$JENKINS_PROXY" -e ENCRYPTION_KEY="$ENCRYPTION_KEY" $IMAGE
 sleep 10

@@ -1,51 +1,41 @@
-/*-
- * ============LICENSE_START==========================================
- * ONAP Portal
- * ===================================================================
- * Copyright Â© 2017 AT&T Intellectual Property. All rights reserved.
- * ===================================================================
+/*
+ * Copyright (c) 2019 AT&T Intellectual Property. All rights reserved.
  *
- * Unless otherwise specified, all software contained herein is licensed
- * under the Apache License, Version 2.0 (the "License");
- * you may not use this software except in compliance with the License.
- * You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may
+ * not use this file except in compliance with the License. You may obtain
+ * a copy of the License at
  *
- *             http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- *
- * Unless otherwise specified, all documentation contained herein is licensed
- * under the Creative Commons License, Attribution 4.0 Intl. (the "License");
- * you may not use this documentation except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *             https://creativecommons.org/licenses/by/4.0/
- *
- * Unless required by applicable law or agreed to in writing, documentation
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- *
- * ============LICENSE_END============================================
- *
- *
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
+ * implied. See the License for the specific language governing
+ * permissions and limitations under the License.
  */
 
 package org.akraino.validation.ui.login;
 
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.crypto.BadPaddingException;
+import javax.crypto.Cipher;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
+import javax.crypto.SecretKey;
+import javax.crypto.spec.SecretKeySpec;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.commons.codec.binary.Hex;
 import org.onap.portalsdk.core.auth.LoginStrategy;
 import org.onap.portalsdk.core.command.LoginBean;
 import org.onap.portalsdk.core.domain.RoleFunction;
@@ -62,9 +52,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.servlet.ModelAndView;
 
 /**
- * Implements basic single-signon login strategy for open-source
- * applications when users start at Portal. Extracts an encrypted user ID
- * sent by Portal.
+ * Implements basic single-signon login strategy for open-source applications
+ * when users start at Portal. Extracts an encrypted user ID sent by Portal.
  */
 public class LoginStrategyImpl extends LoginStrategy {
 
@@ -87,9 +76,11 @@ public class LoginStrategyImpl extends LoginStrategy {
         LoginBean commandBean = new LoginBean();
         String loginId = request.getParameter("loginId");
         String password = request.getParameter("password");
+        String key = System.getenv("ENCRYPTION_KEY");
+        password = aesEncrypt(password, key);
         commandBean.setLoginId(loginId);
         commandBean.setLoginPwd(password);
-        commandBean.setUserid(loginId);
+        // commandBean.setUserid(loginId);
         commandBean = loginService.findUser(commandBean,
                 (String) request.getAttribute(MenuProperties.MENU_PROPERTIES_FILENAME_KEY), new HashMap());
         List<RoleFunction> roleFunctionList = roleService.getRoleFunctions(loginId);
@@ -112,6 +103,40 @@ public class LoginStrategyImpl extends LoginStrategy {
     }
 
     @Override
+    public ModelAndView doExternalLogin(HttpServletRequest request, HttpServletResponse response) throws IOException {
+
+        invalidateExistingSession(request);
+
+        LoginBean commandBean = new LoginBean();
+        String loginId = request.getParameter("loginId");
+        String password = request.getParameter("password");
+        String key = System.getenv("ENCRYPTION_KEY");
+        password = aesEncrypt(password, key);
+        commandBean.setLoginId(loginId);
+        commandBean.setLoginPwd(password);
+        // commandBean.setUserid(loginId);
+        commandBean = loginService.findUser(commandBean,
+                (String) request.getAttribute(MenuProperties.MENU_PROPERTIES_FILENAME_KEY), new HashMap());
+        List<RoleFunction> roleFunctionList = roleService.getRoleFunctions(loginId);
+
+        if (commandBean.getUser() == null) {
+            String loginErrorMessage = (commandBean.getLoginErrorMessage() != null) ? commandBean.getLoginErrorMessage()
+                    : "login.error.external.invalid";
+            Map<String, String> model = new HashMap<>();
+            model.put("error", loginErrorMessage);
+            return new ModelAndView("login_external", "model", model);
+        } else {
+            // store the currently logged in user's information in the session
+            UserUtils.setUserSession(request, commandBean.getUser(), commandBean.getMenu(),
+                    commandBean.getBusinessDirectMenu(),
+                    SystemProperties.getProperty(SystemProperties.LOGIN_METHOD_BACKDOOR), roleFunctionList);
+            initateSessionMgtHandler(request);
+            // user has been authenticated, now take them to the welcome page
+            return new ModelAndView("redirect:welcome");
+        }
+    }
+
+    @Override
     public String getUserId(HttpServletRequest request) throws PortalAPIException {
         // Check ECOMP Portal cookie
         Cookie ep = getCookie(request, EP_SERVICE);
@@ -130,8 +155,8 @@ public class LoginStrategyImpl extends LoginStrategy {
     }
 
     /**
-     * Searches the request for the user-ID cookie and decrypts the value
-     * using a key configured in properties
+     * Searches the request for the user-ID cookie and decrypts the value using a
+     * key configured in properties
      *
      * @param request HttpServletRequest
      * @return User ID
@@ -154,7 +179,7 @@ public class LoginStrategyImpl extends LoginStrategy {
     /**
      * Searches the request for the named cookie.
      *
-     * @param request HttpServletRequest
+     * @param request    HttpServletRequest
      * @param cookieName Name of desired cookie
      * @return Cookie if found; otherwise null.
      */
@@ -165,6 +190,23 @@ public class LoginStrategyImpl extends LoginStrategy {
                 if (cookie.getName().equals(cookieName))
                     return cookie;
         return null;
+    }
+
+    private String aesEncrypt(String password, String strKey) {
+        try {
+            byte[] keyBytes = Arrays.copyOf(strKey.getBytes("ASCII"), 16);
+            SecretKey key = new SecretKeySpec(keyBytes, "AES");
+            Cipher cipher = Cipher.getInstance("AES");
+            cipher.init(Cipher.ENCRYPT_MODE, key);
+            byte[] cleartext = password.getBytes("UTF-8");
+            byte[] ciphertextBytes = cipher.doFinal(cleartext);
+            return new String(Hex.encodeHex(ciphertextBytes));
+        } catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException | UnsupportedEncodingException
+                | IllegalBlockSizeException | BadPaddingException e) {
+            LOGGER.error(EELFLoggerDelegate.errorLogger,
+                    "Error when encrypting password key" + UserUtils.getStackTrace(e));
+            return null;
+        }
     }
 
 }

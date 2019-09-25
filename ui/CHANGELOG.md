@@ -182,3 +182,11 @@ All notable changes to this project will be documented in this file.
 
 ### Removed
 
+## [0.3.3-SNAPSHOT] - 25 September 2019
+### Added
+- Encryption of passwords stored in database.
+
+### Changed
+- Password of users that try to login is taken into account
+
+### Removed
