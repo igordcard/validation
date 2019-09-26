@@ -190,3 +190,11 @@ All notable changes to this project will be documented in this file.
 - Password of users that try to login is taken into account
 
 ### Removed
+
+## [0.3.4-SNAPSHOT] - 26 September 2019
+### Added
+- Prevent XSS attacks
+
+### Changed
+
+### Removed
