@@ -198,3 +198,12 @@ All notable changes to this project will be documented in this file.
 ### Changed
 
 ### Removed
+
+## [0.4.0-SNAPSHOT] - 26 September 2019
+### Added
+- User creation
+- Support of AES PKCS#5 for encrypting/decrypting passwords in database
+
+### Changed
+
+### Removed

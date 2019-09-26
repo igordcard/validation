@@ -170,16 +170,13 @@ Also, a script has been developed, namely validation/docker/mariadb/deploy.sh wh
 CONTAINER_NAME, name of the container, default value is akraino-validation-mariadb
 MARIADB_ROOT_PASSWORD, the desired mariadb root user password, this variable is required
 MARIADB_AKRAINO_PASSWORD, the desired mariadb akraino user password, this variable is required
-UI_ADMIN_PASSWORD, the desired Blueprint Validation UI password for the admin user, this variable is required
-UI_AKRAINO_PASSWORD, the desired Blueprint Validation UI password for the akraino user, this variable is required
 REGISTRY, registry of the mariadb image, default value is akraino
 NAME, name of the mariadb image, default value is validation
 TAG_PRE, first part of the image version, default value is mariadb
 TAG_VER, last part of the image version, default value is latest
 MARIADB_HOST_PORT, port on which mariadb is exposed on host, default value is 3307
-ENCRYPTION_KEY, the key that should be used by the AES algorithm for encrypting passwords stored in database, this variable is required
 
-Currently, two users are supported by the UI, namely admin (full privileges) and akraino (limited privileges). Their passwords must be defined in the database.
+Currently, two users are supported by the UI, namely admin (full privileges) and akraino (limited privileges). Their passwords are changed and stored at UI deployment (refer to UI deployment section).
 
 In order to build and deploy the image using only the required parameters, the below instructions should be followed:
 
@@ -190,7 +187,7 @@ The mariadb root password, mariadb akraino user password (currently the UI conne
     cd validation/ui
     mvn docker:build -Ddocker.filter=akraino/validation:dev-mariadb-latest
     cd ../docker/mariadb
-    ./deploy.sh TAG_PRE=dev-mariadb MARIADB_ROOT_PASSWORD=<mariadb root user password> MARIADB_AKRAINO_PASSWORD=<mariadb akraino user password> UI_ADMIN_PASSWORD=<UI admin user password> UI_AKRAINO_PASSWORD=<UI akraino user password> ENCRYPTION_KEY=<encryption key>
+    ./deploy.sh TAG_PRE=dev-mariadb MARIADB_ROOT_PASSWORD=<mariadb root user password> MARIADB_AKRAINO_PASSWORD=<mariadb akraino user password>
     mysql -p<MARIADB_AKRAINO_PASSWORD> -uakraino -h <IP of the mariadb container> < ../../ui/db-scripts/examples/initialize_db_example.sql
 
 In order to retrieve the IP of the mariadb container, the following command should be executed:
@@ -229,7 +226,7 @@ To this end, after the image build process, the following commands should be exe
 
     docker volume rm akraino-validation-mariadb
     cd validation/docker/mariadb
-    ./deploy.sh TAG_PRE=dev-mariadb MARIADB_ROOT_PASSWORD=<root user password> MARIADB_AKRAINO_PASSWORD=<mariadb akraino user password> UI_ADMIN_PASSWORD=<UI admin user password> UI_AKRAINO_PASSWORD=<UI akraino user password>
+    ./deploy.sh TAG_PRE=dev-mariadb MARIADB_ROOT_PASSWORD=<root user password> MARIADB_AKRAINO_PASSWORD=<mariadb akraino user password>
     mysql -p<MARIADB_AKRAINO_PASSWORD> -uakraino -h <IP of the mariadb container> < ../../ui/db-scripts/examples/initialize_db_example.sql
 
 In the context of the UI application, the following tables exist in the database:
@@ -411,6 +408,8 @@ NEXUS_PROXY, the needed proxy in order for the Nexus server to be reachable, def
 JENKINS_PROXY, the needed proxy in order for the Jenkins server to be reachable, default value is none
 CERTDIR, the directory where the SSL certificates can be found, default value is the working directory where self signed certificates exist only for demo purposes
 ENCRYPTION_KEY, the key that should be used by the AES algorithm for encrypting passwords stored in database, this variable is required
+UI_ADMIN_PASSWORD, the desired Blueprint Validation UI password for the admin user, this variable is required
+UI_AKRAINO_PASSWORD, the desired Blueprint Validation UI password for the akraino user, this variable is required
 
 So, for a functional UI, the following prerequisites are needed:
 
@@ -422,13 +421,15 @@ Then, the following commands can be executed in order to deploy the UI container
 
 .. code-block:: console
     cd ../docker/ui
-    ./deploy.sh TAG_PRE=dev-ui DB_IP_PORT=<IP and port of the mariadb> MARIADB_AKRAINO_PASSWORD=<mariadb akraino password> ENCRYPTION_KEY=<encryption key>
+    ./deploy.sh TAG_PRE=dev-ui DB_IP_PORT=<IP and port of the mariadb> MARIADB_AKRAINO_PASSWORD=<mariadb akraino password> ENCRYPTION_KEY=<encryption key> UI_ADMIN_PASSWORD=<UI admin user password> UI_AKRAINO_PASSWORD=<UI akraino user password>
 
-The content of the DB_IP_PORT can be for example '172.17.0.3:3306'. Also, the value of the encryption key should be the same as the value of the encryption key used in database deployment.
+The content of the DB_IP_PORT can be for example '172.17.0.3:3306'. Also, the value of the encryption key can be for example 'AGADdG4D04BKm2IxIWEr8o=='.
 
 Furthermore, the TAG_PRE variable should be defined as the default value is 'ui' (note that the 'dev-ui' is used for development purposes - look at pom.xml file).
 
 If no proxy exists, the proxy ip and port variables should not be defined.
+
+More users can be created using the 'Create User' tab of the UI. This tab is available only for the admin user.
 
 The UI should be available in the following url:
 

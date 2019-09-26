@@ -101,14 +101,11 @@ In order for the container to be easily created, the deploy.sh script has been d
 CONTAINER_NAME, name of the container, default value is akraino-validation-mariadb
 MARIADB_ROOT_PASSWORD, the desired mariadb root user password, this variable is required
 MARIADB_AKRAINO_PASSWORD, the desired mariadb akraino user password, this variable is required
-UI_ADMIN_PASSWORD, the desired Blueprint Validation UI password for the admin user, this variable is required
-UI_AKRAINO_PASSWORD, the desired Blueprint Validation UI password for the akraino user, this variable is required
 REGISTRY, registry of the mariadb image, default value is akraino
 NAME, name of the mariadb image, default value is validation
 TAG_PRE, first part of the image version, default value is mariadb
 TAG_VER, last part of the image version, default value is latest
 MARIADB_HOST_PORT, port on which mariadb is exposed on host, default value is 3307
-ENCRYPTION_KEY, the key that should be used by the AES algorithm for encrypting passwords stored in database, this variable is required
 
 In order to deploy the container, this script can be executed with the appropriate parameters.
 
@@ -117,7 +114,7 @@ Example (assuming the default variables have been utilized for building the imag
 .. code-block:: console
 
     cd validation/docker/mariadb
-    ./deploy.sh MARIADB_ROOT_PASSWORD=root_password MARIADB_AKRAINO_PASSWORD=akraino_password UI_ADMIN_PASSWORD=admin UI_AKRAINO_PASSWORD=akraino ENCRYPTION_KEY=key
+    ./deploy.sh MARIADB_ROOT_PASSWORD=root_password MARIADB_AKRAINO_PASSWORD=akraino_password
 
 Also, in order to re-deploy the database (it is assumed that the corresponding mariadb container has been stopped and deleted) while the persistent storage already exists (currently, the directory /var/lib/mariadb of the host is used), a different approach should be used after the image build process.
 
@@ -178,6 +175,8 @@ NEXUS_PROXY, the needed proxy in order for the Nexus server to be reachable, def
 JENKINS_PROXY, the needed proxy in order for the Jenkins server to be reachable, default value is none
 CERTDIR, the directory where the SSL certificates can be found, default value is the working directory where self signed certificates exist only for demo purposes
 ENCRYPTION_KEY, the key that should be used by the AES algorithm for encrypting passwords stored in database, this variable is required
+UI_ADMIN_PASSWORD, the desired Blueprint Validation UI password for the admin user, this variable is required
+UI_AKRAINO_PASSWORD, the desired Blueprint Validation UI password for the akraino user, this variable is required
 
 Note that, for a functional UI, the following prerequisites are needed:
 
@@ -194,7 +193,7 @@ Example (assuming the default variables have been utilized for building the imag
 .. code-block:: console
 
     cd validation/docker/ui
-    ./deploy.sh DB_IP_PORT=172.17.0.3:3306 MARIADB_AKRAINO_PASSWORD=akraino_password ENCRYPTION_KEY=key
+    ./deploy.sh DB_IP_PORT=172.17.0.3:3306 MARIADB_AKRAINO_PASSWORD=akraino_password ENCRYPTION_KEY=AGADdG4D04BKm2IxIWEr8o== UI_ADMIN_PASSWORD=admin UI_AKRAINO_PASSWORD=akraino
 
 The kube-conformance container
 ==============================

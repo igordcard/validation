@@ -15,9 +15,11 @@
  */
 package org.akraino.validation.ui.conf;
 
+import java.io.IOException;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.X509Certificate;
+import java.util.List;
 import java.util.Map;
 
 import javax.net.ssl.HostnameVerifier;
@@ -27,6 +29,11 @@ import javax.net.ssl.SSLSession;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 
+import org.onap.portalsdk.core.domain.User;
+import org.onap.portalsdk.core.onboarding.exception.CipherUtilException;
+import org.onap.portalsdk.core.onboarding.util.CipherUtil;
+import org.onap.portalsdk.core.service.UserProfileService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
@@ -36,6 +43,9 @@ import com.sun.jersey.client.urlconnection.HTTPSProperties;
 
 @Component
 public class UiInitializer {
+
+    @Autowired
+    UserProfileService userService;
 
     // Create all-trusting host name verifier
     private final HostnameVerifier hostnameVerifier = new HostnameVerifier() {
@@ -73,6 +83,34 @@ public class UiInitializer {
         Map<String, Object> properties = config.getProperties();
         HTTPSProperties httpsProperties = new HTTPSProperties((str, sslSession) -> true, sslContext);
         properties.put(HTTPSProperties.PROPERTY_HTTPS_PROPERTIES, httpsProperties);
+    }
+
+    @EventListener(ContextRefreshedEvent.class)
+    public void updateUsers() throws RuntimeException, IOException, CipherUtilException {
+        User admin = null;
+        List<User> users = userService.findAllActive();
+        for (User user : users) {
+            if (user.getLoginId().equals("admin")) {
+                admin = user;
+            }
+        }
+        if (admin == null) {
+            throw new RuntimeException("Admin user does not exist");
+        }
+        admin.setLoginPwd(CipherUtil.encryptPKC(System.getenv("UI_ADMIN_PASSWORD"), System.getenv("ENCRYPTION_KEY")));
+        userService.saveUser(admin);
+        User akraino = null;
+        for (User user : users) {
+            if (user.getLoginId().equals("akraino")) {
+                akraino = user;
+            }
+        }
+        if (akraino == null) {
+            throw new RuntimeException("Akraino user does not exist");
+        }
+        akraino.setLoginPwd(
+                CipherUtil.encryptPKC(System.getenv("UI_AKRAINO_PASSWORD"), System.getenv("ENCRYPTION_KEY")));
+        userService.saveUser(akraino);
     }
 
 }

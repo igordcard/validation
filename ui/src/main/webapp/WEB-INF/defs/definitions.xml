@@ -86,4 +86,7 @@
     <definition name="getblueprintinstances"
         template="/app/BluvalUI/GetBlueprintInstances/GetBlueprintInstances.html" />
 
+    <definition name="createuser"
+        template="/app/BluvalUI/CreateUser/CreateUser.html" />
+
 </tiles-definitions>

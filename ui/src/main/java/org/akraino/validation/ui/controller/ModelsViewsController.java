@@ -173,6 +173,12 @@ public class ModelsViewsController extends RestrictedBaseController {
         return new ModelAndView(defaultViewName);
     }
 
+    @RequestMapping(value = { "/createuser" }, method = RequestMethod.GET)
+    public ModelAndView createUser(HttpServletRequest request) {
+        final String defaultViewName = null;
+        return new ModelAndView(defaultViewName);
+    }
+
     @RequestMapping(value = { "/logout.htm" }, method = RequestMethod.GET)
     public ModelAndView login() {
         Map<String, Object> model = new HashMap<>();

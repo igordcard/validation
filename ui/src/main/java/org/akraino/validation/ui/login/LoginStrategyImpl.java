@@ -17,25 +17,14 @@
 package org.akraino.validation.ui.login;
 
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.crypto.BadPaddingException;
-import javax.crypto.Cipher;
-import javax.crypto.IllegalBlockSizeException;
-import javax.crypto.NoSuchPaddingException;
-import javax.crypto.SecretKey;
-import javax.crypto.spec.SecretKeySpec;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.commons.codec.binary.Hex;
 import org.onap.portalsdk.core.auth.LoginStrategy;
 import org.onap.portalsdk.core.command.LoginBean;
 import org.onap.portalsdk.core.domain.RoleFunction;
@@ -76,16 +65,14 @@ public class LoginStrategyImpl extends LoginStrategy {
         LoginBean commandBean = new LoginBean();
         String loginId = request.getParameter("loginId");
         String password = request.getParameter("password");
-        String key = System.getenv("ENCRYPTION_KEY");
-        password = aesEncrypt(password, key);
         commandBean.setLoginId(loginId);
         commandBean.setLoginPwd(password);
-        // commandBean.setUserid(loginId);
+        commandBean.setUserid(loginId);
         commandBean = loginService.findUser(commandBean,
                 (String) request.getAttribute(MenuProperties.MENU_PROPERTIES_FILENAME_KEY), new HashMap());
         List<RoleFunction> roleFunctionList = roleService.getRoleFunctions(loginId);
-
-        if (commandBean.getUser() == null) {
+        if (commandBean.getUser() == null || !CipherUtil
+                .decryptPKC(commandBean.getUser().getLoginPwd(), System.getenv("ENCRYPTION_KEY")).equals(password)) {
             String loginErrorMessage = (commandBean.getLoginErrorMessage() != null) ? commandBean.getLoginErrorMessage()
                     : "login.error.external.invalid";
             Map<String, String> model = new HashMap<>();
@@ -110,22 +97,34 @@ public class LoginStrategyImpl extends LoginStrategy {
         LoginBean commandBean = new LoginBean();
         String loginId = request.getParameter("loginId");
         String password = request.getParameter("password");
-        String key = System.getenv("ENCRYPTION_KEY");
-        password = aesEncrypt(password, key);
         commandBean.setLoginId(loginId);
         commandBean.setLoginPwd(password);
-        // commandBean.setUserid(loginId);
+        commandBean.setUserid(loginId);
         commandBean = loginService.findUser(commandBean,
                 (String) request.getAttribute(MenuProperties.MENU_PROPERTIES_FILENAME_KEY), new HashMap());
         List<RoleFunction> roleFunctionList = roleService.getRoleFunctions(loginId);
 
-        if (commandBean.getUser() == null) {
-            String loginErrorMessage = (commandBean.getLoginErrorMessage() != null) ? commandBean.getLoginErrorMessage()
-                    : "login.error.external.invalid";
-            Map<String, String> model = new HashMap<>();
-            model.put("error", loginErrorMessage);
-            return new ModelAndView("login_external", "model", model);
-        } else {
+        try {
+            if (commandBean.getUser() == null
+                    || !CipherUtil.decryptPKC(commandBean.getUser().getLoginPwd(), System.getenv("ENCRYPTION_KEY"))
+                    .equals(password)) {
+                String loginErrorMessage = (commandBean.getLoginErrorMessage() != null)
+                        ? commandBean.getLoginErrorMessage()
+                                : "login.error.external.invalid";
+                        Map<String, String> model = new HashMap<>();
+                        model.put("error", loginErrorMessage);
+                        return new ModelAndView("login_external", "model", model);
+            } else {
+                // store the currently logged in user's information in the session
+                UserUtils.setUserSession(request, commandBean.getUser(), commandBean.getMenu(),
+                        commandBean.getBusinessDirectMenu(),
+                        SystemProperties.getProperty(SystemProperties.LOGIN_METHOD_BACKDOOR), roleFunctionList);
+                initateSessionMgtHandler(request);
+                // user has been authenticated, now take them to the welcome page
+                return new ModelAndView("redirect:welcome");
+            }
+        } catch (CipherUtilException e) {
+            LOGGER.error(EELFLoggerDelegate.errorLogger, "Error in Cipher." + UserUtils.getStackTrace(e));
             // store the currently logged in user's information in the session
             UserUtils.setUserSession(request, commandBean.getUser(), commandBean.getMenu(),
                     commandBean.getBusinessDirectMenu(),
@@ -190,23 +189,6 @@ public class LoginStrategyImpl extends LoginStrategy {
                 if (cookie.getName().equals(cookieName))
                     return cookie;
         return null;
-    }
-
-    private String aesEncrypt(String password, String strKey) {
-        try {
-            byte[] keyBytes = Arrays.copyOf(strKey.getBytes("ASCII"), 16);
-            SecretKey key = new SecretKeySpec(keyBytes, "AES");
-            Cipher cipher = Cipher.getInstance("AES");
-            cipher.init(Cipher.ENCRYPT_MODE, key);
-            byte[] cleartext = password.getBytes("UTF-8");
-            byte[] ciphertextBytes = cipher.doFinal(cleartext);
-            return new String(Hex.encodeHex(ciphertextBytes));
-        } catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException | UnsupportedEncodingException
-                | IllegalBlockSizeException | BadPaddingException e) {
-            LOGGER.error(EELFLoggerDelegate.errorLogger,
-                    "Error when encrypting password key" + UserUtils.getStackTrace(e));
-            return null;
-        }
     }
 
 }
