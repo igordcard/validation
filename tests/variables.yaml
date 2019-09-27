@@ -15,12 +15,12 @@
 # limitations under the License.                                             #
 ##############################################################################
 
-# This file provides variable requeired robot testcases
+# This file provides variables required by robot testcases
 # This file can be passed to robot testcases as follows
 # $ robot -v varables.yaml <robot test case file>
 #
-# All keys are converted UPPERCASE before sumitting to robot. YAML notation is
-# smallcase and Robot variables notation is UPPERCASE so industry is follwoing
+# All keys are converted UPPERCASE before submitting to robot. YAML notation is
+# smallcase and Robot variables notation is UPPERCASE so industry is following
 # this.
 
 ### Input variables cluster's master host
@@ -55,3 +55,6 @@ nodename: targetnode                          # target node to test ceph
 ### Input variables for ltp
 rootuser: rootuser       # Required root user to log in to the host
 rootpswd: rootpassword   # Required root password to log in to the host
+
+### Input variables for Conformance test
+internal_registry: ''                         # Docker internal registry
