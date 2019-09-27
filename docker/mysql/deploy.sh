@@ -14,19 +14,22 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# Use this script if the persistent storage already exists and you want to use its data
+# Use this script if the persistent storage does not exist
 
 set -ex
 
-DOCKER_VOLUME_NAME="akraino-validation-mariadb"
+DOCKER_VOLUME_NAME="akraino-validation-mysql"
 # Container name
-CONTAINER_NAME="akraino-validation-mariadb"
+CONTAINER_NAME="akraino-validation-mysql"
+# Container input variables
+MYSQL_ROOT_PASSWORD=""
+MYSQL_AKRAINO_PASSWORD=""
 # Image data
 REGISTRY=akraino
 NAME=validation
-TAG_PRE=mariadb
+TAG_PRE=mysql
 TAG_VER=latest
-MARIADB_HOST_PORT=3307
+MYSQL_HOST_PORT=3307
 
 for ARGUMENT in "$@"
 do
@@ -37,12 +40,27 @@ do
             NAME)    NAME=${VALUE} ;;
             TAG_VER)    TAG_VER=${VALUE} ;;
             TAG_PRE)    TAG_PRE=${VALUE} ;;
+            MYSQL_ROOT_PASSWORD)    MYSQL_ROOT_PASSWORD=${VALUE} ;;
+            MYSQL_AKRAINO_PASSWORD)    MYSQL_AKRAINO_PASSWORD=${VALUE} ;;
             CONTAINER_NAME)    CONTAINER_NAME=${VALUE} ;;
-            MARIADB_HOST_PORT)    MARIADB_HOST_PORT=${VALUE} ;;
+            MYSQL_HOST_PORT)    MYSQL_HOST_PORT=${VALUE} ;;
             *)
     esac
 done
 
+if [ -z "$MYSQL_ROOT_PASSWORD" ]
+  then
+    echo "ERROR: You must specify the mysql database root password"
+    exit 1
+fi
+
+if [ -z "$MYSQL_AKRAINO_PASSWORD" ]
+  then
+    echo "ERROR: You must specify the mysql database akraino user password"
+    exit 1
+fi
+
 IMAGE="$REGISTRY"/"$NAME":"$TAG_PRE"-"$TAG_VER"
-docker run --detach --name $CONTAINER_NAME --publish $MARIADB_HOST_PORT:3306 -v $DOCKER_VOLUME_NAME:/var/lib/mysql -v "/$(pwd)/mariadb.conf:/etc/mysql/conf.d/my.cnf" $IMAGE
+chmod 0444 "/$(pwd)/mysql.conf"
+docker run --detach --name $CONTAINER_NAME --publish $MYSQL_HOST_PORT:3306 -v $DOCKER_VOLUME_NAME:/var/lib/mysql -v "/$(pwd)/mysql.conf:/etc/mysql/conf.d/my.cnf" -e MYSQL_ROOT_PASSWORD="$MYSQL_ROOT_PASSWORD" -e MYSQL_DATABASE="akraino" -e MYSQL_USER="akraino" -e MYSQL_PASSWORD="$MYSQL_AKRAINO_PASSWORD" $IMAGE
 sleep 10

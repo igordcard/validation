@@ -25,10 +25,10 @@ In specific, the purpose of the UI is twofold:
 1) Support full control loop of producing results. In this mode, the UI must be connected with a Jenkins instance capable of running blueprint validation tests.
    It will enable the user to define a blueprint for validation using its name, version, layer, desired lab and desired timeslot. This data constitutes a submission. It should be noted that the blueprint family is derived from the blueprint name.
    Also, the UI will have the ability to track the lifecycle of a submission. A submission state can be one of the following: submitted, waiting, running and completed. The implementation vehicle for this action is the REST API of Jenkins.
-   Moreover, the UI must be connected with a mariadb instance and the Nexus server where the results are stored.
+   Moreover, the UI must be connected with a mysql instance and the Nexus server where the results are stored.
    Then, it will be able to trigger the appropriate job in Jenkins and receive the corresponding results from Nexus.
    Note that it makes no difference whether the Jenkins instance is the community one or a private one.
-2) Partial control of producing results. In this mode, the UI must be connected with a mariadb instance and the Nexus server where the results are stored.
+2) Partial control of producing results. In this mode, the UI must be connected with a mysql instance and the Nexus server where the results are stored.
    Every blueprint owner is responsible of executing tests and storing results in Nexus using his/her own Jenkins instance. The UI only retrieves results from Nexus and displays them.
 
 In both modes, user authentication, authorization and accounting (AAA) will be supported in order to control access to resources, enforce policies on these resources and audit their usage.
@@ -38,19 +38,19 @@ Prerequisites:
 
 In order for the blueprint validation UI to be functional, the following items are taken for granted:
 
-- An appropriate mariadb instance is up and running (look at the Database subsection).
+- An appropriate mysql instance is up and running (look at the Database subsection).
   This prerequisite concerns both of the UI modes.
 
-- The available labs and their silos (i.e. which silo is used by a lab in order to store results in Nexus) for blueprint validation execution are stored in mariadb (look at the Database subsection). It is the lab owner's responsibility to update them using the UI.
+- The available labs and their silos (i.e. which silo is used by a lab in order to store results in Nexus) for blueprint validation execution are stored in mysql (look at the Database subsection). It is the lab owner's responsibility to update them using the UI.
   This prerequisite concerns both the partial and the full control loop modes.
 
-- The available timeslots for blueprint validation execution of every lab are stored in the mariadb (look at the Database subsection). It is the lab owner's responsibility to update them using the UI.
+- The available timeslots for blueprint validation execution of every lab are stored in the mysql (look at the Database subsection). It is the lab owner's responsibility to update them using the UI.
   This prerequisite concerns only the full control loop mode.
 
-- The data of available blueprints (i.e. blueprint name) is stored in the mariadb database (look at the Database subsection). This data is automatically updated by the UI using info from Nexus. If a blueprint owner's is not satisfied with this info, he/her must update it using the UI.
+- The data of available blueprints (i.e. blueprint name) is stored in the mysql database (look at the Database subsection). This data is automatically updated by the UI using info from Nexus. If a blueprint owner's is not satisfied with this info, he/her must update it using the UI.
   This prerequisite concerns only the full control loop mode.
 
-- The data of an available blueprint instance for validation (i.e. version and layer) is stored in the mariadb database (look at the Database subsection). This data is automatically updated by the UI using info from Nexus. If a blueprint owner's is not satisfied with this info, he/her must update it using the UI.
+- The data of an available blueprint instance for validation (i.e. version and layer) is stored in the mysql database (look at the Database subsection). This data is automatically updated by the UI using info from Nexus. If a blueprint owner's is not satisfied with this info, he/her must update it using the UI.
   This prerequisite concerns only the full control loop mode.
 
 - A Jenkins instance exists capable of executing blueprint validation tests on the specified lab and storing the results to Nexus server (look at the Jenkins configuration subsection).
@@ -161,73 +161,73 @@ Install mySQL client:
 
 - Database
 
-A mariadb database instance is needed for both modes of the UI with the appropriate databases and tables in order for the back-end system to store and retrieve data.
+A mysql database instance is needed for both modes of the UI with the appropriate databases and tables in order for the back-end system to store and retrieve data.
 
 The pom.xml file supports the creation of an appropriate docker image for development purposes. The initialization scripts reside under the db-scripts directory.
 
-Also, a script has been developed, namely validation/docker/mariadb/deploy.sh which easily deploys the container. This script accepts the following items as input parameters:
+Also, a script has been developed, namely validation/docker/mysql/deploy.sh which easily deploys the container. This script accepts the following items as input parameters:
 
-CONTAINER_NAME, name of the container, default value is akraino-validation-mariadb
-MARIADB_ROOT_PASSWORD, the desired mariadb root user password, this variable is required
-MARIADB_AKRAINO_PASSWORD, the desired mariadb akraino user password, this variable is required
-REGISTRY, registry of the mariadb image, default value is akraino
-NAME, name of the mariadb image, default value is validation
-TAG_PRE, first part of the image version, default value is mariadb
+CONTAINER_NAME, name of the container, default value is akraino-validation-mysql
+MYSQL_ROOT_PASSWORD, the desired mysql root user password, this variable is required
+MYSQL_AKRAINO_PASSWORD, the desired mysql akraino user password, this variable is required
+REGISTRY, registry of the mysql image, default value is akraino
+NAME, name of the mysql image, default value is validation
+TAG_PRE, first part of the image version, default value is mysql
 TAG_VER, last part of the image version, default value is latest
-MARIADB_HOST_PORT, port on which mariadb is exposed on host, default value is 3307
+MYSQL_HOST_PORT, port on which mysql is exposed on host, default value is 3307
 
 Currently, two users are supported by the UI, namely admin (full privileges) and akraino (limited privileges). Their passwords are changed and stored at UI deployment (refer to UI deployment section).
 
 In order to build and deploy the image using only the required parameters, the below instructions should be followed:
 
-The mariadb root password, mariadb akraino user password (currently the UI connects to the database using the akraino user), the UI admin password and the UI akraino password should be configured using the appropriate variables and the following commands should be executed:
+The mysql root password, mysql akraino user password (currently the UI connects to the database using the akraino user), the UI admin password and the UI akraino password should be configured using the appropriate variables and the following commands should be executed:
 
 .. code-block:: console
 
     cd validation/ui
-    mvn docker:build -Ddocker.filter=akraino/validation:dev-mariadb-latest
-    cd ../docker/mariadb
-    ./deploy.sh TAG_PRE=dev-mariadb MARIADB_ROOT_PASSWORD=<mariadb root user password> MARIADB_AKRAINO_PASSWORD=<mariadb akraino user password>
-    mysql -p<MARIADB_AKRAINO_PASSWORD> -uakraino -h <IP of the mariadb container> < ../../ui/db-scripts/examples/initialize_db_example.sql
+    mvn docker:build -Ddocker.filter=akraino/validation:dev-mysql-latest
+    cd ../docker/mysql
+    ./deploy.sh TAG_PRE=dev-mysql MYSQL_ROOT_PASSWORD=<mysql root user password> MYSQL_AKRAINO_PASSWORD=<mysql akraino user password>
+    mysql -p<MYSQL_AKRAINO_PASSWORD> -uakraino -h <IP of the mysql container> < ../../ui/db-scripts/examples/initialize_db_example.sql
 
-In order to retrieve the IP of the mariadb container, the following command should be executed:
+In order to retrieve the IP of the mysql container, the following command should be executed:
 
 .. code-block:: console
 
-    docker inspect <name of the mariadb container>
+    docker inspect <name of the mysql container>
 
-Furthermore, the TAG_PRE variable should be defined because the default value is 'mariadb' (note that the 'dev-mariadb' is used for development purposes - look at pom.xml file).
+Furthermore, the TAG_PRE variable should be defined because the default value is 'mysql' (note that the 'dev-mysql' is used for development purposes - look at pom.xml file).
 
-If the database must be re-deployed (it is assumed that the corresponding mariadb container has been stopped and deleted) while the persistent storage already exists (currently, the 'akraino-validation-mariadb' docker volume is used), a different approach should be used after the image building process.
+If the database must be re-deployed (it is assumed that the corresponding mysql container has been stopped and deleted) while the persistent storage already exists (currently, the 'akraino-validation-mysql' docker volume is used), a different approach should be used after the image building process.
 
-To this end, another script has been developed, namely validation/docker/mariadb/deploy_with_existing_storage.sh which easily deploys the container. This script accepts the following as input parameters:
+To this end, another script has been developed, namely validation/docker/mysql/deploy_with_existing_storage.sh which easily deploys the container. This script accepts the following as input parameters:
 
-CONTAINER_NAME, the name of the container, default value is akraino-validation-mariadb
-REGISTRY, the registry of the mariadb image, default value is akraino
-NAME, the name of the mariadb image, default value is validation
-TAG_PRE, the first part of the image version, default value is mariadb
+CONTAINER_NAME, the name of the container, default value is akraino-validation-mysql
+REGISTRY, the registry of the mysql image, default value is akraino
+NAME, the name of the mysql image, default value is validation
+TAG_PRE, the first part of the image version, default value is mysql
 TAG_VER, the last part of the image version, default value is latest
-MARIADB_HOST_PORT, the port on which mariadb is exposed on host, default value is 3307
+MYSQL_HOST_PORT, the port on which mysql is exposed on host, default value is 3307
 
 In order to deploy the image using only the required parameters and the existing persistent storage, the below instructions should be followed:
 
-The mariadb root user password should be configured using the appropriate variable and the following commands should be executed:
+The mysql root user password should be configured using the appropriate variable and the following commands should be executed:
 
 .. code-block:: console
 
-    cd validation/docker/mariadb
-    ./deploy_with_existing_persistent_storage.sh TAG_PRE=dev-mariadb
+    cd validation/docker/mysql
+    ./deploy_with_existing_persistent_storage.sh TAG_PRE=dev-mysql
 
-Finally, if the database must be re-deployed (it is assumed that the corresponding mariadb container has been stopped and deleted) and the old persistent storage must be deleted, the used docker volume should be first deleted (note that all database's data will be lost).
+Finally, if the database must be re-deployed (it is assumed that the corresponding mysql container has been stopped and deleted) and the old persistent storage must be deleted, the used docker volume should be first deleted (note that all database's data will be lost).
 
 To this end, after the image build process, the following commands should be executed:
 
 .. code-block:: console
 
-    docker volume rm akraino-validation-mariadb
-    cd validation/docker/mariadb
-    ./deploy.sh TAG_PRE=dev-mariadb MARIADB_ROOT_PASSWORD=<root user password> MARIADB_AKRAINO_PASSWORD=<mariadb akraino user password>
-    mysql -p<MARIADB_AKRAINO_PASSWORD> -uakraino -h <IP of the mariadb container> < ../../ui/db-scripts/examples/initialize_db_example.sql
+    docker volume rm akraino-validation-mysql
+    cd validation/docker/mysql
+    ./deploy.sh TAG_PRE=dev-mysql MYSQL_ROOT_PASSWORD=<root user password> MYSQL_AKRAINO_PASSWORD=<mysql akraino user password>
+    mysql -p<MYSQL_AKRAINO_PASSWORD> -uakraino -h <IP of the mysql container> < ../../ui/db-scripts/examples/initialize_db_example.sql
 
 In the context of the UI application, the following tables exist in the database:
 
@@ -246,7 +246,7 @@ An example of data initialization is stored in the following file:
 
     db-scripts/examples/initialize_db_example.sql
 
-That is the reason why the command 'mysql -p<MARIADB_AKRAINO_PASSWORD> -uakraino -h <IP of the mariadb container> < ../../ui/db-scripts/examples/initialize_db_example.sql' has been used previously.
+That is the reason why the command 'mysql -p<MYSQL_AKRAINO_PASSWORD> -uakraino -h <IP of the mysql container> < ../../ui/db-scripts/examples/initialize_db_example.sql' has been used previously.
 
 Some of this data is illustrated below:
 
@@ -295,7 +295,7 @@ Then, the following command should be executed:
 
 .. code-block:: console
 
-    mysql -p<MARIADB_AKRAINO_PASSWORD> -uakraino -h <IP of the mariadb container> < ./dbscript.sql
+    mysql -p<MYSQL_AKRAINO_PASSWORD> -uakraino -h <IP of the mysql container> < ./dbscript.sql
 
 For example, if a user wants to define a new timeslot with the following data:
 
@@ -315,7 +315,7 @@ Then, the following command should be executed:
 
 .. code-block:: console
 
-    mysql -p<MARIADB_AKRAINO_PASSWORD> -uakraino -h <IP of the mariadb container> < ./dbscript.sql
+    mysql -p<MYSQL_AKRAINO_PASSWORD> -uakraino -h <IP of the mysql container> < ./dbscript.sql
 
 Furthermore, if a user wants to define a new blueprint, namely "newBlueprint", and an instance of this blueprint with version "master" and layer "k8s" and assign a timeslot to it, the following file should be created:
 
@@ -333,7 +333,7 @@ Then, the following command should be executed:
 
 .. code-block:: console
 
-    mysql -p<MARIADB_AKRAINO_PASSWORD> -uakraino -h <IP of the mariadb container> < ./dbscript.sql
+    mysql -p<MYSQL_AKRAINO_PASSWORD> -uakraino -h <IP of the mysql container> < ./dbscript.sql
 
 The UI will automatically retrieve this new data and display it to the user.
 
@@ -393,11 +393,11 @@ In order to build the image, the following commands should be executed:
 
 Also, a script has been developed, namely validation/docker/ui/deploy.sh which easily deploys the container. This script accepts the following as input parameters:
 
-CONTAINER_NAME, the name of the contaner, default value is akraino-validation-ui
-DB_IP_PORT, the IP and port of the maridb instance, this variable is required
-MARIADB_AKRAINO_PASSWORD, the mariadb akraino user password, this variable is required
-REGISTRY, the registry of the mariadb image, default value is akraino
-NAME, the name of the mariadb image, default value is validation
+CONTAINER_NAME, the name of the container, default value is akraino-validation-ui
+DB_IP_PORT, the IP and port of the mysql instance, this variable is required
+MYSQL_AKRAINO_PASSWORD, the mysql akraino user password, this variable is required
+REGISTRY, the registry of the ui image, default value is akraino
+NAME, the name of the ui image, default value is validation
 TAG_PRE, the first part of the image version, default value is ui
 TAG_VER, the last part of the image version, default value is latest
 JENKINS_URL, the URL of the Jenkins instance (http or https must be defined), the default value is 'https://jenkins.akraino.org/'
@@ -413,7 +413,7 @@ UI_AKRAINO_PASSWORD, the desired Blueprint Validation UI password for the akrain
 
 So, for a functional UI, the following prerequisites are needed:
 
-- The mariadb container in up and running state
+- The mysql container in up and running state
 - A Jenkins instance capable of running the blueprint validation test (this is optional and is needed only for UI full control loop mode)
 - A Nexus repo in which all the test results are stored.
 
@@ -421,7 +421,7 @@ Then, the following commands can be executed in order to deploy the UI container
 
 .. code-block:: console
     cd ../docker/ui
-    ./deploy.sh TAG_PRE=dev-ui DB_IP_PORT=<IP and port of the mariadb> MARIADB_AKRAINO_PASSWORD=<mariadb akraino password> ENCRYPTION_KEY=<encryption key> UI_ADMIN_PASSWORD=<UI admin user password> UI_AKRAINO_PASSWORD=<UI akraino user password>
+    ./deploy.sh TAG_PRE=dev-ui DB_IP_PORT=<IP and port of the mysql> MYSQL_AKRAINO_PASSWORD=<mysql akraino password> ENCRYPTION_KEY=<encryption key> UI_ADMIN_PASSWORD=<UI admin user password> UI_AKRAINO_PASSWORD=<UI akraino user password>
 
 The content of the DB_IP_PORT can be for example '172.17.0.3:3306'. Also, the value of the encryption key can be for example 'AGADdG4D04BKm2IxIWEr8o=='.
 

@@ -18,7 +18,7 @@ FROM alpine:latest
 RUN apk --no-cache add --update git
 RUN git clone https://gerrit.akraino.org/r/validation /opt/akraino/validation
 
-FROM mariadb:10.4.6
+FROM mysql:5.6
 COPY --from=0 /opt/akraino/validation/ui/db-scripts/EcompSdkDDLMySql_2_4_Common.sql /docker-entrypoint-initdb.d
 COPY --from=0 /opt/akraino/validation/ui/db-scripts/EcompSdkDDLMySql_2_4_OS.sql /docker-entrypoint-initdb.d
 COPY --from=0 /opt/akraino/validation/ui/db-scripts/EcompSdkDMLMySql_2_4_Common.sql /docker-entrypoint-initdb.d

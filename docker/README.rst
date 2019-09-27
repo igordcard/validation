@@ -76,36 +76,36 @@ stored on the local server.
 By default, the container will run the k8s conformance test. If you want to
 enter the container, add */bin/sh* at the end of the command above
 
-The mariadb container
+The mysql container
 =====================
 
 Building and pushing the container
 ----------------------------------
 
-To build just the mariadb container, use the command:
+To build just the mysql container, use the command:
 
 .. code-block:: console
 
-   make mariadb-build [ REGISTRY=<dockerhub_registry> NAME=<image_name>]
+   make mysql-build [ REGISTRY=<dockerhub_registry> NAME=<image_name>]
 
 To both build and push the container, use the command:
 
 .. code-block:: console
 
-   make mariadb [ REGISTRY=<dockerhub_registry> NAME=<image_name>]
+   make mysql [ REGISTRY=<dockerhub_registry> NAME=<image_name>]
 
 Using the container
 -------------------
 In order for the container to be easily created, the deploy.sh script has been developed. This script accepts the following as input parameters:
 
-CONTAINER_NAME, name of the container, default value is akraino-validation-mariadb
-MARIADB_ROOT_PASSWORD, the desired mariadb root user password, this variable is required
-MARIADB_AKRAINO_PASSWORD, the desired mariadb akraino user password, this variable is required
-REGISTRY, registry of the mariadb image, default value is akraino
-NAME, name of the mariadb image, default value is validation
-TAG_PRE, first part of the image version, default value is mariadb
+CONTAINER_NAME, name of the container, default value is akraino-validation-mysql
+MYSQL_ROOT_PASSWORD, the desired mysql root user password, this variable is required
+MYSQL_AKRAINO_PASSWORD, the desired mysql akraino user password, this variable is required
+REGISTRY, registry of the mysql image, default value is akraino
+NAME, name of the mysql image, default value is validation
+TAG_PRE, first part of the image version, default value is mysql
 TAG_VER, last part of the image version, default value is latest
-MARIADB_HOST_PORT, port on which mariadb is exposed on host, default value is 3307
+MYSQL_HOST_PORT, port on which mysql is exposed on host, default value is 3307
 
 In order to deploy the container, this script can be executed with the appropriate parameters.
 
@@ -113,19 +113,19 @@ Example (assuming the default variables have been utilized for building the imag
 
 .. code-block:: console
 
-    cd validation/docker/mariadb
-    ./deploy.sh MARIADB_ROOT_PASSWORD=root_password MARIADB_AKRAINO_PASSWORD=akraino_password
+    cd validation/docker/mysql
+    ./deploy.sh MYSQL_ROOT_PASSWORD=root_password MYSQL_AKRAINO_PASSWORD=akraino_password
 
-Also, in order to re-deploy the database (it is assumed that the corresponding mariadb container has been stopped and deleted) while the persistent storage already exists (currently, the directory /var/lib/mariadb of the host is used), a different approach should be used after the image build process.
+Also, in order to re-deploy the database (it is assumed that the corresponding mysql container has been stopped and deleted) while the persistent storage already exists (currently, the 'akraino-validation-mysql' docker volume is used), a different approach should be used after the image building process.
 
 To this end, another script has been developed, namely deploy_with_existing_storage.sh which easily deploys the container. This script accepts the following items as input parameters:
 
-CONTAINER_NAME, the name of the container, default value is akraino-validation-mariadb
-REGISTRY, the registry of the mariadb image, default value is akraino
-NAME, the name of the mariadb image, default value is validation
-TAG_PRE, the first part of the image version, default value is mariadb
+CONTAINER_NAME, the name of the container, default value is akraino-validation-mysql
+REGISTRY, the registry of the mysql image, default value is akraino
+NAME, the name of the mysql image, default value is validation
+TAG_PRE, the first part of the image version, default value is mysql
 TAG_VER, the last part of the image version, default value is latest
-MARIADB_HOST_PORT, the port on which mariadb is exposed on host, default value is 3307
+MYSQL_HOST_PORT, the port on which mysql is exposed on host, default value is 3307
 
 In order to deploy the container, this script can be executed with the appropriate parameters.
 
@@ -133,7 +133,7 @@ Example (assuming the default variables have been utilized for building the imag
 
 .. code-block:: console
 
-    cd validation/docker/mariadb
+    cd validation/docker/mysql
     ./deploy_with_existing_persistent_storage.sh
 
 More info can be found at the UI README file.
@@ -161,10 +161,10 @@ Using the container
 In order for the container to be easily created, the deploy.sh script has been developed. This script accepts the following as input parameters:
 
 CONTAINER_NAME, the name of the contaner, default value is akraino-validation-ui
-DB_IP_PORT, the IP and port of the maridb instance, this variable is required
-MARIADB_AKRAINO_PASSWORD, the mariadb akraino user password, this variable is required
-REGISTRY, the registry of the mariadb image, default value is akraino
-NAME, the name of the mariadb image, default value is validation
+DB_IP_PORT, the IP and port of the mysql instance, this variable is required
+MYSQL_AKRAINO_PASSWORD, the mysql akraino user password, this variable is required
+REGISTRY, the registry of the mysql image, default value is akraino
+NAME, the name of the mysql image, default value is validation
 TAG_PRE, the first part of the image version, default value is ui
 TAG_VER, the last part of the image version, default value is latest
 JENKINS_URL, the URL of the Jenkins instance (http or https must be defined), the default value is 'https://jenkins.akraino.org/'
@@ -180,7 +180,7 @@ UI_AKRAINO_PASSWORD, the desired Blueprint Validation UI password for the akrain
 
 Note that, for a functional UI, the following prerequisites are needed:
 
-- The mariadb container in up and running state
+- The mysql container in up and running state
 - A Jenkins instance capable of running the blueprint validation test (this is optional and is needed only for UI full control loop mode)
 - A Nexus repo in which all the test results are stored.
 
@@ -193,7 +193,7 @@ Example (assuming the default variables have been utilized for building the imag
 .. code-block:: console
 
     cd validation/docker/ui
-    ./deploy.sh DB_IP_PORT=172.17.0.3:3306 MARIADB_AKRAINO_PASSWORD=akraino_password ENCRYPTION_KEY=AGADdG4D04BKm2IxIWEr8o== UI_ADMIN_PASSWORD=admin UI_AKRAINO_PASSWORD=akraino
+    ./deploy.sh DB_IP_PORT=172.17.0.3:3306 MYSQL_AKRAINO_PASSWORD=akraino_password ENCRYPTION_KEY=AGADdG4D04BKm2IxIWEr8o== UI_ADMIN_PASSWORD=admin UI_AKRAINO_PASSWORD=akraino
 
 The kube-conformance container
 ==============================

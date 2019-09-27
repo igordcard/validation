@@ -24,7 +24,7 @@ NAME=validation
 TAG_PRE=ui
 TAG_VER=latest
 # Container input parameters
-MARIADB_AKRAINO_PASSWORD=""
+MYSQL_AKRAINO_PASSWORD=""
 JENKINS_URL="https://jenkins.akraino.org/"
 JENKINS_USERNAME="demo"
 JENKINS_USER_PASSWORD="demo"
@@ -46,7 +46,7 @@ do
             NAME)    NAME=${VALUE} ;;
             TAG_PRE)    TAG_PRE=${VALUE} ;;
             TAG_VER)    TAG_VER=${VALUE} ;;
-            MARIADB_AKRAINO_PASSWORD)    MARIADB_AKRAINO_PASSWORD=${VALUE} ;;
+            MYSQL_AKRAINO_PASSWORD)    MYSQL_AKRAINO_PASSWORD=${VALUE} ;;
             JENKINS_URL)    JENKINS_URL=${VALUE} ;;
             JENKINS_USERNAME)    JENKINS_USERNAME=${VALUE} ;;
             JENKINS_USER_PASSWORD)    JENKINS_USER_PASSWORD=${VALUE} ;;
@@ -69,9 +69,9 @@ if [ -z "$DB_IP_PORT" ]
     exit 1
 fi
 
-if [ -z "$MARIADB_AKRAINO_PASSWORD" ]
+if [ -z "$MYSQL_AKRAINO_PASSWORD" ]
   then
-    echo "ERROR: You must specify the mariadb akraino user password"
+    echo "ERROR: You must specify the mysql akraino user password"
     exit 1
 fi
 
@@ -94,5 +94,5 @@ if [ -z "$UI_AKRAINO_PASSWORD" ]
 fi
 
 IMAGE="$REGISTRY"/"$NAME":"$TAG_PRE"-"$TAG_VER"
-docker run --detach --name $CONTAINER_NAME --network="host" -v "$(pwd)/server.xml:/usr/local/tomcat/conf/server.xml" -v "$CERTDIR/bluval.key:/usr/local/tomcat/bluval.key" -v "$CERTDIR/bluval.crt:/usr/local/tomcat/bluval.crt" -v "$(pwd)/root_index.jsp:/usr/local/tomcat/webapps/ROOT/index.jsp" -e DB_IP_PORT="$DB_IP_PORT" -e MARIADB_AKRAINO_PASSWORD="$MARIADB_AKRAINO_PASSWORD" -e JENKINS_URL="$JENKINS_URL" -e JENKINS_USERNAME="$JENKINS_USERNAME" -e JENKINS_USER_PASSWORD="$JENKINS_USER_PASSWORD" -e JENKINS_JOB_NAME="$JENKINS_JOB_NAME" -e NEXUS_PROXY="$NEXUS_PROXY" -e JENKINS_PROXY="$JENKINS_PROXY" -e ENCRYPTION_KEY="$ENCRYPTION_KEY" -e UI_ADMIN_PASSWORD="$UI_ADMIN_PASSWORD" -e UI_AKRAINO_PASSWORD="$UI_AKRAINO_PASSWORD" $IMAGE
+docker run --detach --name $CONTAINER_NAME --network="host" -v "$(pwd)/server.xml:/usr/local/tomcat/conf/server.xml" -v "$CERTDIR/bluval.key:/usr/local/tomcat/bluval.key" -v "$CERTDIR/bluval.crt:/usr/local/tomcat/bluval.crt" -v "$(pwd)/root_index.jsp:/usr/local/tomcat/webapps/ROOT/index.jsp" -e DB_IP_PORT="$DB_IP_PORT" -e MYSQL_AKRAINO_PASSWORD="$MYSQL_AKRAINO_PASSWORD" -e JENKINS_URL="$JENKINS_URL" -e JENKINS_USERNAME="$JENKINS_USERNAME" -e JENKINS_USER_PASSWORD="$JENKINS_USER_PASSWORD" -e JENKINS_JOB_NAME="$JENKINS_JOB_NAME" -e NEXUS_PROXY="$NEXUS_PROXY" -e JENKINS_PROXY="$JENKINS_PROXY" -e ENCRYPTION_KEY="$ENCRYPTION_KEY" -e UI_ADMIN_PASSWORD="$UI_ADMIN_PASSWORD" -e UI_AKRAINO_PASSWORD="$UI_AKRAINO_PASSWORD" $IMAGE
 sleep 10

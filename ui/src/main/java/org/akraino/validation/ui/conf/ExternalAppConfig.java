@@ -113,10 +113,10 @@ public class ExternalAppConfig extends AppConfig implements Configurable {
         ComboPooledDataSource dataSource = new ComboPooledDataSource();
         try {
             dataSource.setDriverClass(SystemProperties.getProperty(SystemProperties.DB_DRIVER));
-            dataSource.setJdbcUrl("jdbc:mariadb://" + System.getenv("DB_IP_PORT") + "/"
+            dataSource.setJdbcUrl("jdbc:mysql://" + System.getenv("DB_IP_PORT") + "/"
                     + PortalApiProperties.getProperty("akraino_database_name"));
             dataSource.setUser(SystemProperties.getProperty(SystemProperties.DB_USERNAME));
-            String password = System.getenv("MARIADB_AKRAINO_PASSWORD");
+            String password = System.getenv("MYSQL_AKRAINO_PASSWORD");
             if (SystemProperties.containsProperty(SystemProperties.DB_ENCRYPT_FLAG)) {
                 String encryptFlag = SystemProperties.getProperty(SystemProperties.DB_ENCRYPT_FLAG);
                 if (encryptFlag != null && encryptFlag.equalsIgnoreCase("true")) {

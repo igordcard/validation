@@ -31,8 +31,8 @@ DROP TABLE IF EXISTS lab;
 
 create table lab (
    id bigint not NULL AUTO_INCREMENT,
-   lab text not NULL unique,
-   silo text not NULL unique,
+   lab varchar(255) not NULL unique,
+   silo varchar(255) not NULL unique,
    CONSTRAINT id_pk PRIMARY KEY (id)
 );
 
@@ -50,14 +50,14 @@ create table timeslot (
 CREATE TABLE blueprint
 (
    id bigint not NULL AUTO_INCREMENT,
-   blueprint_name varchar(20) not NULL unique,
+   blueprint_name varchar(255) not NULL unique,
    CONSTRAINT id_pk PRIMARY KEY (id)
 );
 
 CREATE TABLE blueprint_layer
 (
    id bigint not NULL AUTO_INCREMENT,
-   layer text not NULL unique,
+   layer varchar(255) not NULL unique,
    CONSTRAINT id_pk PRIMARY KEY (id)
 );
 
@@ -65,7 +65,7 @@ CREATE TABLE blueprint_instance
 (
    id bigint not NULL AUTO_INCREMENT,
    blueprint_id bigint not NULL,
-   version text not NULL,
+   version varchar(255) not NULL,
    CONSTRAINT id_pk PRIMARY KEY (id),
    CONSTRAINT blueprint_id_fk FOREIGN KEY (blueprint_id)
       REFERENCES blueprint (id) MATCH SIMPLE
@@ -116,7 +116,7 @@ CREATE TABLE validation_test_result
    blueprint_instance_id bigint not NULL,
    all_layers boolean,
    lab_id bigint not NULL,
-   timestamp text,
+   timestamp varchar(255),
    optional boolean,
    result boolean,
    submission_id bigint,
@@ -137,7 +137,7 @@ CREATE TABLE validation_test_result
 CREATE TABLE w_robot_test_result
 (
    id bigint not NULL AUTO_INCREMENT,
-   layer text not NULL,
+   layer varchar(255) not NULL,
    validation_test_result_id bigint not NULL,
    robot_test_results LONGTEXT,
    CONSTRAINT id_pk PRIMARY KEY (id),

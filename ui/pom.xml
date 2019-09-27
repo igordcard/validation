@@ -14,7 +14,7 @@
 
     <groupId>org.akraino.validation</groupId>
     <artifactId>ui</artifactId>
-    <version>0.4.0-SNAPSHOT</version>
+    <version>0.4.1-SNAPSHOT</version>
     <name>Bluval UI Maven Webapp</name>
     <packaging>war</packaging>
 
@@ -52,6 +52,7 @@
         <tomcat.download.path>http://archive.apache.org/dist/tomcat/tomcat-8/v8.0.37/bin</tomcat.download.path>
         <tomcat.download.name>apache-tomcat-8.0.37</tomcat.download.name>
         <maven-assembly-plugin.version>3.0.0</maven-assembly-plugin.version>
+        <mysql-connector.version>8.0.17</mysql-connector.version>
     </properties>
 
     <repositories>
@@ -168,9 +169,9 @@
                             </build>
                         </image>
                         <image>
-                            <name>akraino/validation:dev-mariadb-latest</name>
+                            <name>akraino/validation:dev-mysql-latest</name>
                             <build>
-                                <from>mariadb:10.4.6</from>
+                                <from>mysql:5.6</from>
                                 <assembly>
                                     <descriptorRef>project</descriptorRef>
                                 </assembly>
@@ -372,6 +373,11 @@
             <groupId>commons-httpclient</groupId>
             <artifactId>commons-httpclient</artifactId>
             <version>${commons-httpclient.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>mysql</groupId>
+            <artifactId>mysql-connector-java</artifactId>
+            <version>${mysql-connector.version}</version>
         </dependency>
 
     </dependencies>

@@ -207,3 +207,12 @@ All notable changes to this project will be documented in this file.
 ### Changed
 
 ### Removed
+
+## [0.4.1-SNAPSHOT] - 27 September 2019
+### Added
+- Contact us and support URLs have been set to null
+
+### Changed
+- MariaDB has been substituted with MySQL
+
+### Removed
