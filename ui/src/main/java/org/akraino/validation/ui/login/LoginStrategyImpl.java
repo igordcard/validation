@@ -65,6 +65,7 @@ public class LoginStrategyImpl extends LoginStrategy {
         LoginBean commandBean = new LoginBean();
         String loginId = request.getParameter("loginId");
         String password = request.getParameter("password");
+        String redirectUrl = request.getParameter("redirectUrl");
         commandBean.setLoginId(loginId);
         commandBean.setLoginPwd(password);
         commandBean.setUserid(loginId);
@@ -77,15 +78,25 @@ public class LoginStrategyImpl extends LoginStrategy {
                     : "login.error.external.invalid";
             Map<String, String> model = new HashMap<>();
             model.put("error", loginErrorMessage);
-            return new ModelAndView("login_external", "model", model);
+            if (redirectUrl == null || redirectUrl.equals("")) {
+                return new ModelAndView("login_external", "model", model);
+            } else {
+                return new ModelAndView(
+                        "redirect:login_external.htm?redirectUrl=" + request.getParameter("redirectUrl"));
+            }
         } else {
             // store the currently logged in user's information in the session
             UserUtils.setUserSession(request, commandBean.getUser(), commandBean.getMenu(),
                     commandBean.getBusinessDirectMenu(),
                     SystemProperties.getProperty(SystemProperties.LOGIN_METHOD_BACKDOOR), roleFunctionList);
             initateSessionMgtHandler(request);
-            // user has been authenticated, now take them to the welcome page
-            return new ModelAndView("redirect:welcome.htm");
+            // user has been authenticated, now take them to the welcome or redirection page
+            if (redirectUrl == null || redirectUrl.equals("")) {
+                return new ModelAndView("redirect:welcome.htm");
+            } else {
+                return new ModelAndView("redirect:"
+                        + redirectUrl.substring(redirectUrl.lastIndexOf("/bluvalui/") + 10, redirectUrl.length()));
+            }
         }
     }
 
@@ -97,6 +108,7 @@ public class LoginStrategyImpl extends LoginStrategy {
         LoginBean commandBean = new LoginBean();
         String loginId = request.getParameter("loginId");
         String password = request.getParameter("password");
+        String redirectUrl = request.getParameter("redirectUrl");
         commandBean.setLoginId(loginId);
         commandBean.setLoginPwd(password);
         commandBean.setUserid(loginId);
@@ -113,15 +125,25 @@ public class LoginStrategyImpl extends LoginStrategy {
                                 : "login.error.external.invalid";
                         Map<String, String> model = new HashMap<>();
                         model.put("error", loginErrorMessage);
-                        return new ModelAndView("login_external", "model", model);
+                        if (redirectUrl == null || redirectUrl.equals("")) {
+                            return new ModelAndView("login_external", "model", model);
+                        } else {
+                            return new ModelAndView(
+                                    "redirect:login_external.htm?redirectUrl=" + request.getParameter("redirectUrl"));
+                        }
             } else {
                 // store the currently logged in user's information in the session
                 UserUtils.setUserSession(request, commandBean.getUser(), commandBean.getMenu(),
                         commandBean.getBusinessDirectMenu(),
                         SystemProperties.getProperty(SystemProperties.LOGIN_METHOD_BACKDOOR), roleFunctionList);
                 initateSessionMgtHandler(request);
-                // user has been authenticated, now take them to the welcome page
-                return new ModelAndView("redirect:welcome");
+                // user has been authenticated, now take them to the welcome or redirection page
+                if (redirectUrl == null || redirectUrl.equals("")) {
+                    return new ModelAndView("redirect:welcome.htm");
+                } else {
+                    return new ModelAndView("redirect:"
+                            + redirectUrl.substring(redirectUrl.lastIndexOf("/bluvalui/") + 10, redirectUrl.length()));
+                }
             }
         } catch (CipherUtilException e) {
             LOGGER.error(EELFLoggerDelegate.errorLogger, "Error in Cipher." + UserUtils.getStackTrace(e));
@@ -130,8 +152,13 @@ public class LoginStrategyImpl extends LoginStrategy {
                     commandBean.getBusinessDirectMenu(),
                     SystemProperties.getProperty(SystemProperties.LOGIN_METHOD_BACKDOOR), roleFunctionList);
             initateSessionMgtHandler(request);
-            // user has been authenticated, now take them to the welcome page
-            return new ModelAndView("redirect:welcome");
+            // user has been authenticated, now take them to the welcome or redirection page
+            if (redirectUrl == null || redirectUrl.equals("")) {
+                return new ModelAndView("redirect:welcome.htm");
+            } else {
+                return new ModelAndView("redirect:"
+                        + redirectUrl.substring(redirectUrl.lastIndexOf("/bluvalui/") + 10, redirectUrl.length()));
+            }
         }
     }
 

@@ -169,7 +169,7 @@ public class ExternalAppConfig extends AppConfig implements Configurable {
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
         super.setExcludeUrlPathsForSessionTimeout("/login_external", "*/login_external.htm", "login", "/login.htm",
-                "/api*", "/single_signon.htm", "/single_signon", "logout", "/logout.htm");
+                "/api*", "/single_signon.htm", "/single_signon", "logout", "/logout.htm", "/process_csp");
         super.addInterceptors(registry);
     }
 
