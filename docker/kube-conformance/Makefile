@@ -23,9 +23,12 @@ export TAG_VER?=v$(KUBE_VERSION)
 	$(MAKE) -C $(TAG_PRE) e2e.test kubectl ginkgo
 
 .PHONY: all
-all: .push_image .push_manifest
+all: push-image .push_manifest
 
 .PHONY: build
 build: .build
+
+.PHONY: push-image
+push-image: .push_image
 
 include ../build.mk

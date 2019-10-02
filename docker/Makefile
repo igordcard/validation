@@ -38,6 +38,6 @@ $(SUBDIRS_BUILD):
 
 .PHONY: $(SUBDIRS_PUSH)
 $(SUBDIRS_PUSH):
-	$(MAKE) -C $(@:-push=) .push_image
+	$(MAKE) -C $(@:-push=) push-image
 
 include build.mk

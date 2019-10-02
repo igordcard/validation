@@ -54,7 +54,7 @@ $(MTOOL):
 		.
 
 .PHONY: .push_image
-.push_image:: .build
+.push_image: .build
 	docker push $(REGISTRY)/$(NAME):$(TAG_PRE)-$(HOST_ARCH)-$(TAG_VER)
 
 .PHONY: .push_manifest
