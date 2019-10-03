@@ -224,3 +224,12 @@ All notable changes to this project will be documented in this file.
 - Redirection bug during session timeouts and unauthorized accesses of resources fixed.
 
 ### Removed
+
+## [0.4.3-SNAPSHOT] - 3 October 2019
+### Added
+- Full CRUD operations on user data structure is supported.
+
+### Changed
+- 'akraino' database has been renamed to 'akraino_bluvalui'
+
+### Removed

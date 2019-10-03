@@ -20,9 +20,9 @@
 
 SET FOREIGN_KEY_CHECKS=1;
 
-CREATE DATABASE IF NOT EXISTS akraino;
+CREATE DATABASE IF NOT EXISTS akraino_bluvalui;
 
-USE akraino;
+USE akraino_bluvalui;
 
 -- ---------- create table SECTION
 --

@@ -96,4 +96,7 @@ ignore = ui/src/main/webapp/app/fusion/**,
     ui/src/main/webapp/app/BluvalUI/GetLabs/GetLabs.js,
     ui/src/main/webapp/app/BluvalUI/GetLayers/GetLayers.js,
     ui/src/main/webapp/app/BluvalUI/GetTimeslots/GetTimeslots.js,
-    ui/src/main/webapp/app/BluvalUI/CreateUser/CreateUser.js
+    ui/src/main/webapp/app/BluvalUI/CreateUser/CreateUser.js,
+    ui/src/main/webapp/app/BluvalUI/GetUser/GetUser.js,
+    ui/src/main/webapp/app/BluvalUI/ResetUser/ResetUser.js,
+    ui/src/main/webapp/app/BluvalUI/UpdatePassword/UpdatePassword.js

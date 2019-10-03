@@ -176,7 +176,7 @@ TAG_PRE, first part of the image version, default value is mysql
 TAG_VER, last part of the image version, default value is latest
 MYSQL_HOST_PORT, port on which mysql is exposed on host, default value is 3307
 
-Currently, two users are supported by the UI, namely admin (full privileges) and akraino (limited privileges). Their passwords are changed and stored at UI deployment (refer to UI deployment section).
+Currently, one user is supported by the UI, namely admin (full privileges). Its password is initialized during UI deployment (refer to UI deployment section). This password can be modified using the UI. Furthermore, more users can be created/modified using the UI.
 
 In order to build and deploy the image using only the required parameters, the below instructions should be followed:
 
@@ -288,7 +288,7 @@ the following file should be created:
 name: dbscript
 content:
     SET FOREIGN_KEY_CHECKS=1;
-    use akraino;
+    use akraino_bluvalui;
     insert into lab (id, lab, silo) values(2, 'community', 'community');
 
 Then, the following command should be executed:
@@ -306,7 +306,7 @@ the following file should be created:
 name: dbscript
 content:
     SET FOREIGN_KEY_CHECKS=1;
-    use akraino;
+    use akraino_bluvalui;
     insert into timeslot values(2, 'now', null, 2);
 
 2 is the id of the community lab.
@@ -322,7 +322,7 @@ Furthermore, if a user wants to define a new blueprint, namely "newBlueprint", a
 name: dbscript
 content:
     SET FOREIGN_KEY_CHECKS=1;
-    use akraino;
+    use akraino_bluvalui;
     insert into blueprint (id, blueprint_name) values(3, 'newBlueprint');
     insert into blueprint_instance (id, blueprint_id, version) values(3, 3, 'master');
     insert into blueprint_layer (id, layer) values(4, 'k8s');
@@ -409,7 +409,6 @@ JENKINS_PROXY, the needed proxy in order for the Jenkins server to be reachable,
 CERTDIR, the directory where the SSL certificates can be found, default value is the working directory where self signed certificates exist only for demo purposes
 ENCRYPTION_KEY, the key that should be used by the AES algorithm for encrypting passwords stored in database, this variable is required
 UI_ADMIN_PASSWORD, the desired Blueprint Validation UI password for the admin user, this variable is required
-UI_AKRAINO_PASSWORD, the desired Blueprint Validation UI password for the akraino user, this variable is required
 
 So, for a functional UI, the following prerequisites are needed:
 
@@ -421,9 +420,9 @@ Then, the following commands can be executed in order to deploy the UI container
 
 .. code-block:: console
     cd ../docker/ui
-    ./deploy.sh TAG_PRE=dev-ui DB_IP_PORT=<IP and port of the mysql> MYSQL_AKRAINO_PASSWORD=<mysql akraino password> ENCRYPTION_KEY=<encryption key> UI_ADMIN_PASSWORD=<UI admin user password> UI_AKRAINO_PASSWORD=<UI akraino user password>
+    ./deploy.sh TAG_PRE=dev-ui DB_IP_PORT=<IP and port of the mysql> MYSQL_AKRAINO_PASSWORD=<mysql akraino password> ENCRYPTION_KEY=<encryption key> UI_ADMIN_PASSWORD=<UI admin user password>
 
-The content of the DB_IP_PORT can be for example '172.17.0.3:3306'. Also, the value of the encryption key can be for example 'AGADdG4D04BKm2IxIWEr8o=='.
+The content of the DB_IP_PORT can be for example '172.17.0.3:3306'. Also, the value of the encryption key can be for example 'AGADdG4D04BKm2IxIWEr8o'. Note that the symbol '=' is not recognized.
 
 Furthermore, the TAG_PRE variable should be defined as the default value is 'ui' (note that the 'dev-ui' is used for development purposes - look at pom.xml file).
 

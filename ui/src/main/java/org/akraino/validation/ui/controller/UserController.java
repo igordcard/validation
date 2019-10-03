@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
+import org.akraino.validation.ui.data.UserData;
 import org.onap.portalsdk.core.controller.RestrictedBaseController;
 import org.onap.portalsdk.core.domain.Role;
 import org.onap.portalsdk.core.domain.User;
@@ -55,26 +56,84 @@ public class UserController extends RestrictedBaseController {
         super();
     }
 
-    @RequestMapping(value = { "/" }, method = RequestMethod.POST)
-    public ResponseEntity<User> createUser(@RequestBody User user) {
+    @RequestMapping(value = { "/" }, method = RequestMethod.GET)
+    public ResponseEntity<List<User>> getUsers() {
         try {
-            return new ResponseEntity<>(createUser(user.getFirstName(), user.getLoginId(), user.getLoginPwd()),
-                    HttpStatus.OK);
+            return new ResponseEntity<>(userService.findAllActive(), HttpStatus.OK);
+        } catch (Exception e) {
+            LOGGER.error(EELFLoggerDelegate.errorLogger,
+                    "Error when trying to get users. " + UserUtils.getStackTrace(e));
+        }
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+    }
+
+    @RequestMapping(value = { "/" }, method = RequestMethod.POST)
+    public ResponseEntity<Boolean> updateUser(@RequestBody User user) {
+        try {
+            User actualUser = null;
+            List<User> actualUsers = userService.findAllActive();
+            for (User tempUser : actualUsers) {
+                if (tempUser.getLoginId().equals(user.getLoginId())) {
+                    actualUser = tempUser;
+                }
+            }
+            if (actualUser == null) {
+                throw new RuntimeException("User does not exist");
+            }
+            actualUser.setLoginPwd(CipherUtil.encryptPKC(user.getLoginPwd(), System.getenv("ENCRYPTION_KEY")));
+            userService.saveUser(actualUser);
+            return new ResponseEntity<>(true, HttpStatus.OK);
+        } catch (Exception e) {
+            LOGGER.error(EELFLoggerDelegate.errorLogger, "Update of user failed. " + UserUtils.getStackTrace(e));
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
+    }
+
+    @RequestMapping(value = { "/create" }, method = RequestMethod.POST)
+    public ResponseEntity<User> postUser(@RequestBody UserData userData) {
+        try {
+            return new ResponseEntity<>(createUser(userData.getUser(), userData.getRole()), HttpStatus.OK);
         } catch (Exception e) {
             LOGGER.error(EELFLoggerDelegate.errorLogger, "Creation of user failed. " + UserUtils.getStackTrace(e));
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
         }
     }
 
-    private User createUser(String firstName, String loginId, String loginPwd) throws IOException, CipherUtilException {
+    @RequestMapping(value = { "/updatepassword" }, method = RequestMethod.POST)
+    public ResponseEntity<Boolean> updatePassword(@RequestBody UserData userData) {
+        try {
+            User actualUser = null;
+            List<User> actualUsers = userService.findAllActive();
+            for (User tempUser : actualUsers) {
+                if (tempUser.getLoginId().equals(userData.getUser().getLoginId())) {
+                    actualUser = tempUser;
+                }
+            }
+            if (actualUser == null) {
+                throw new RuntimeException("User does not exist");
+            }
+            if (!CipherUtil.decryptPKC(actualUser.getLoginPwd(), System.getenv("ENCRYPTION_KEY"))
+                    .equals(userData.getUser().getLoginPwd())) {
+                throw new RuntimeException("Wrong password");
+            }
+            actualUser.setLoginPwd(CipherUtil.encryptPKC(userData.getNewPwd(), System.getenv("ENCRYPTION_KEY")));
+            userService.saveUser(actualUser);
+            return new ResponseEntity<>(true, HttpStatus.OK);
+        } catch (Exception e) {
+            LOGGER.error(EELFLoggerDelegate.errorLogger, "Creation of user failed. " + UserUtils.getStackTrace(e));
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
+    }
+
+    private User createUser(User user, String roleName) throws IOException, CipherUtilException {
         User newUser = new User();
         newUser.setActive(true);
         newUser.setCreated(new Date());
-        newUser.setFirstName(firstName);
+        newUser.setFirstName(user.getFirstName());
         newUser.setInternal(false);
-        newUser.setLoginId(loginId);
-        newUser.setOrgUserId(loginId);
-        newUser.setLoginPwd(CipherUtil.encryptPKC(loginPwd, System.getenv("ENCRYPTION_KEY")));
+        newUser.setLoginId(user.getLoginId());
+        newUser.setOrgUserId(user.getLoginId());
+        newUser.setLoginPwd(CipherUtil.encryptPKC(user.getLoginPwd(), System.getenv("ENCRYPTION_KEY")));
         newUser.setModified(new Date());
         newUser.setModifiedId(1L);
         newUser.setOnline(true);
@@ -83,13 +142,13 @@ public class UserController extends RestrictedBaseController {
         Role actualRole = null;
         List<Role> roles = roleService.getActiveRoles(null);
         for (Role role : roles) {
-            if (role.getName().equals("Blueprint Validation UI user")) {
+            if (role.getName().equals(roleName)) {
                 actualRole = role;
                 break;
             }
         }
         if (actualRole == null) {
-            throw new RuntimeException("Blueprint Validation UI user role does not exist");
+            throw new RuntimeException("User role does not exist");
         }
         SortedSet<Role> actualRoles = new TreeSet<Role>();
         actualRoles.add(actualRole);

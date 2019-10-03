@@ -5,7 +5,7 @@
 
 SET FOREIGN_KEY_CHECKS=1;
 
-USE akraino;
+USE akraino_bluvalui;
 
 -- No additional tables required at this time
 

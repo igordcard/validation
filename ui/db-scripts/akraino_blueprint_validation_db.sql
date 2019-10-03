@@ -16,7 +16,7 @@
 
 SET FOREIGN_KEY_CHECKS=1;
 
-use akraino;
+use akraino_bluvalui;
 
 DROP TABLE IF EXISTS w_robot_test_result;
 DROP TABLE IF EXISTS validation_test_result;

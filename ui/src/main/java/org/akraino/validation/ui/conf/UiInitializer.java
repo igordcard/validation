@@ -86,7 +86,7 @@ public class UiInitializer {
     }
 
     @EventListener(ContextRefreshedEvent.class)
-    public void updateUsers() throws RuntimeException, IOException, CipherUtilException {
+    public void updateAdminUser() throws RuntimeException, IOException, CipherUtilException {
         User admin = null;
         List<User> users = userService.findAllActive();
         for (User user : users) {
@@ -97,20 +97,11 @@ public class UiInitializer {
         if (admin == null) {
             throw new RuntimeException("Admin user does not exist");
         }
-        admin.setLoginPwd(CipherUtil.encryptPKC(System.getenv("UI_ADMIN_PASSWORD"), System.getenv("ENCRYPTION_KEY")));
-        userService.saveUser(admin);
-        User akraino = null;
-        for (User user : users) {
-            if (user.getLoginId().equals("akraino")) {
-                akraino = user;
-            }
+        if (admin.getLoginPwd().equals("admin_password")) {
+            admin.setLoginPwd(
+                    CipherUtil.encryptPKC(System.getenv("UI_ADMIN_PASSWORD"), System.getenv("ENCRYPTION_KEY")));
+            userService.saveUser(admin);
         }
-        if (akraino == null) {
-            throw new RuntimeException("Akraino user does not exist");
-        }
-        akraino.setLoginPwd(
-                CipherUtil.encryptPKC(System.getenv("UI_AKRAINO_PASSWORD"), System.getenv("ENCRYPTION_KEY")));
-        userService.saveUser(akraino);
     }
 
 }

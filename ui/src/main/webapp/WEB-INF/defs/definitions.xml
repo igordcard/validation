@@ -89,4 +89,13 @@
     <definition name="createuser"
         template="/app/BluvalUI/CreateUser/CreateUser.html" />
 
+    <definition name="resetuser"
+        template="/app/BluvalUI/ResetUser/ResetUser.html" />
+
+    <definition name="getuser"
+        template="/app/BluvalUI/GetUser/GetUser.html" />
+
+    <definition name="updatepassword"
+        template="/app/BluvalUI/UpdatePassword/UpdatePassword.html" />
+
 </tiles-definitions>

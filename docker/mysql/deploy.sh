@@ -62,5 +62,5 @@ fi
 
 IMAGE="$REGISTRY"/"$NAME":"$TAG_PRE"-"$TAG_VER"
 chmod 0444 "/$(pwd)/mysql.conf"
-docker run --detach --name $CONTAINER_NAME --publish $MYSQL_HOST_PORT:3306 -v $DOCKER_VOLUME_NAME:/var/lib/mysql -v "/$(pwd)/mysql.conf:/etc/mysql/conf.d/my.cnf" -e MYSQL_ROOT_PASSWORD="$MYSQL_ROOT_PASSWORD" -e MYSQL_DATABASE="akraino" -e MYSQL_USER="akraino" -e MYSQL_PASSWORD="$MYSQL_AKRAINO_PASSWORD" $IMAGE
+docker run --detach --name $CONTAINER_NAME --publish $MYSQL_HOST_PORT:3306 -v $DOCKER_VOLUME_NAME:/var/lib/mysql -v "/$(pwd)/mysql.conf:/etc/mysql/conf.d/my.cnf" -e MYSQL_ROOT_PASSWORD="$MYSQL_ROOT_PASSWORD" -e MYSQL_DATABASE="akraino_bluvalui" -e MYSQL_USER="akraino" -e MYSQL_PASSWORD="$MYSQL_AKRAINO_PASSWORD" $IMAGE
 sleep 10

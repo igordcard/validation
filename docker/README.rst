@@ -176,7 +176,6 @@ JENKINS_PROXY, the needed proxy in order for the Jenkins server to be reachable,
 CERTDIR, the directory where the SSL certificates can be found, default value is the working directory where self signed certificates exist only for demo purposes
 ENCRYPTION_KEY, the key that should be used by the AES algorithm for encrypting passwords stored in database, this variable is required
 UI_ADMIN_PASSWORD, the desired Blueprint Validation UI password for the admin user, this variable is required
-UI_AKRAINO_PASSWORD, the desired Blueprint Validation UI password for the akraino user, this variable is required
 
 Note that, for a functional UI, the following prerequisites are needed:
 
@@ -193,7 +192,7 @@ Example (assuming the default variables have been utilized for building the imag
 .. code-block:: console
 
     cd validation/docker/ui
-    ./deploy.sh DB_IP_PORT=172.17.0.3:3306 MYSQL_AKRAINO_PASSWORD=akraino_password ENCRYPTION_KEY=AGADdG4D04BKm2IxIWEr8o== UI_ADMIN_PASSWORD=admin UI_AKRAINO_PASSWORD=akraino
+    ./deploy.sh DB_IP_PORT=172.17.0.3:3306 MYSQL_AKRAINO_PASSWORD=akraino_password ENCRYPTION_KEY=AGADdG4D04BKm2IxIWEr8o== UI_ADMIN_PASSWORD=admin
 
 The kube-conformance container
 ==============================

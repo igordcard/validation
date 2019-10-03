@@ -185,6 +185,24 @@ public class ModelsViewsController extends RestrictedBaseController {
         return new ModelAndView("redirect:login.htm?redirectUrl=" + request.getParameter("redirectUrl"));
     }
 
+    @RequestMapping(value = { "/resetuser" }, method = RequestMethod.GET)
+    public ModelAndView resetUser(HttpServletRequest request) {
+        final String defaultViewName = null;
+        return new ModelAndView(defaultViewName);
+    }
+
+    @RequestMapping(value = { "/getuser" }, method = RequestMethod.GET)
+    public ModelAndView getUser(HttpServletRequest request) {
+        final String defaultViewName = null;
+        return new ModelAndView(defaultViewName);
+    }
+
+    @RequestMapping(value = { "/updatepassword" }, method = RequestMethod.GET)
+    public ModelAndView updatePassword(HttpServletRequest request) {
+        final String defaultViewName = null;
+        return new ModelAndView(defaultViewName);
+    }
+
     @RequestMapping(value = { "/logout.htm" }, method = RequestMethod.GET)
     public ModelAndView login() {
         Map<String, Object> model = new HashMap<>();

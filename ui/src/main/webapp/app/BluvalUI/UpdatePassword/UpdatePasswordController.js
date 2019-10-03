@@ -14,48 +14,46 @@
  * limitations under the License.
  */
 
-var app = angular.module('CreateUser');
+var app = angular.module('UpdatePassword');
 app
         .controller(
-                'CreateUserController',
+                'UpdatePasswordController',
                 function($scope, restAPISvc) {
 
                     initialize();
 
                     function initialize() {
                         $scope.definedLoginId = '';
-                        $scope.definedFirstName = '';
-                        $scope.definedLoginPwd = '';
-                        $scope.roles = [ 'TSC', 'Lab Owner' ];
+                        $scope.definedOldLoginPwd = '';
+                        $scope.definedNewLoginPwd = '';
                     }
 
                     $scope.register = function() {
-                        if (!$scope.definedLoginId || !$scope.definedFirstName
-                                || !$scope.definedLoginPwd
-                                || !$scope.selectedRole) {
+                        if (!$scope.definedLoginId
+                                || !$scope.definedOldLoginPwd
+                                || !$scope.definedNewLoginPwd) {
                             confirm("You must specify all data fields");
                             return;
                         }
                         var userInfo = {
                             "loginId" : $scope.definedLoginId,
-                            "loginPwd" : $scope.definedLoginPwd,
-                            "firstName" : $scope.definedFirstName
+                            "loginPwd" : $scope.definedOldLoginPwd
                         };
                         var userData = {
                             "user" : userInfo,
-                            "role" : $scope.selectedRole
+                            "newPwd" : $scope.definedNewLoginPwd
                         };
+
                         restAPISvc
                                 .postRestAPI(
-                                        "/api/v1/user/create",
+                                        "/api/v1/user/updatepassword",
                                         userData,
                                         function(data) {
                                             if (data) {
-                                                var confirmText = "The user has been registered successfully. User id:"
-                                                        + data.id;
+                                                var confirmText = "The password has been updated successfully.";
                                                 confirm(confirmText);
                                             } else {
-                                                confirm("Error when registering the user");
+                                                confirm("Error when updating the password");
                                             }
                                             initialize();
                                         });

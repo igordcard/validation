@@ -16,7 +16,7 @@
 
 SET FOREIGN_KEY_CHECKS=1;
 
-use akraino;
+use akraino_bluvalui;
 
 insert into lab (id, lab, silo) values(1, 'att', 'att-blu-val');
 

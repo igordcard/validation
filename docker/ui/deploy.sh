@@ -35,7 +35,6 @@ JENKINS_PROXY=""
 CERTDIR=$(pwd)
 ENCRYPTION_KEY=""
 UI_ADMIN_PASSWORD=""
-UI_AKRAINO_PASSWORD=""
 
 for ARGUMENT in "$@"
 do
@@ -58,7 +57,6 @@ do
             CERTDIR) CERTDIR=${VALUE} ;;
             ENCRYPTION_KEY) ENCRYPTION_KEY=${VALUE} ;;
             UI_ADMIN_PASSWORD) UI_ADMIN_PASSWORD=${VALUE} ;;
-            UI_AKRAINO_PASSWORD) UI_AKRAINO_PASSWORD=${VALUE} ;;
             *)
     esac
 done
@@ -87,12 +85,8 @@ if [ -z "$UI_ADMIN_PASSWORD" ]
     exit 1
 fi
 
-if [ -z "$UI_AKRAINO_PASSWORD" ]
-  then
-    echo "ERROR: You must specify the UI akraino password"
-    exit 1
-fi
+echo "Note: If there is a password already stored in database, the supplied UI_ADMIN_PASSWORD will be ignored."
 
 IMAGE="$REGISTRY"/"$NAME":"$TAG_PRE"-"$TAG_VER"
-docker run --detach --name $CONTAINER_NAME --network="host" -v "$(pwd)/server.xml:/usr/local/tomcat/conf/server.xml" -v "$CERTDIR/bluval.key:/usr/local/tomcat/bluval.key" -v "$CERTDIR/bluval.crt:/usr/local/tomcat/bluval.crt" -v "$(pwd)/root_index.jsp:/usr/local/tomcat/webapps/ROOT/index.jsp" -e DB_IP_PORT="$DB_IP_PORT" -e MYSQL_AKRAINO_PASSWORD="$MYSQL_AKRAINO_PASSWORD" -e JENKINS_URL="$JENKINS_URL" -e JENKINS_USERNAME="$JENKINS_USERNAME" -e JENKINS_USER_PASSWORD="$JENKINS_USER_PASSWORD" -e JENKINS_JOB_NAME="$JENKINS_JOB_NAME" -e NEXUS_PROXY="$NEXUS_PROXY" -e JENKINS_PROXY="$JENKINS_PROXY" -e ENCRYPTION_KEY="$ENCRYPTION_KEY" -e UI_ADMIN_PASSWORD="$UI_ADMIN_PASSWORD" -e UI_AKRAINO_PASSWORD="$UI_AKRAINO_PASSWORD" $IMAGE
+docker run --detach --name $CONTAINER_NAME --network="host" -v "$(pwd)/server.xml:/usr/local/tomcat/conf/server.xml" -v "$CERTDIR/bluval.key:/usr/local/tomcat/bluval.key" -v "$CERTDIR/bluval.crt:/usr/local/tomcat/bluval.crt" -v "$(pwd)/root_index.jsp:/usr/local/tomcat/webapps/ROOT/index.jsp" -e DB_IP_PORT="$DB_IP_PORT" -e MYSQL_AKRAINO_PASSWORD="$MYSQL_AKRAINO_PASSWORD" -e JENKINS_URL="$JENKINS_URL" -e JENKINS_USERNAME="$JENKINS_USERNAME" -e JENKINS_USER_PASSWORD="$JENKINS_USER_PASSWORD" -e JENKINS_JOB_NAME="$JENKINS_JOB_NAME" -e NEXUS_PROXY="$NEXUS_PROXY" -e JENKINS_PROXY="$JENKINS_PROXY" -e ENCRYPTION_KEY="$ENCRYPTION_KEY" -e UI_ADMIN_PASSWORD="$UI_ADMIN_PASSWORD" $IMAGE
 sleep 10
