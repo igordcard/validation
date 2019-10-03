@@ -216,3 +216,11 @@ All notable changes to this project will be documented in this file.
 - MariaDB has been substituted with MySQL
 
 ### Removed
+
+## [0.4.2-SNAPSHOT] - 1 October 2019
+### Added
+
+### Changed
+- Redirection bug during session timeouts and unauthorized accesses of resources fixed.
+
+### Removed

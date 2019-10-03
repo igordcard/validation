@@ -99,6 +99,7 @@ limitations under the License.
                 style="width: 140px;height:25px;border-radius:7px;font-size:18px;padding-left:5px;" maxlength="30">
             <br />
             <br />
+            <input type="hidden" id="redirectUrl" name="redirectUrl" value="${param.redirectUrl}">
             <input id="loginBtn" type="submit" alt="Login" value="Login">
         </form>
     </div>
