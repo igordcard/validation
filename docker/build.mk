@@ -60,6 +60,7 @@ $(MTOOL):
 .PHONY: .push_manifest
 .push_manifest: $(MTOOL)
 	$(MTOOL) push from-args \
+		--ignore-missing \
 		--platforms linux/amd64,linux/arm64 \
 		--template $(REGISTRY)/$(NAME):$(TAG_PRE)-ARCH-$(TAG_VER) \
 		--target $(REGISTRY)/$(NAME):$(TAG_PRE)-$(TAG_VER)
