@@ -100,7 +100,8 @@ In order for the container to be easily created, the deploy.sh script has been d
 
 CONTAINER_NAME, name of the container, default value is akraino-validation-mysql
 MYSQL_ROOT_PASSWORD, the desired mysql root user password, this variable is required
-MYSQL_AKRAINO_PASSWORD, the desired mysql akraino user password, this variable is required
+MYSQL_USER, the desired mysql user, the default value is 'akraino'
+MYSQL_PASSWORD, the desired mysql user password, this variable is required
 REGISTRY, registry of the mysql image, default value is akraino
 NAME, name of the mysql image, default value is validation
 TAG_PRE, first part of the image version, default value is mysql
@@ -114,7 +115,7 @@ Example (assuming the default variables have been utilized for building the imag
 .. code-block:: console
 
     cd validation/docker/mysql
-    ./deploy.sh MYSQL_ROOT_PASSWORD=root_password MYSQL_AKRAINO_PASSWORD=akraino_password
+    ./deploy.sh --MYSQL_ROOT_PASSWORD root_password --MYSQL_PASSWORD akraino_password
 
 Also, in order to re-deploy the database (it is assumed that the corresponding mysql container has been stopped and deleted) while the persistent storage already exists (currently, the 'akraino-validation-mysql' docker volume is used), a different approach should be used after the image building process.
 
@@ -162,7 +163,8 @@ In order for the container to be easily created, the deploy.sh script has been d
 
 CONTAINER_NAME, the name of the contaner, default value is akraino-validation-ui
 DB_IP_PORT, the IP and port of the mysql instance, this variable is required
-MYSQL_AKRAINO_PASSWORD, the mysql akraino user password, this variable is required
+MYSQL_USER, the mysql user, the default value is 'akraino'
+MYSQL_PASSWORD, the mysql user password, this variable is required
 REGISTRY, the registry of the mysql image, default value is akraino
 NAME, the name of the mysql image, default value is validation
 TAG_PRE, the first part of the image version, default value is ui
@@ -176,6 +178,7 @@ JENKINS_PROXY, the needed proxy in order for the Jenkins server to be reachable,
 CERTDIR, the directory where the SSL certificates can be found, default value is the working directory where self signed certificates exist only for demo purposes
 ENCRYPTION_KEY, the key that should be used by the AES algorithm for encrypting passwords stored in database, this variable is required
 UI_ADMIN_PASSWORD, the desired Blueprint Validation UI password for the admin user, this variable is required
+TRUST_ALL, the variable that defines whether the UI should trust all certificates or not, default value is false
 
 Note that, for a functional UI, the following prerequisites are needed:
 
@@ -192,7 +195,7 @@ Example (assuming the default variables have been utilized for building the imag
 .. code-block:: console
 
     cd validation/docker/ui
-    ./deploy.sh DB_IP_PORT=172.17.0.3:3306 MYSQL_AKRAINO_PASSWORD=akraino_password ENCRYPTION_KEY=AGADdG4D04BKm2IxIWEr8o== UI_ADMIN_PASSWORD=admin
+    ./deploy.sh --DB_IP_PORT 172.17.0.3:3306 --MYSQL_PASSWORD akraino_password --ENCRYPTION_KEY AGADdG4D04BKm2IxIWEr8o== --UI_ADMIN_PASSWORD admin
 
 The kube-conformance container
 ==============================

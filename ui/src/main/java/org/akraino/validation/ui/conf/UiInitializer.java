@@ -74,15 +74,17 @@ public class UiInitializer {
 
     @EventListener(ContextRefreshedEvent.class)
     public void setHttpProperties() throws NoSuchAlgorithmException, KeyManagementException {
-        SSLContext sslContext = SSLContext.getInstance("SSL");
-        sslContext.init(null, this.trustAll, new java.security.SecureRandom());
-        HttpsURLConnection.setDefaultSSLSocketFactory(sslContext.getSocketFactory());
-        // Install the all-trusting host verifier
-        HttpsURLConnection.setDefaultHostnameVerifier(this.hostnameVerifier);
-        DefaultClientConfig config = new DefaultClientConfig();
-        Map<String, Object> properties = config.getProperties();
-        HTTPSProperties httpsProperties = new HTTPSProperties((str, sslSession) -> true, sslContext);
-        properties.put(HTTPSProperties.PROPERTY_HTTPS_PROPERTIES, httpsProperties);
+        if (System.getenv("TRUST_ALL") != null && System.getenv("TRUST_ALL").equals("true")) {
+            SSLContext sslContext = SSLContext.getInstance("SSL");
+            sslContext.init(null, this.trustAll, new java.security.SecureRandom());
+            HttpsURLConnection.setDefaultSSLSocketFactory(sslContext.getSocketFactory());
+            // Install the all-trusting host verifier
+            HttpsURLConnection.setDefaultHostnameVerifier(this.hostnameVerifier);
+            DefaultClientConfig config = new DefaultClientConfig();
+            Map<String, Object> properties = config.getProperties();
+            HTTPSProperties httpsProperties = new HTTPSProperties((str, sslSession) -> true, sslContext);
+            properties.put(HTTPSProperties.PROPERTY_HTTPS_PROPERTIES, httpsProperties);
+        }
     }
 
     @EventListener(ContextRefreshedEvent.class)
