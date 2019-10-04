@@ -233,3 +233,13 @@ All notable changes to this project will be documented in this file.
 - 'akraino' database has been renamed to 'akraino_bluvalui'
 
 ### Removed
+
+## [0.4.4-SNAPSHOT] - 4 October 2019
+### Added
+- The user can define whether the UI can trust all SSL certificates or not.
+- The mysql user name can be configured.
+
+### Changed
+- New approach is used for interpreting shell script input variables. Now, all symbols are recognized.
+
+### Removed

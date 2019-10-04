@@ -14,7 +14,7 @@
 
     <groupId>org.akraino.validation</groupId>
     <artifactId>ui</artifactId>
-    <version>0.4.3-SNAPSHOT</version>
+    <version>0.4.4-SNAPSHOT</version>
     <name>Bluval UI Maven Webapp</name>
     <packaging>war</packaging>
 

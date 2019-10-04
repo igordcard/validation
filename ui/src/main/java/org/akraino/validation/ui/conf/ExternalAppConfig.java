@@ -115,8 +115,8 @@ public class ExternalAppConfig extends AppConfig implements Configurable {
             dataSource.setDriverClass(SystemProperties.getProperty(SystemProperties.DB_DRIVER));
             dataSource.setJdbcUrl("jdbc:mysql://" + System.getenv("DB_IP_PORT") + "/"
                     + PortalApiProperties.getProperty("akraino_database_name"));
-            dataSource.setUser(SystemProperties.getProperty(SystemProperties.DB_USERNAME));
-            String password = System.getenv("MYSQL_AKRAINO_PASSWORD");
+            dataSource.setUser(System.getenv("MYSQL_USER"));
+            String password = System.getenv("MYSQL_PASSWORD");
             if (SystemProperties.containsProperty(SystemProperties.DB_ENCRYPT_FLAG)) {
                 String encryptFlag = SystemProperties.getProperty(SystemProperties.DB_ENCRYPT_FLAG);
                 if (encryptFlag != null && encryptFlag.equalsIgnoreCase("true")) {

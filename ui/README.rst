@@ -169,14 +169,13 @@ Also, a script has been developed, namely validation/docker/mysql/deploy.sh whic
 
 CONTAINER_NAME, name of the container, default value is akraino-validation-mysql
 MYSQL_ROOT_PASSWORD, the desired mysql root user password, this variable is required
-MYSQL_AKRAINO_PASSWORD, the desired mysql akraino user password, this variable is required
+MYSQL_USER, the mysql user, the default value is 'akraino'
+MYSQL_PASSWORD, the desired mysql user password, this variable is required
 REGISTRY, registry of the mysql image, default value is akraino
 NAME, name of the mysql image, default value is validation
 TAG_PRE, first part of the image version, default value is mysql
 TAG_VER, last part of the image version, default value is latest
 MYSQL_HOST_PORT, port on which mysql is exposed on host, default value is 3307
-
-Currently, one user is supported by the UI, namely admin (full privileges). Its password is initialized during UI deployment (refer to UI deployment section). This password can be modified using the UI. Furthermore, more users can be created/modified using the UI.
 
 In order to build and deploy the image using only the required parameters, the below instructions should be followed:
 
@@ -187,7 +186,7 @@ The mysql root password, mysql akraino user password (currently the UI connects 
     cd validation/ui
     mvn docker:build -Ddocker.filter=akraino/validation:dev-mysql-latest
     cd ../docker/mysql
-    ./deploy.sh TAG_PRE=dev-mysql MYSQL_ROOT_PASSWORD=<mysql root user password> MYSQL_AKRAINO_PASSWORD=<mysql akraino user password>
+    ./deploy.sh --TAG_PRE dev-mysql --MYSQL_ROOT_PASSWORD <mysql root user password> --MYSQL_PASSWORD <mysql akraino user password>
     mysql -p<MYSQL_AKRAINO_PASSWORD> -uakraino -h <IP of the mysql container> < ../../ui/db-scripts/examples/initialize_db_example.sql
 
 In order to retrieve the IP of the mysql container, the following command should be executed:
@@ -216,7 +215,7 @@ The mysql root user password should be configured using the appropriate variable
 .. code-block:: console
 
     cd validation/docker/mysql
-    ./deploy_with_existing_persistent_storage.sh TAG_PRE=dev-mysql
+    ./deploy_with_existing_persistent_storage.sh --TAG_PRE dev-mysql
 
 Finally, if the database must be re-deployed (it is assumed that the corresponding mysql container has been stopped and deleted) and the old persistent storage must be deleted, the used docker volume should be first deleted (note that all database's data will be lost).
 
@@ -226,7 +225,7 @@ To this end, after the image build process, the following commands should be exe
 
     docker volume rm akraino-validation-mysql
     cd validation/docker/mysql
-    ./deploy.sh TAG_PRE=dev-mysql MYSQL_ROOT_PASSWORD=<root user password> MYSQL_AKRAINO_PASSWORD=<mysql akraino user password>
+    ./deploy.sh --TAG_PRE dev-mysql --MYSQL_ROOT_PASSWORD <root user password> --MYSQL_PASSWORD <mysql akraino user password>
     mysql -p<MYSQL_AKRAINO_PASSWORD> -uakraino -h <IP of the mysql container> < ../../ui/db-scripts/examples/initialize_db_example.sql
 
 In the context of the UI application, the following tables exist in the database:
@@ -395,7 +394,8 @@ Also, a script has been developed, namely validation/docker/ui/deploy.sh which e
 
 CONTAINER_NAME, the name of the container, default value is akraino-validation-ui
 DB_IP_PORT, the IP and port of the mysql instance, this variable is required
-MYSQL_AKRAINO_PASSWORD, the mysql akraino user password, this variable is required
+MYSQL_USER, the mysql user, the default value is 'akraino'
+MYSQL_PASSWORD, the mysql user password, this variable is required
 REGISTRY, the registry of the ui image, default value is akraino
 NAME, the name of the ui image, default value is validation
 TAG_PRE, the first part of the image version, default value is ui
@@ -409,6 +409,7 @@ JENKINS_PROXY, the needed proxy in order for the Jenkins server to be reachable,
 CERTDIR, the directory where the SSL certificates can be found, default value is the working directory where self signed certificates exist only for demo purposes
 ENCRYPTION_KEY, the key that should be used by the AES algorithm for encrypting passwords stored in database, this variable is required
 UI_ADMIN_PASSWORD, the desired Blueprint Validation UI password for the admin user, this variable is required
+TRUST_ALL, the variable that defines whether the UI should trust all certificates or not, default value is false
 
 So, for a functional UI, the following prerequisites are needed:
 
@@ -420,9 +421,11 @@ Then, the following commands can be executed in order to deploy the UI container
 
 .. code-block:: console
     cd ../docker/ui
-    ./deploy.sh TAG_PRE=dev-ui DB_IP_PORT=<IP and port of the mysql> MYSQL_AKRAINO_PASSWORD=<mysql akraino password> ENCRYPTION_KEY=<encryption key> UI_ADMIN_PASSWORD=<UI admin user password>
+    ./deploy.sh --TAG_PRE dev-ui --DB_IP_PORT <IP and port of the mysql> --MYSQL_PASSWORD <mysql akraino password> --ENCRYPTION_KEY <encryption key> --UI_ADMIN_PASSWORD <UI admin user password>
 
-The content of the DB_IP_PORT can be for example '172.17.0.3:3306'. Also, the value of the encryption key can be for example 'AGADdG4D04BKm2IxIWEr8o'. Note that the symbol '=' is not recognized.
+The content of the DB_IP_PORT can be for example '172.17.0.3:3306'. Also, the value of the encryption key can be for example 'AGADdG4D04BKm2IxIWEr8o=='.
+
+Currently, one user is supported by the UI, namely admin (full privileges). Its password is initialized during UI deployment. This password can be modified using the UI. Furthermore, more users can be created/modified using the UI.
 
 Furthermore, the TAG_PRE variable should be defined as the default value is 'ui' (note that the 'dev-ui' is used for development purposes - look at pom.xml file).
 
