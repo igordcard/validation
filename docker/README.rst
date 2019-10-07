@@ -106,7 +106,6 @@ REGISTRY, registry of the mysql image, default value is akraino
 NAME, name of the mysql image, default value is validation
 TAG_PRE, first part of the image version, default value is mysql
 TAG_VER, last part of the image version, default value is latest
-MYSQL_HOST_PORT, port on which mysql is exposed on host, default value is 3307
 
 In order to deploy the container, this script can be executed with the appropriate parameters.
 
@@ -126,7 +125,6 @@ REGISTRY, the registry of the mysql image, default value is akraino
 NAME, the name of the mysql image, default value is validation
 TAG_PRE, the first part of the image version, default value is mysql
 TAG_VER, the last part of the image version, default value is latest
-MYSQL_HOST_PORT, the port on which mysql is exposed on host, default value is 3307
 
 In order to deploy the container, this script can be executed with the appropriate parameters.
 
@@ -179,6 +177,7 @@ CERTDIR, the directory where the SSL certificates can be found, default value is
 ENCRYPTION_KEY, the key that should be used by the AES algorithm for encrypting passwords stored in database, this variable is required
 UI_ADMIN_PASSWORD, the desired Blueprint Validation UI password for the admin user, this variable is required
 TRUST_ALL, the variable that defines whether the UI should trust all certificates or not, default value is false
+USE_NETWORK_HOST, the variable that defines whether the UI container should run in 'network host' mode or not, default value is "false"
 
 Note that, for a functional UI, the following prerequisites are needed:
 

@@ -175,11 +175,10 @@ REGISTRY, registry of the mysql image, default value is akraino
 NAME, name of the mysql image, default value is validation
 TAG_PRE, first part of the image version, default value is mysql
 TAG_VER, last part of the image version, default value is latest
-MYSQL_HOST_PORT, port on which mysql is exposed on host, default value is 3307
 
 In order to build and deploy the image using only the required parameters, the below instructions should be followed:
 
-The mysql root password, mysql akraino user password (currently the UI connects to the database using the akraino user), the UI admin password and the UI akraino password should be configured using the appropriate variables and the following commands should be executed:
+The mysql root password and the mysql user password (currently the UI connects to the database using the akraino user) should be configured using the appropriate variables and the following commands should be executed (the user should override default variables based on requirements):
 
 .. code-block:: console
 
@@ -206,11 +205,8 @@ REGISTRY, the registry of the mysql image, default value is akraino
 NAME, the name of the mysql image, default value is validation
 TAG_PRE, the first part of the image version, default value is mysql
 TAG_VER, the last part of the image version, default value is latest
-MYSQL_HOST_PORT, the port on which mysql is exposed on host, default value is 3307
 
-In order to deploy the image using only the required parameters and the existing persistent storage, the below instructions should be followed:
-
-The mysql root user password should be configured using the appropriate variable and the following commands should be executed:
+In order to deploy the image using only the required parameters and the existing persistent storage, the below instructions should be followed (the user should override the default variables based on the requirements):
 
 .. code-block:: console
 
@@ -219,7 +215,7 @@ The mysql root user password should be configured using the appropriate variable
 
 Finally, if the database must be re-deployed (it is assumed that the corresponding mysql container has been stopped and deleted) and the old persistent storage must be deleted, the used docker volume should be first deleted (note that all database's data will be lost).
 
-To this end, after the image build process, the following commands should be executed:
+To this end, after the image build process, the following commands should be executed (the user should override the default variables based on the requirements):
 
 .. code-block:: console
 
@@ -410,6 +406,7 @@ CERTDIR, the directory where the SSL certificates can be found, default value is
 ENCRYPTION_KEY, the key that should be used by the AES algorithm for encrypting passwords stored in database, this variable is required
 UI_ADMIN_PASSWORD, the desired Blueprint Validation UI password for the admin user, this variable is required
 TRUST_ALL, the variable that defines whether the UI should trust all certificates or not, default value is false
+USE_NETWORK_HOST, the variable that defines whether the UI container should run in 'network host' mode or not, default value is "false"
 
 So, for a functional UI, the following prerequisites are needed:
 
@@ -417,7 +414,7 @@ So, for a functional UI, the following prerequisites are needed:
 - A Jenkins instance capable of running the blueprint validation test (this is optional and is needed only for UI full control loop mode)
 - A Nexus repo in which all the test results are stored.
 
-Then, the following commands can be executed in order to deploy the UI container:
+Then, the following commands can be executed in order to deploy the UI container (the user should override the default variables based on requirements):
 
 .. code-block:: console
     cd ../docker/ui
@@ -433,11 +430,13 @@ If no proxy exists, the proxy ip and port variables should not be defined.
 
 More users can be created using the 'Create User' tab of the UI. This tab is available only for the admin user.
 
-The UI should be available in the following url:
+If the content of the 'USE_NETWORK_HOST' is equal to true (in this case, the ports 8443 and 443 must be available on the host), the UI should be available in the following url:
 
-    https://<IP of UI container>:8443/bluvalui/
+    https://<IP of the host>
 
-Note that the deployment uses the network host mode, so the ports 8080 and 8443 must be available on the host.
+Else, the UI should be available in the following url:
+
+    https://<IP of the UI container>
 
 As far as the SSL certificates are concerned, self-signed built-in certificates exist in the 'validation/docker/ui' directory which are used by default. It should be noted that these
 certificates should be used only for demo purposes. If a user wants to use different ones which are more appropriate for a production environment, the directory that contains these new
