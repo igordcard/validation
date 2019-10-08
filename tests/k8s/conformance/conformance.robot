@@ -45,6 +45,13 @@ ${LOG}            ${LOG_PATH}${/}${SUITE_NAME.replace(' ','_')}.log
 ...                 e2e=&{E2E}
 ...                 systemd_logs=&{SYSTEMD_LOGS}
 
+# Following tests assume DNS domain is "cluster.local"
+${DNS_DOMAIN_TESTS}  SEPARATOR=
+...                 DNS should provide /etc/hosts entries for the cluster|
+...                 DNS should provide DNS for services|
+...                 DNS should provide DNS for ExternalName services|
+...                 DNS should provide DNS for the cluster
+
 *** Test Cases ***
 Run Sonobuoy Conformance Test
         # Start the test
@@ -126,10 +133,19 @@ Onboard Images
         Onboard Sonobuoy Images
         Onboard Kubernetes e2e Test Images
 
+Get Tests To Skip
+        ${flag}=                Set Variable  Aggregator|Alpha|\\[(Disruptive|Feature:[^\\]]+|Flaky)\\]
+        ${flag}=                Run Keyword If  '${DNS_DOMAIN}' != 'cluster.local'
+        ...                         Catenate  SEPARATOR=|  ${flag}  ${DNS_DOMAIN_TESTS}
+        ...                     ELSE
+        ...                         Set Variable  ${flag}
+        [Return]                ${flag}
+
 Create Manifest File
+        ${skip}=                Get Tests To Skip
         @{flags}=               Set Variable
         ...                         --e2e-focus  \\[Conformance\\\]
-        ...                         --e2e-skip  Aggregator|Alpha|\\[(Disruptive|Feature:[^\\]]+|Flaky)\\]
+        ...                         --e2e-skip  ${skip}
         ...                         --kube-conformance-image  ${SONOBUOY_IMGS.e2e.path}/${SONOBUOY_IMGS.e2e.name}
         ...                         --sonobuoy-image  ${SONOBUOY_IMGS.sonobuoy.path}/${SONOBUOY_IMGS.sonobuoy.name}
         ...                         --image-pull-policy  Always

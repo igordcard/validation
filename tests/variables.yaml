@@ -58,3 +58,4 @@ rootpswd: rootpassword   # Required root password to log in to the host
 
 ### Input variables for Conformance test
 internal_registry: ''                         # Docker internal registry
+dns_domain: cluster.local                     # cluster's DNS domain
