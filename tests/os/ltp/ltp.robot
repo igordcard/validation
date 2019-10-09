@@ -21,38 +21,55 @@ Library           SSHLibrary
 Library           OperatingSystem
 Library           BuiltIn
 Library           Process
-Resource          variables.resource
-Suite Setup       Open Connection And Log In
-Suite Teardown    Close All Connections
+Suite Setup       Run Keywords
+...               Open Connection And Log In
+...               Install LTP
+Test Teardown     Download Logs
+Suite Teardown    Run Keywords
+...               Uninstall LTP
+...               Close All Connections
 
 *** Variables ***
-${LOG}            ${LOG_PATH}${/}${SUITE_NAME.replace(' ','_')}.log
-
+${FULL_SUITE}            ${SUITE_NAME.replace(' ','_')}
 
 *** Test Cases ***
-#Run whole ltp test suite
-#    [Documentation]         Wait ~5hrs to complete 2536 tests
-#    ${result}=              Run Process       ./runltp     shell=yes     cwd=/opt/ltp     stdout=${LOG}
-#    Append To File          ${LOG}  ${result}${\n}
-#    Sleep                   2s
-#    Should Contain          ${result.stdout}   failed   0
-
-#Run ltp syscalls test suite
-#    [Documentation]         Wait ~45m for syscalls to complete
-#    ${result}=              Run Process       ./runltp -f syscalls      shell=yes     cwd=/opt/ltp     stdout=${LOG}
-#    Append To File          ${LOG}  ${result}${\n}
-#    Sleep                   2s
-#    Should Contain          ${result.stdout}   failed   0
-
-Run ltp syscalls madvise
+# Plese maintain shortest job first order
+RunLTP syscalls madvise only
     [Documentation]         Wait ~1m for madvise01-10 to complete
-    ${result}=              Run Process       ./runltp -f syscalls -s madvise     shell=yes     cwd=/opt/ltp     stdout=${LOG}
-    Append To File          ${LOG}  ${result}${\n}
-    Sleep                   2s
-    Should Contain          ${result.stdout}   failed   0
+    ${log} =  Set Variable  ${OUTPUT DIR}${/}${FULL_SUITE}.${TEST NAME.replace(' ','_')}.log
+    ${result}=              Execute Command  /opt/ltp/runltp -f syscalls -s madvise  sudo=True
+    Append To File          ${log}  ${result}${\n}
+    Should Contain          ${result}    INFO: ltp-pan reported all tests PASS
+
+RunLTP syscalls only
+    [Documentation]         Wait ~45m for syscalls to complete
+    ${log} =  Set Variable  ${OUTPUT DIR}${/}${FULL_SUITE}.${TEST NAME.replace(' ','_').log
+    ${result}=              Execute Command  /opt/ltp/runltp -f syscalls  sudo=True
+    Append To File          ${log}  ${result}${\n}
+    Should Contain          ${result}    INFO: ltp-pan reported all tests PASS
+
+RunLTP all tests
+    [Documentation]         Wait ~5hrs to complete 2536 tests
+    ${log} =  Set Variable  ${OUTPUT DIR}${/}${FULL_SUITE}.${TEST NAME.replace(' ','_').log
+    ${result}=              Execute Command  /opt/ltp/runltp  sudo=True
+    Append To File          ${log}  ${result}${\n}
+    Should Contain          ${result}    INFO: ltp-pan reported all tests PASS
 
 *** Keywords ***
 Open Connection And Log In
-  Open Connection       ${HOST}
-  Login                 ${ROOTUSER}     ${ROOTPSWD}
+    Open Connection        ${HOST}
+    Login With Public Key  ${USERNAME}  ${SSH_KEYFILE}
 
+Install LTP
+    Put File  /opt/akraino/ltp.tar.gz  /tmp/ltp.tar.gz
+    Execute Command  tar -xf /tmp/ltp.tar.gz -C /
+
+Uninstall LTP
+    Execute Command  rm -rf /opt/ltp  sudo=True
+    Execute Command  rm /tmp/ltp.tar.gz
+
+Download Logs
+    SSHLibrary.Get File  /opt/ltp/output/*  ${OUTPUT DIR}/output/
+    Execute Command  rm -rf /opt/ltp/output/*  sudo=True
+    SSHLibrary.Get File  /opt/ltp/results/*  ${OUTPUT DIR}/results/
+    Execute Command  rm -rf /opt/ltp/results/*  sudo=True
