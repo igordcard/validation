@@ -27,7 +27,8 @@ RUN apk --no-cache add --update \
         libffi \
         libffi-dev \
         make \
-        openssl-dev
+        openssl-dev \
+        wget
 
 # Build binaries
 WORKDIR /wheels
@@ -35,10 +36,17 @@ RUN pip3 install wheel
 RUN pip3 wheel -r /wheels/requirements/pip-requirements.txt
 RUN git clone https://gerrit.akraino.org/r/validation /opt/akraino/validation
 
+RUN wget -qO- https://github.com/DMTF/Redfish-Test-Framework/archive/master.zip | \
+    unzip -qd /opt/akraino -
+RUN wget -qO- https://github.com/DMTF/Redfish-Usecase-Checkers/archive/master.zip | \
+    unzip -qd /opt/akraino -
+
 # Copy binaries in the final contaier and install robot framework
 FROM python:3.6-alpine3.9
 COPY --from=build /wheels /wheels
 COPY --from=build /opt/akraino/validation /opt/akraino/validation
+COPY --from=build /opt/akraino/Redfish-Test-Framework-master /opt/akraino/Redfish-Test-Framework
+COPY --from=build /opt/akraino/Redfish-Usecase-Checkers-master /opt/akraino/Redfish-Usecase-Checkers
 
 RUN pip3 install -r /wheels/requirements/pip-requirements.txt \
                  -f /wheels && \
@@ -47,6 +55,10 @@ RUN pip3 install -r /wheels/requirements/pip-requirements.txt \
 
 # Install blueval dependencies
 RUN pip install -r /opt/akraino/validation/bluval/requirements.txt
+
+# Install Redfish dependencies
+RUN pip install html-testRunner \
+                -r /opt/akraino/Redfish-Usecase-Checkers/requirements.txt
 
 # Install curl
 RUN apk --no-cache add --update \

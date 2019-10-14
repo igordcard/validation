@@ -49,6 +49,13 @@ bootseq: boot_input                           # boot status
 biosver: bios_version                         # host bios version
 firmware: firmware_version                    # host firmware
 
+### Input variables for Redfish test
+bmc_ip:                                       # bmc address list
+  - 192.168.10.10
+  - 192.168.10.11
+bmc_user: admin                               # username
+bmc_password: Password#0                      # password
+
 ### Input variables for containerized ceph test
 nodename: targetnode                          # target node to test ceph
 
