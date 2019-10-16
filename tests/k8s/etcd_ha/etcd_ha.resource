@@ -20,41 +20,43 @@
 Library            BuiltIn
 Library            Process
 Library            String
+Library            SSHLibrary
+Library            OperatingSystem
 
 *** Variables ***
 ${ETCD_VERSION}         3
+${SSH_KEYFILE}          ${HOME}/.ssh/id_rsa
 
 *** Keywords ***
+Open Connection And Log In
+    Open Connection        ${HOST}
+    Login With Public Key  ${USERNAME}  ${SSH_KEYFILE}
+
 Retrieve Etcd Config
-    ${result}=     Run Process  kubectl  get  nodes  -l  node-role.kubernetes.io/master
-    ...                         -o  jsonpath\='{.items[*].metadata.name}'
-    ${output}=     Evaluate  ${result.stdout}
-    @{nodes}=      Split String  ${output}
-    Set Test Variable  ${pod}  etcd-@{nodes}[0]
-    ${members}=    Get Etcd Members
-    Set Test Variable  ${members}
+     ${result}=     Execute Command    kubectl get nodes -l node-role.kubernetes.io/master -o jsonpath\='{.items[*].metadata.name}'
+     @{nodes}=      Split String  ${result}
+     Set Test Variable  ${pod}  etcd-@{nodes}[0]
+     ${members}=    Get Etcd Members
+     Set Test Variable  ${members}
 
 Get Etcd Members
-    ${result}=     Run Process  kubectl  exec  -n  kube-system  -it  ${pod}
-    ...                         etcdctl${ETCD_VERSION}  member  list
-    [Return]       ${result.stdout}
+    ${result}=     Execute Command  kubectl exec -n kube-system -it ${pod} etcdctl${ETCD_VERSION} member list
+    log        ${result}
 
 Delete Etcd Node
-    ${result}=     Run Process  kubectl  delete  pod  -n  kube-system  ${pod}
-    Should Be Equal As Strings  ${result.stdout}  pod "${pod}" deleted  msg="pod delete failed"
+    ${result}=     Execute Command  kubectl delete pod -n kube-system ${pod}
+    Should Be Equal As Strings  ${result}  pod "${pod}" deleted  msg="pod delete failed"
 
 Wait For Etcd Node To Recover
     Wait Until Keyword Succeeds  5m  10s  Etcd Node Should Be Running
 
 Etcd Node Should Be Running
-    ${result}=     Run Process  kubectl  get  -n  kube-system  -o  template  pod/${pod}
-    ...                         --template\='{{.status.phase}}'
-    Should Be Equal As Strings  ${result.stdout}  'Running'
+    ${result}=     Execute Command  kubectl get -n kube-system -o template pod/${pod} --template\='{{.status.phase}}'
+    Should Contain  ${result}  Running
 
 Etcd Endpoint Should Be Healthy
-    ${result}=     Run Process  kubectl  exec  -n  kube-system  -ti  ${pod}
-    ...                         etcdctl${ETCD_VERSION}  endpoint  health
-    Should Contain  ${result.stdout}  is healthy:
+    ${result}=     Execute Command  kubectl exec -n kube-system -ti ${pod} etcdctl${ETCD_VERSION} endpoint health
+    Should Contain  ${result}  healthy
 
 Etcd Members Should Be Unchanged
     ${output}=     Get Etcd Members

@@ -21,6 +21,8 @@ Documentation     Test to verify the recovery and health of etcd cluster
 ...               If the etcd node command line supports etcdctl3 then pass ${ETCD_VERSION} as "3"
 ...               If the etcd node command line supports etcdctl then pass ${ETCD_VERSION} as "${EMPTY}"
 Resource          etcd_ha.resource
+Suite Setup       Open Connection And Log In
+Suite Teardown    Close All Connections
 
 
 *** Test Cases ***
