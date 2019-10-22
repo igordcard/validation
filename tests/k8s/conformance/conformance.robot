@@ -56,7 +56,7 @@ ${DNS_DOMAIN_TESTS}  SEPARATOR=
 Run Sonobuoy Conformance Test
         # Start the test
         Run                     kubectl apply -f ${CURDIR}${/}sonobuoy.yaml
-        Sleep                   10s
+        Sleep                   20s
         ${rc}  ${output}=       Run And Return Rc And Output
                                 ...  kubectl describe pod/sonobuoy -n heptio-sonobuoy
         Append To File          ${LOG}  ${output}${\n}
