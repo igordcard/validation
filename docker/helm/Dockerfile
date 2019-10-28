@@ -17,6 +17,8 @@
 # ref: https://docs.docker.com/develop/develop-images/dockerfile_best-practices/#use-multi-stage-builds
 FROM python:3.6-alpine3.9 as build
 
+ARG HELM_TAG=v2.15.1
+
 # Install dependencies
 COPY pip-requirements.txt /wheels/requirements/pip-requirements.txt
 RUN apk --no-cache add --update \
@@ -33,7 +35,7 @@ WORKDIR /wheels
 RUN pip3 install wheel
 RUN pip3 wheel -r /wheels/requirements/pip-requirements.txt
 RUN git clone https://gerrit.akraino.org/r/validation /opt/akraino/validation
-RUN git clone https://github.com/helm/helm.git /opt/helm
+RUN git clone -b $HELM_TAG https://github.com/helm/helm.git /opt/helm
 
 # Copy binaries in the final container and install requirements
 FROM python:3.6-alpine3.9
