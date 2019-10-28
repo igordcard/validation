@@ -15,18 +15,23 @@
 ##############################################################################
 
 # ref: https://docs.docker.com/develop/develop-images/dockerfile_best-practices/#use-multi-stage-builds
-FROM python:3.6-alpine3.9 as build
+FROM ubuntu:18.04 as build
 
 # Install dependencies
 COPY pip-requirements.txt /wheels/requirements/pip-requirements.txt
-RUN apk --no-cache add --update \
-        gcc \
-        git \
-        libc-dev \
-        libffi \
-        libffi-dev \
-        make \
-        openssl-dev
+RUN apt-get update && apt-get -y install \
+    python3-pip \
+    gcc \
+    git \
+    libc-dev \
+    libffi6 \
+    libffi-dev \
+    make \
+    libssl-dev \
+    build-essential \
+    autoconf automake autotools-dev m4 \
+    linux-headers-generic \
+    libaio-dev libattr1-dev libcap-dev
 
 # Build binaries
 WORKDIR /wheels
@@ -34,15 +39,31 @@ RUN pip3 install wheel
 RUN pip3 wheel -r /wheels/requirements/pip-requirements.txt
 RUN git clone https://gerrit.akraino.org/r/validation /opt/akraino/validation
 
-# Copy binaries in the final contaier and install robot framework
-FROM python:3.6-alpine3.9
+# Build ltp tests
+RUN mkdir -p /opt/akraino /root/src
+WORKDIR  /root/src
+RUN git clone https://github.com/linux-test-project/ltp.git
+WORKDIR /root/src/ltp
+RUN make autotools && \
+    ./configure --prefix=/opt/ltp && \
+    make -j $(getconf _NPROCESSORS_ONLN) 2>&1 | tee ../build-log.txt && \
+    make install 2>&1 | tee ../install-log.txt
+RUN tar czvf /opt/akraino/ltp.tar.gz /opt/ltp
+
+# Copy binaries into the final container and install robot framework
+FROM ubuntu:18.04
 COPY --from=build /wheels /wheels
 COPY --from=build /opt/akraino/validation /opt/akraino/validation
+COPY --from=build /opt/akraino/ltp.tar.gz /opt/akraino/ltp.tar.gz
 
-RUN pip3 install -r /wheels/requirements/pip-requirements.txt \
+RUN apt-get update && apt-get -y install \
+    python3-pip && \
+    pip3 install -r /wheels/requirements/pip-requirements.txt \
                  -f /wheels && \
-     rm -rf /wheels && \
-     rm -rf /root/.cache/pip/*
+    rm -rf /wheels && \
+    rm -rf /root/.cache/pip/* && \
+    rm -rf /var/cache/apt/* && \
+    rm -rf /var/lib/apt/lists/*
 
 # Install blueval dependencies
-RUN pip install -r /opt/akraino/validation/bluval/requirements.txt
+RUN pip3 install -r /opt/akraino/validation/bluval/requirements.txt
