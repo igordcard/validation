@@ -30,6 +30,7 @@ from bluutil import BluvalError
 from bluutil import ShowStopperError
 
 _OPTIONAL_ALSO = False
+_SUBNET = ""
 
 def get_volumes(layer):
     """Create a list with volumes to mount in the container for given layer
@@ -55,9 +56,8 @@ def get_volumes(layer):
 def invoke_docker(bluprint, layer):
     """Start docker container for given layer
     """
-
     volume_list = get_volumes('common') + get_volumes(layer)
-    cmd = ("docker run" + volume_list +
+    cmd = ("docker run" + volume_list + _SUBNET +
            " akraino/validation:{0}-latest"
            " /bin/sh -c"
            " 'cd /opt/akraino/validation "
@@ -89,12 +89,14 @@ def invoke_dockers(yaml_loc, layer, blueprint_name):
 @click.command()
 @click.argument('blueprint')
 @click.option('--layer', '-l')
+@click.option('--network', '-n')
 @click.option('--optional_also', '-o', is_flag=True)
-def main(blueprint, layer, optional_also):
+def main(blueprint, layer, network, optional_also):
     """Takes blueprint name and optional layer. Validates inputs and derives
     yaml location from blueprint name. Invokes validate on blue print.
     """
     global _OPTIONAL_ALSO  # pylint: disable=global-statement
+    global _SUBNET # pylint: disable=global-statement
     mypath = Path(__file__).absolute()
     yaml_loc = mypath.parents[0].joinpath('bluval-{}.yaml'.format(blueprint))
     if layer is not None:
@@ -102,6 +104,9 @@ def main(blueprint, layer, optional_also):
     if optional_also:
         _OPTIONAL_ALSO = True
         print("_OPTIONAL_ALSO {}".format(_OPTIONAL_ALSO))
+    if network is not None:
+        _SUBNET = " --net=" + network
+        print("Using", _SUBNET)
     try:
         invoke_dockers(yaml_loc, layer, blueprint)
     except ShowStopperError as err:
