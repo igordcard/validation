@@ -28,6 +28,7 @@ Suite Teardown    Close All Connections
 #${USERNAME}       localadmin
 #${SYSINFO}        PowerEdge R740xd
 #${BIOS_REVISION}   1.3
+${SSH_KEYFILE}     /root/.ssh/id_rsa
 ${LOG}             ${LOG_PATH}${/}${SUITE_NAME.replace(' ','_')}.log
 
 *** Test Cases ***
@@ -60,5 +61,5 @@ Verify Block Devices
 *** Keywords ***
 Open Connection And Log In
   Open Connection       ${HOST}
-  Login With Public Key    ${USERNAME}  /root/.ssh/${USERNAME}_id_rsa
+  Login With Public Key    ${USERNAME}  ${SSH_KEYFILE}
 
