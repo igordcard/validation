@@ -23,7 +23,7 @@
 
 volumes:
     # location of the ssh key to access the cluster
-    ssh_key_file:
+    ssh_key_dir:
         local: ''
         target: '/root/.ssh'
     # location of the k8s access files (config file, certificates, keys)
@@ -51,16 +51,18 @@ layers:
         - blueprint_dir
         - results_dir
     hardware:
-        - ssh_key_file
+        - ssh_key_dir
     os:
-        - ssh_key_file
+        - ssh_key_dir
     networking:
-        - ssh_key_file
+        - ssh_key_dir
+    docker:
+        - ssh_key_dir
     k8s:
-        - ssh_key_file
+        - ssh_key_dir
         - kube_config_dir
     k8s_networking:
-        - ssh_key_File
+        - ssh_key_dir
         - kube_config_dir
     sds:
     sdn:

@@ -57,7 +57,7 @@ def invoke_docker(bluprint, layer):
     """Start docker container for given layer
     """
     volume_list = get_volumes('common') + get_volumes(layer)
-    cmd = ("docker run" + volume_list + _SUBNET +
+    cmd = ("docker run --rm" + volume_list + _SUBNET +
            " akraino/validation:{0}-latest"
            " /bin/sh -c"
            " 'cd /opt/akraino/validation "

@@ -25,7 +25,7 @@ Library            OperatingSystem
 
 *** Variables ***
 ${ETCD_VERSION}         3
-${SSH_KEYFILE}          ${HOME}/.ssh/id_rsa
+${SSH_KEYFILE}          /root/.ssh/id_rsa
 
 *** Keywords ***
 Open Connection And Log In

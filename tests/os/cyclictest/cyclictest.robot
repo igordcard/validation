@@ -26,9 +26,7 @@ Suite Teardown    Close All Connections
 
 *** Variables ***
 ${LOG}             ${LOG_PATH}${/}${SUITE_NAME.replace(' ','_')}.log
-#${USERNAME}       mm747b
-#${HOME}           /home/${USERNAME}
-#${HOST}           aknode109
+${SSH_KEYFILE}     /root/.ssh/id_rsa
 
 
 *** Test Cases ***
@@ -41,5 +39,5 @@ Latency Test
 *** Keywords ***
 Open Connection And Log In
   Open Connection       ${HOST}
-  Login With Public Key    ${USERNAME}   ${HOME}/.ssh/id_rsa
+  Login With Public Key    ${USERNAME}   ${SSH_KEYFILE}
 
