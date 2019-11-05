@@ -1,10 +1,10 @@
 {
   "globals": {
     "angular": writable,
-    "console": 1,
-    "confirm":1,
-    "localStorage":1,
-    "window":1,
-    "appDS2":1
+    "console": writable,
+    "confirm":writable,
+    "localStorage":writable,
+    "window":writable,
+    "appDS2":writable
   }
 }
