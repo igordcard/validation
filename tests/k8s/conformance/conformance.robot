@@ -78,9 +78,9 @@ Check that k8s cluster is reachable
 
         # Make sure the pod is reachable with the local k8s client
         ${rc}  ${output}=       Run And Return Rc And Output
-                                ...  kubectl get pods --all-namespaces
+                                ...  kubectl version
         Append To File          ${LOG}  ${output}${\n}
-        Should Contain          ${output}      kube-system
+        Should Contain          ${output}      Server Version: version.Info
 
 Cleanup Sonobuoy
         ${rc}  ${output}=       Run And Return Rc And Output
