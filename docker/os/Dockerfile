@@ -57,7 +57,7 @@ COPY --from=build /opt/akraino/validation /opt/akraino/validation
 COPY --from=build /opt/akraino/ltp.tar.gz /opt/akraino/ltp.tar.gz
 
 RUN apt-get update && apt-get -y install \
-    python3-pip && \
+    python3-pip python3.7 &&\
     pip3 install -r /wheels/requirements/pip-requirements.txt \
                  -f /wheels && \
     rm -rf /wheels && \
