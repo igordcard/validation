@@ -231,7 +231,7 @@ Example:
 
 .. code-block:: console
 
-    docker run -ti akraino/validation:kube-conformance-v1.15
+    docker run -ti akraino/validation:kube-conformance-v1.16
 
 By default, the container will run the `run_e2e.sh` script. If you want to
 enter the container, add */bin/sh* at the end of the command above

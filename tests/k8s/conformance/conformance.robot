@@ -36,9 +36,9 @@ Test Teardown     Run Keywords
 ${LOG}            ${LOG_PATH}${/}${SUITE_NAME.replace(' ','_')}.log
 
 &{SONOBUOY}         path=gcr.io/heptio-images
-...                 name=sonobuoy:v0.15.1
+...                 name=sonobuoy:v0.16.1
 &{E2E}              path=akraino
-...                 name=validation:kube-conformance-v1.15
+...                 name=validation:kube-conformance-v1.16
 &{SYSTEMD_LOGS}     path=akraino
 ...                 name=validation:sonobuoy-plugin-systemd-logs-latest
 &{SONOBUOY_IMGS}    sonobuoy=&{SONOBUOY}
@@ -50,7 +50,16 @@ ${DNS_DOMAIN_TESTS}  SEPARATOR=
 ...                 DNS should provide /etc/hosts entries for the cluster|
 ...                 DNS should provide DNS for services|
 ...                 DNS should provide DNS for ExternalName services|
-...                 DNS should provide DNS for the cluster
+...                 DNS should provide DNS for the cluster|
+...                 DNS should provide DNS for pods for Subdomain|
+...                 DNS should provide DNS for pods for Hostname
+
+# Images listed by Sonobuoy but not available for downloading
+@{SKIP_IMGS}        gcr.io/kubernetes-e2e-test-images/windows-nanoserver:v1
+...                 gcr.io/authenticated-image-pulling/windows-nanoserver:v1
+...                 gcr.io/authenticated-image-pulling/alpine:3.7
+...                 k8s.gcr.io/invalid-image:invalid-tag
+...                 invalid.com/invalid/alpine:3.1
 
 *** Test Cases ***
 Run Sonobuoy Conformance Test
@@ -58,7 +67,7 @@ Run Sonobuoy Conformance Test
         Run                     kubectl apply -f ${CURDIR}${/}sonobuoy.yaml
         Sleep                   20s
         ${rc}  ${output}=       Run And Return Rc And Output
-                                ...  kubectl describe pod/sonobuoy -n heptio-sonobuoy
+                                ...  kubectl describe pod/sonobuoy -n sonobuoy
         Append To File          ${LOG}  ${output}${\n}
 
         # Wait until the test finishes execution
@@ -121,6 +130,7 @@ Onboard Kubernetes e2e Test Images
         Should Be Equal As Integers  ${result.rc}  0
         @{images}=              Split String  ${result.stdout}
         FOR  ${img}  IN  @{images}
+            Continue For Loop If  $img in $SKIP_IMGS
             ${path}  ${name}  Split String From Right  ${img}  /  1
             Upload To Internal Registry  ${path}  ${name}
         END
