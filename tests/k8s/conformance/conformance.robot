@@ -24,8 +24,10 @@ Library           Collections
 Library           String
 Library           SSHLibrary
 Library           Process
+Library           JSONLibrary
 Test Setup        Run Keywords
 ...               Check that k8s cluster is reachable
+...               Define Images
 ...               Onboard Images
 ...               Create Manifest File
 Test Teardown     Run Keywords
@@ -38,7 +40,7 @@ ${LOG}            ${LOG_PATH}${/}${SUITE_NAME.replace(' ','_')}.log
 &{SONOBUOY}         path=gcr.io/heptio-images
 ...                 name=sonobuoy:v0.16.1
 &{E2E}              path=akraino
-...                 name=validation:kube-conformance-v1.16
+...                 name=Actual value set dynamically
 &{SYSTEMD_LOGS}     path=akraino
 ...                 name=validation:sonobuoy-plugin-systemd-logs-latest
 &{SONOBUOY_IMGS}    sonobuoy=&{SONOBUOY}
@@ -134,6 +136,14 @@ Onboard Kubernetes e2e Test Images
             ${path}  ${name}  Split String From Right  ${img}  /  1
             Upload To Internal Registry  ${path}  ${name}
         END
+
+Define Images
+        ${result}=              Run Process  kubectl  version  -o  json
+        Should Be Equal As Integers  ${result.rc}  0
+        ${versions}=            Convert String To JSON  ${result.stdout}
+        ${major}=               Get Value From Json  ${versions}  $.serverVersion.major
+        ${minor}=               Get Value From Json  ${versions}  $.serverVersion.minor
+        Set To Dictionary       ${SONOBUOY_IMGS['e2e']}  name=validation:kube-conformance-v${major[0]}.${minor[0]}
 
 Onboard Images
         ${INT_REG}=             Get Variable Value  ${INTERNAL_REGISTRY}  ${EMPTY}

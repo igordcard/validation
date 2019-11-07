@@ -1,4 +1,5 @@
 robotframework
 robotframework-httplibrary
+robotframework-jsonlibrary
 robotframework-requests
 robotframework-sshlibrary
