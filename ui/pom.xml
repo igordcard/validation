@@ -36,7 +36,7 @@
         <maven-deploy-plugin-version>2.8</maven-deploy-plugin-version>
         <eelf-core-version>1.0.0</eelf-core-version>
         <jackson.version>2.9.9</jackson.version>
-        <c3p0.version>0.9.5.2</c3p0.version>
+        <c3p0.version>0.9.5.4</c3p0.version>
         <io.searchbox.jest.version>2.0.0</io.searchbox.jest.version>
         <javax.servlet-api.version>3.1.0</javax.servlet-api.version>
         <junit.version>4.12</junit.version>
