@@ -156,8 +156,8 @@ public final class NexusExecutorClient {
 
     public ValidationDbTestResult getResult(@Nonnull String name, @Nonnull String version, @Nonnull String siloText,
             @Nonnull String timestamp)
-                    throws ClientHandlerException, UniformInterfaceException, JsonParseException, JsonMappingException,
-                    IOException, KeyManagementException, NoSuchAlgorithmException, ParseException, NullPointerException {
+            throws ClientHandlerException, UniformInterfaceException, JsonParseException, JsonMappingException,
+            IOException, KeyManagementException, NoSuchAlgorithmException, ParseException, NullPointerException {
         String nexusUrl = this.baseurl + "/" + siloText + "/" + "bluval_results/" + name + "/" + version;
         LOGGER.info(EELFLoggerDelegate.applicationLogger, "Trying to get validation nexus test result");
         WebResource webResource = this.client.resource(nexusUrl + "/");
@@ -215,8 +215,8 @@ public final class NexusExecutorClient {
 
     public List<ValidationDbTestResult> getResults(@Nonnull String name, @Nonnull String version,
             @Nonnull String siloText, int noOfLastElements)
-                    throws ClientHandlerException, UniformInterfaceException, JsonParseException, JsonMappingException,
-                    IOException, KeyManagementException, NoSuchAlgorithmException, ParseException {
+            throws ClientHandlerException, UniformInterfaceException, JsonParseException, JsonMappingException,
+            IOException, KeyManagementException, NoSuchAlgorithmException, ParseException {
         String nexusUrl = this.baseurl + "/" + siloText + "/" + "bluval_results/" + name + "/" + version;
         LOGGER.info(EELFLoggerDelegate.applicationLogger, "Trying to get validation Nexus test results");
         WebResource webResource = this.client.resource(nexusUrl + "/");
@@ -265,8 +265,8 @@ public final class NexusExecutorClient {
 
     public List<ValidationDbTestResult> getResults(@Nonnull String name, @Nonnull String version,
             @Nonnull String siloText, @Nonnull Date date)
-                    throws ClientHandlerException, UniformInterfaceException, JsonParseException, JsonMappingException,
-                    IOException, KeyManagementException, NoSuchAlgorithmException, ParseException, NullPointerException {
+            throws ClientHandlerException, UniformInterfaceException, JsonParseException, JsonMappingException,
+            IOException, KeyManagementException, NoSuchAlgorithmException, ParseException, NullPointerException {
         String nexusUrl = this.baseurl + "/" + siloText + "/" + "bluval_results/" + name + "/" + version;
         LOGGER.debug(EELFLoggerDelegate.applicationLogger, "Trying to get validation Nexus results based on date");
         WebResource webResource = this.client.resource(nexusUrl + "/");
@@ -298,8 +298,8 @@ public final class NexusExecutorClient {
 
     public ValidationDbTestResult getLastResultBasedOnOutcome(@Nonnull String name, @Nonnull String version,
             @Nonnull String siloText, List<String> layers, Boolean optional, boolean outcome)
-                    throws ClientHandlerException, UniformInterfaceException, JsonParseException, JsonMappingException,
-                    IOException, KeyManagementException, NoSuchAlgorithmException, ParseException, NullPointerException {
+            throws ClientHandlerException, UniformInterfaceException, JsonParseException, JsonMappingException,
+            IOException, KeyManagementException, NoSuchAlgorithmException, ParseException, NullPointerException {
         String nexusUrl = this.baseurl + "/" + siloText + "/" + "bluval_results/" + name + "/" + version;
         LOGGER.info(EELFLoggerDelegate.applicationLogger, "Trying to get last result based on outcome");
         WebResource webResource = this.client.resource(nexusUrl + "/");
@@ -362,8 +362,8 @@ public final class NexusExecutorClient {
 
     public ValidationDbTestResult getLastResultBasedOnOutcome(@Nonnull String name, @Nonnull String version,
             @Nonnull String siloText, Boolean allLayers, Boolean optional, boolean outcome)
-                    throws ClientHandlerException, UniformInterfaceException, JsonParseException, JsonMappingException,
-                    IOException, KeyManagementException, NoSuchAlgorithmException, ParseException, NullPointerException {
+            throws ClientHandlerException, UniformInterfaceException, JsonParseException, JsonMappingException,
+            IOException, KeyManagementException, NoSuchAlgorithmException, ParseException, NullPointerException {
         String nexusUrl = this.baseurl + "/" + siloText + "/" + "bluval_results/" + name + "/" + version;
         LOGGER.info(EELFLoggerDelegate.applicationLogger, "Trying to get last result based on outcome");
         WebResource webResource = this.client.resource(nexusUrl + "/");
@@ -420,8 +420,8 @@ public final class NexusExecutorClient {
 
     public List<WRobotNexusTestResult> getWRobotTestResults(@Nonnull String name, @Nonnull String version,
             @Nonnull String siloText, @Nonnull String timestamp)
-                    throws ClientHandlerException, UniformInterfaceException, JsonParseException, JsonMappingException,
-                    IOException, KeyManagementException, NoSuchAlgorithmException {
+            throws ClientHandlerException, UniformInterfaceException, JsonParseException, JsonMappingException,
+            IOException, KeyManagementException, NoSuchAlgorithmException {
         String nexusUrl = this.baseurl + "/" + siloText + "/" + "bluval_results/" + name + "/" + version + "/"
                 + timestamp + "/results";
         List<WRobotNexusTestResult> listOfwrappers = new ArrayList<WRobotNexusTestResult>();
@@ -473,24 +473,31 @@ public final class NexusExecutorClient {
         List<Element> elements = document.getElementsByTag("body").get(0).getElementsByTag("table").get(0)
                 .getElementsByTag("tbody").get(0).getElementsByTag("tr");
         for (int i = 2; i < elements.size(); i++) {
-            String testSuiteName = elements.get(i).getElementsByTag("td").get(0).getElementsByTag("a").get(0).text();
-            testSuiteName = testSuiteName.substring(0, testSuiteName.length() - 1);
-            webResource = this.client.resource(resultsUrl + "/" + testSuiteName + "/output.xml");
-            LOGGER.debug(EELFLoggerDelegate.debugLogger, "Request URI of get: " + webResource.getURI().toString());
-            response = webResource.get(ClientResponse.class);
-            if (response.getStatus() != 200) {
-                throw new HttpException("Could not retrieve test suite result from Nexus. HTTP error code : "
-                        + response.getStatus() + " and message: " + response.getEntity(String.class));
+            try {
+                String testSuiteName = elements.get(i).getElementsByTag("td").get(0).getElementsByTag("a").get(0)
+                        .text();
+                testSuiteName = testSuiteName.substring(0, testSuiteName.length() - 1);
+                webResource = this.client.resource(resultsUrl + "/" + testSuiteName + "/output.xml");
+                LOGGER.debug(EELFLoggerDelegate.debugLogger, "Request URI of get: " + webResource.getURI().toString());
+                response = webResource.get(ClientResponse.class);
+                if (response.getStatus() != 200) {
+                    throw new HttpException("Could not retrieve test suite result from Nexus. HTTP error code : "
+                            + response.getStatus() + " and message: " + response.getEntity(String.class));
+                }
+                String result = response.getEntity(String.class);
+                JSONObject xmlJSONObj = XML.toJSONObject(result);
+                ObjectMapper mapper = new ObjectMapper();
+                mapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
+                mapper.configure(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY, true);
+                mapper.setSerializationInclusion(Include.NON_NULL);
+                RobotTestResult robotTestResult = mapper.readValue(xmlJSONObj.toString(), RobotTestResult.class);
+                robotTestResult.setName(testSuiteName);
+                rTestResults.add(robotTestResult);
+            } catch (Exception ex) {
+                LOGGER.warn(EELFLoggerDelegate.auditLogger,
+                        "Exception occured while retrieving robot results. " + UserUtils.getStackTrace(ex));
+                continue;
             }
-            String result = response.getEntity(String.class);
-            JSONObject xmlJSONObj = XML.toJSONObject(result);
-            ObjectMapper mapper = new ObjectMapper();
-            mapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
-            mapper.configure(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY, true);
-            mapper.setSerializationInclusion(Include.NON_NULL);
-            RobotTestResult robotTestResult = mapper.readValue(xmlJSONObj.toString(), RobotTestResult.class);
-            robotTestResult.setName(testSuiteName);
-            rTestResults.add(robotTestResult);
         }
         return rTestResults;
     }
