@@ -71,6 +71,7 @@ Run Sonobuoy Conformance Test
         Append To File          ${LOG}  ${output}${\n}
 
         # Wait until the test finishes execution
+        Wait Until Keyword Succeeds    3x    20 sec    Check that sonobuoy is running
         Run                     while sonobuoy status | grep "Sonobuoy is still running"; do sleep 180; done
         Append To File          ${LOG}  "Sonobuoy has completed"${\n}
 
@@ -90,6 +91,10 @@ Check that k8s cluster is reachable
                                 ...  kubectl version
         Append To File          ${LOG}  ${output}${\n}
         Should Contain          ${output}      Server Version: version.Info
+
+Check that sonobuoy is running
+       ${output}=              Run    kubectl get pod sonobuoy --namespace sonobuoy
+       Should Contain          ${output}     Running
 
 Cleanup Sonobuoy
         ${rc}  ${output}=       Run And Return Rc And Output
