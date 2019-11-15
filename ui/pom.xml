@@ -14,7 +14,7 @@
 
     <groupId>org.akraino.validation</groupId>
     <artifactId>ui</artifactId>
-    <version>0.4.4-SNAPSHOT</version>
+    <version>0.4.5-SNAPSHOT</version>
     <name>Bluval UI Maven Webapp</name>
     <packaging>war</packaging>
 
@@ -159,19 +159,19 @@
                             <build>
                                 <from>tomcat:8.5.37</from>
                                 <assembly>
-                                    <descriptorRef>artifact</descriptorRef>
+                                    <descriptor>${project.basedir}/ui-docker-assembly.xml</descriptor>
                                 </assembly>
                                 <runCmds>
                                     <!-- must be all on one line; use CDATA
                                         to turn off the Eclipse formatter -->
-                                    <run><![CDATA[mv /maven/*.war /usr/local/tomcat/webapps]]></run>
+                                    <run><![CDATA[mv /maven/target/*.war /usr/local/tomcat/webapps; mv /maven/docker-files/index.jsp /usr/local/tomcat/webapps/ROOT; mv /maven/docker-files/server.xml /usr/local/tomcat/conf; rm -fr /maven]]></run>
                                 </runCmds>
                             </build>
                         </image>
                         <image>
                             <name>akraino/validation:dev-mysql-latest</name>
                             <build>
-                                <from>mysql:5.6</from>
+                                <from>mysql:5.6</from>ll
                                 <assembly>
                                     <descriptorRef>project</descriptorRef>
                                 </assembly>

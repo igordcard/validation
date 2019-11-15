@@ -234,12 +234,20 @@ All notable changes to this project will be documented in this file.
 
 ### Removed
 
-## [0.4.4-SNAPSHOT] - 4 October 2019
+## [0.4.4-SNAPSHOT] - 4 October 2019 - Tagged as 2.0.0
 ### Added
 - The user can define whether the UI can trust all SSL certificates or not.
 - The mysql user name can be configured.
 
 ### Changed
 - New approach is used for interpreting shell script input variables. Now, all symbols are recognized.
+
+### Removed
+
+## [0.4.5-SNAPSHOT] - 15 November 2019
+### Added
+
+### Changed
+- The files 'server.xml' and index.jsp are embedded inside the UI docker image during build stage
 
 ### Removed

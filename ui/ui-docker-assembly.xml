@@ -1,0 +1,10 @@
+<assembly>
+    <id>ui-docker</id>
+    <fileSets>
+        <fileSet>
+            <directory>.</directory>
+            <outputDirectory>.</outputDirectory>
+            <fileMode>0644</fileMode>
+        </fileSet>
+    </fileSets>
+</assembly>

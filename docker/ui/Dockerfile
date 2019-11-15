@@ -20,3 +20,5 @@ RUN cd /opt/akraino/validation/ui && mvn clean package
 
 FROM tomcat:8.5.37
 COPY  --from=build /opt/akraino/validation/ui/target/bluvalui.war /usr/local/tomcat/webapps
+COPY  --from=build /opt/akraino/validation/ui/docker-files/index.jsp /usr/local/tomcat/webapps/ROOT
+COPY  --from=build /opt/akraino/validation/ui/docker-files/server.xml /usr/local/tomcat/conf
