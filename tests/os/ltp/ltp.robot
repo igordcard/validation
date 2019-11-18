@@ -37,21 +37,21 @@ ${FULL_SUITE}            ${SUITE_NAME.replace(' ','_')}
 RunLTP syscalls madvise only
     [Documentation]         Wait ~1m for madvise01-10 to complete
     ${log} =  Set Variable  ${OUTPUT DIR}${/}${FULL_SUITE}.${TEST NAME.replace(' ','_')}.log
-    ${result}=              Execute Command  /opt/ltp/runltp -f syscalls -s madvise  sudo=True
+    ${result}=              Execute Command  yes | sudo /opt/ltp/runltp -f syscalls -s madvise
     Append To File          ${log}  ${result}${\n}
     Should Contain          ${result}    INFO: ltp-pan reported all tests PASS
 
 RunLTP syscalls only
     [Documentation]         Wait ~45m for syscalls to complete
     ${log} =  Set Variable  ${OUTPUT DIR}${/}${FULL_SUITE}.${TEST NAME.replace(' ','_').log
-    ${result}=              Execute Command  /opt/ltp/runltp -f syscalls  sudo=True
+    ${result}=              Execute Command  yes | sudo /opt/ltp/runltp -f syscalls
     Append To File          ${log}  ${result}${\n}
     Should Contain          ${result}    INFO: ltp-pan reported all tests PASS
 
 RunLTP all tests
     [Documentation]         Wait ~5hrs to complete 2536 tests
     ${log} =  Set Variable  ${OUTPUT DIR}${/}${FULL_SUITE}.${TEST NAME.replace(' ','_').log
-    ${result}=              Execute Command  /opt/ltp/runltp  sudo=True
+    ${result}=              Execute Command  yes | sudo /opt/ltp/runltp
     Append To File          ${log}  ${result}${\n}
     Should Contain          ${result}    INFO: ltp-pan reported all tests PASS
 
@@ -62,14 +62,16 @@ Open Connection And Log In
 
 Install LTP
     Put File  /opt/akraino/ltp.tar.gz  /tmp/ltp.tar.gz
-    Execute Command  tar -xf /tmp/ltp.tar.gz -C /
+    Execute Command  tar -xf /tmp/ltp.tar.gz -C /  sudo=true
 
 Uninstall LTP
     Execute Command  rm -rf /opt/ltp  sudo=True
     Execute Command  rm /tmp/ltp.tar.gz
 
 Download Logs
+    Execute Command  chmod -R a+r /opt/ltp/output  sudo=True
     SSHLibrary.Get File  /opt/ltp/output/*  ${OUTPUT DIR}/output/
     Execute Command  rm -rf /opt/ltp/output/*  sudo=True
+    Execute Command  chmod -R a+r /opt/ltp/results  sudo=True
     SSHLibrary.Get File  /opt/ltp/results/*  ${OUTPUT DIR}/results/
     Execute Command  rm -rf /opt/ltp/results/*  sudo=True
