@@ -43,14 +43,14 @@ RunLTP syscalls madvise only
 
 RunLTP syscalls only
     [Documentation]         Wait ~45m for syscalls to complete
-    ${log} =  Set Variable  ${OUTPUT DIR}${/}${FULL_SUITE}.${TEST NAME.replace(' ','_').log
+    ${log} =  Set Variable  ${OUTPUT DIR}${/}${FULL_SUITE}.${TEST NAME.replace(' ','_')}.log
     ${result}=              Execute Command  yes | sudo /opt/ltp/runltp -f syscalls
     Append To File          ${log}  ${result}${\n}
     Should Contain          ${result}    INFO: ltp-pan reported all tests PASS
 
 RunLTP all tests
     [Documentation]         Wait ~5hrs to complete 2536 tests
-    ${log} =  Set Variable  ${OUTPUT DIR}${/}${FULL_SUITE}.${TEST NAME.replace(' ','_').log
+    ${log} =  Set Variable  ${OUTPUT DIR}${/}${FULL_SUITE}.${TEST NAME.replace(' ','_')}.log
     ${result}=              Execute Command  yes | sudo /opt/ltp/runltp
     Append To File          ${log}  ${result}${\n}
     Should Contain          ${result}    INFO: ltp-pan reported all tests PASS
