@@ -48,13 +48,6 @@ RunLTP syscalls only
     Append To File          ${log}  ${result}${\n}
     Should Contain          ${result}    INFO: ltp-pan reported all tests PASS
 
-RunLTP all tests
-    [Documentation]         Wait ~5hrs to complete 2536 tests
-    ${log} =  Set Variable  ${OUTPUT DIR}${/}${FULL_SUITE}.${TEST NAME.replace(' ','_')}.log
-    ${result}=              Execute Command  yes | sudo /opt/ltp/runltp
-    Append To File          ${log}  ${result}${\n}
-    Should Contain          ${result}    INFO: ltp-pan reported all tests PASS
-
 *** Keywords ***
 Open Connection And Log In
     Open Connection        ${HOST}
