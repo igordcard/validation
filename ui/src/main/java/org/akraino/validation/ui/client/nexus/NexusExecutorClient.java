@@ -254,7 +254,7 @@ public final class NexusExecutorClient {
                     vDbResult.setTimestamp(timestamp);
                     vDbResults.add(vDbResult);
                 }
-            } catch (IllegalArgumentException | HttpException | NullPointerException | NoSuchElementException ex) {
+            } catch (HttpException | RuntimeException ex) {
                 LOGGER.warn(EELFLoggerDelegate.auditLogger, "Exception occured while retrieving timestamp : "
                         + timestamp + " result." + UserUtils.getStackTrace(ex));
                 continue;
@@ -287,7 +287,7 @@ public final class NexusExecutorClient {
                 timestamp = timestamp.substring(0, timestamp.length() - 1);
                 ValidationDbTestResult vDbResult = this.getResult(name, version, siloText, timestamp);
                 vDbResults.add(vDbResult);
-            } catch (IllegalArgumentException | HttpException | NullPointerException ex) {
+            } catch (HttpException | RuntimeException ex) {
                 LOGGER.warn(EELFLoggerDelegate.auditLogger,
                         "Exception occured while retrieving timestamp results. " + UserUtils.getStackTrace(ex));
                 continue;
@@ -351,7 +351,7 @@ public final class NexusExecutorClient {
                     }
                 }
                 return vDbResult;
-            } catch (IllegalArgumentException | HttpException | NullPointerException ex) {
+            } catch (HttpException | RuntimeException ex) {
                 LOGGER.warn(EELFLoggerDelegate.auditLogger,
                         "Error when trying to retrieve results. " + UserUtils.getStackTrace(ex));
                 continue;
@@ -409,7 +409,7 @@ public final class NexusExecutorClient {
                     continue;
                 }
                 return vDbResult;
-            } catch (IllegalArgumentException | HttpException | NullPointerException ex) {
+            } catch (HttpException | RuntimeException ex) {
                 LOGGER.warn(EELFLoggerDelegate.auditLogger,
                         "Error when trying to retrieve results. " + UserUtils.getStackTrace(ex));
                 continue;
@@ -444,6 +444,9 @@ public final class NexusExecutorClient {
                     continue;
                 }
                 List<RobotTestResult> robotTestResults = getRobotTestResults(nexusUrl + "/" + layer);
+                if (robotTestResults.size() < 1) {
+                    continue;
+                }
                 WRobotNexusTestResult wrapper = new WRobotNexusTestResult();
                 wrapper.setLayer(layer);
                 wrapper.setRobotNexusTestResults(robotTestResults);

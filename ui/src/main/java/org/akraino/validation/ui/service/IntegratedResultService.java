@@ -198,7 +198,7 @@ public class IntegratedResultService {
         }
         List<ValidationDbTestResult> vNexusResults = new ArrayList<ValidationDbTestResult>();
         List<ValidationDbTestResult> vResults = nexusService.getResults(name, version, labInfo.getSilo(), date);
-        if (vResults != null && vResults.size() > 1) {
+        if (vResults != null && vResults.size() >= 1) {
             for (ValidationDbTestResult vNexusResult : vResults) {
                 if (dbAdapter.checkValidityOfNexusResult(vNexusResult)) {
                     vNexusResult.setLab(labInfo);

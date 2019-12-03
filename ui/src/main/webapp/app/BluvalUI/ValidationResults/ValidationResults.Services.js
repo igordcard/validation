@@ -78,11 +78,20 @@ app
                     }
                     svc.filterWithResult = function(validationDbTestResults,
                             filterResult) {
+                        var validationDbTestResultsWithNoErrors = [];
+                        angular
+                                .forEach(
+                                        validationDbTestResults,
+                                        function(validationDbTestResult) {
+                                            if (validationDbTestResult.submission || (validationDbTestResult.wrobotDbTestResults && validationDbTestResult.wrobotDbTestResults.length > 0)) {
+                                                validationDbTestResultsWithNoErrors.push(validationDbTestResult);
+                                            }
+                                        });
                         if (filterResult === undefined || filterResult === '') {
-                            return validationDbTestResults;
+                            return validationDbTestResultsWithNoErrors;
                         }
                         var filteredResults = [];
-                        angular.forEach(validationDbTestResults, function(
+                        angular.forEach(validationDbTestResultsWithNoErrors, function(
                                 validationDbTestResult) {
                             if (validationDbTestResult.result === true
                                     && 'success'.includes(filterResult

@@ -251,3 +251,11 @@ All notable changes to this project will be documented in this file.
 - The files 'server.xml' and index.jsp are embedded inside the UI docker image during build stage
 
 ### Removed
+
+## [0.4.6-SNAPSHOT] - 02 December 2019
+### Added
+
+### Changed
+- Validation results are ignored when there are no robot test results associated with them
+
+### Removed
