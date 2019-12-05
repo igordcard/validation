@@ -68,3 +68,5 @@ RUN apt-get update && apt-get -y install \
 
 # Install bluval dependencies
 RUN pip3 install -r /opt/akraino/validation/bluval/requirements.txt
+ENV LC_ALL=C.UTF-8
+ENV LANG=C.UTF-8
