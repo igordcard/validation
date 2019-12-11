@@ -49,12 +49,16 @@ RUN make autotools && \
     make -j $(getconf _NPROCESSORS_ONLN) 2>&1 | tee ../build-log.txt && \
     make install 2>&1 | tee ../install-log.txt
 RUN tar czvf /opt/akraino/ltp.tar.gz /opt/ltp
+WORKDIR /root/src
+RUN git clone https://github.com/CISOfy/lynis && tar czvf /opt/akraino/lynis-remote.tar.gz ./lynis
 
 # Copy binaries into the final container and install robot framework
 FROM ubuntu:18.04
 COPY --from=build /wheels /wheels
 COPY --from=build /opt/akraino/validation /opt/akraino/validation
 COPY --from=build /opt/akraino/ltp.tar.gz /opt/akraino/ltp.tar.gz
+COPY --from=build /opt/akraino/lynis-remote.tar.gz /opt/akraino/lynis-remote.tar.gz
+
 
 RUN apt-get update && apt-get -y install \
     python3-pip python3.6 && \

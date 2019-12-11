@@ -35,6 +35,11 @@ blueprint:
             name: cyclictest
             what: cyclictest
             optional: "True"
+        -
+            name: lynis
+            what: lynis
+            optional: "True"
+
     docker: &docker_base
         -
             name: docker_bench
