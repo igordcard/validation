@@ -17,6 +17,7 @@
 
 
 *** Settings ***
+Library             Collections
 Library             JSONLibrary
 Library             OperatingSystem
 Library             Process
@@ -29,31 +30,64 @@ ${REDFISHDIR}       ${TEMPDIR}/Redfish
 
 *** Keywords ***
 Update Config File
-    ${conf}=        Load JSON From File  ${REDFISHDIR}/framework_conf.json
+    [Arguments]     ${config_file}
+    ${conf}=        Load JSON From File  ${config_file}
     ${conf}=        Update Value To Json  ${conf}  $.password  ${BMC_PASSWORD}
     ${conf}=        Convert JSON To String  ${conf}
-    Create File     ${REDFISHDIR}/framework_conf.json  ${conf}
+    Create File     ${config_file}  ${conf}
 
 Run Suite Against Target Node
     [Arguments]     ${ip}
-    ${result}=      Run Process  python  test_framework.py
-    ...                 --directory  ${REDFISHDIR}
+    Start Process   python  test_framework.py
+    ...                 --directory  ${REDFISHDIR}/${ip}
     ...                 --rhost  ${ip}
     ...                 --user  ${BMC_USER}
     ...                 --interpreter  python
     ...                 --secure  Always
-    ...               cwd=${REDFISHDIR}
-    Copy Files      ${REDFISHDIR}/reports/output-*/results*.json  ${REPORTDIR}/${ip}
-    Copy Files      ${REDFISHDIR}/output-*/*.html  ${REPORTDIR}/${ip}
-    Should Be Equal As Integers  ${result.rc}  0
-    Should Not Contain  ${result.stderr}  FAILED${\n} (Failures=
+    ...               cwd=${REDFISHDIR}/${ip}
+    ...               alias=${ip}
+    Process Should Be Running
 
-Run Usecase Checkers Suite
+Install Usecase Checkers Test Suite
+    @{BMC_IP}=      Remove Duplicates  ${BMC_IP}
+    Set Test Variable  @{BMC_IP}
     FOR  ${ip}  IN  @{BMC_IP}
-        Copy Directory  /opt/akraino/Redfish-Test-Framework  ${REDFISHDIR}
-        Copy Directory  /opt/akraino/Redfish-Usecase-Checkers  ${REDFISHDIR}/Redfish-Usecase-Checkers
-        Create Directory  ${REDFISHDIR}/reports
-        Update Config File
+        Copy Directory  /opt/akraino/Redfish-Test-Framework
+        ...             ${REDFISHDIR}/${ip}
+        Copy Directory  /opt/akraino/Redfish-Usecase-Checkers
+        ...             ${REDFISHDIR}/${ip}/Redfish-Usecase-Checkers
+        Create Directory  ${REDFISHDIR}/${ip}/reports
+        Update Config File  ${REDFISHDIR}/${ip}/framework_conf.json
+    END
+
+Uninstall Test Suite
+    Remove Directory  ${REDFISHDIR}  recursive=True
+
+Start Suite
+    @{ips}=         Create List
+    Set Test Variable  @{ips}
+    FOR  ${ip}  IN  @{BMC_IP}
         Run Suite Against Target Node  ${ip}
-        Remove Directory    ${REDFISHDIR}  recursive=True
+        Append To List  ${ips}  ${ip}
+    END
+
+Suite Finished
+    @{tmp}=         Copy List  ${ips}
+    FOR  ${ip}  IN  @{tmp}
+        ${result}=  Wait For Process  ${ip}  timeout=1ms
+        Continue For Loop If  '${result}' == '${NONE}'
+        Remove Values From List  ${ips}  ${ip}
+        Copy Files  ${REDFISHDIR}/${ip}/reports/output-*/results*.json  ${REPORTDIR}/${ip}
+        Copy Files  ${REDFISHDIR}/${ip}/output-*/*.html  ${REPORTDIR}/${ip}
+    END
+    Should Be Empty  ${ips}
+
+Wait Until Suite Finishes
+    Wait Until Keyword Succeeds  45m  15s  Suite Finished
+
+Check Suite Results
+    FOR  ${ip}  IN  @{BMC_IP}
+        ${result}=  Get Process Result  ${ip}
+        Should Be Equal As Integers  ${result.rc}  0
+        Should Not Contain  ${result.stderr}  FAILED${\n} (Failures=
     END

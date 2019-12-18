@@ -20,8 +20,14 @@
 Documentation     Redfish Test Framework is a tool and a model for organizing
 ...               and running a set of Redfish interoperability test
 Resource          redfish.resource
+Test Teardown     Run Keywords
+...               Terminate All Processes
+...               Uninstall Test Suite
 
 
 *** Test Cases ***
 Validate Common Use Cases
-    Run Usecase Checkers Suite
+    [Setup]      Install Usecase Checkers Test Suite
+    Start Suite
+    Wait Until Suite Finishes
+    Check Suite Results
