@@ -32,4 +32,4 @@ RUN git clone https://gerrit.akraino.org/r/validation /opt/akraino/validation
 RUN pip3 install -r /opt/akraino/validation/bluval/requirements.txt
 
 WORKDIR /opt/akraino/validation
-ENTRYPOINT  ["python3", "bluval/blucon.py"]
+ENTRYPOINT  ["python3", "-B", "bluval/blucon.py"]

@@ -61,7 +61,7 @@ def invoke_docker(bluprint, layer):
            " akraino/validation:{0}-latest"
            " /bin/sh -c"
            " 'cd /opt/akraino/validation "
-           "&& python bluval/bluval.py -l {0} {1} {2}'"
+           "&& python -B bluval/bluval.py -l {0} {1} {2}'"
            .format(layer, ("-o" if _OPTIONAL_ALSO else ""), bluprint))
 
     args = [cmd]
