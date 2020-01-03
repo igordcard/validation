@@ -42,6 +42,10 @@ volumes:
     results_dir:
         local: ''
         target: '/opt/akraino/results'
+    # location on where to store openrc file
+    openrc:
+        local: ''
+        target: '/root/openrc'
 
 # parameters that will be passed to the container at each layer
 layers:
@@ -64,6 +68,8 @@ layers:
     k8s_networking:
         - ssh_key_dir
         - kube_config_dir
+    openstack:
+        - openrc
     sds:
     sdn:
     vim:
