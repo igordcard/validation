@@ -1,0 +1,8 @@
+[servers]
+
+[servers.akraino]
+host = "HOST"
+port = "22"
+user = "USERNAME"
+keyPath = "/root/.ssh/id_rsa"
+containerType = "docker"
