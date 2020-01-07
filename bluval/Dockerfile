@@ -15,11 +15,12 @@
 ##############################################################################
 
 # ref: https://docs.docker.com/develop/develop-images/dockerfile_best-practices/#use-multi-stage-builds
-FROM python:3.6-alpine3.9
+FROM python:3.6-alpine3.10
 
 RUN apk --no-cache add --update \
         gcc \
         git \
+        docker-cli \
         libc6-compat \
         libc-dev \
         libffi \
