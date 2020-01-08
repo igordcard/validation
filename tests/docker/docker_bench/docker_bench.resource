@@ -18,6 +18,7 @@
 
 *** Settings ***
 Library            BuiltIn
+Library            Collections
 Library            OperatingSystem
 Library            Process
 Library            SSHLibrary
@@ -43,12 +44,18 @@ Upload Test Software To Nodes
     Copy Test Software To All Nodes
 
 Run Test Software On Nodes
-    :FOR  ${node}  IN  @{nodes}
-    \   Execute Command   ssh ${SSH_OPTS} ${node} "cd ${NODEDIR}; sudo ./docker-bench-security.sh -b -l bench.log"
-    \   Execute Command   scp ${SSH_OPTS} ${node}:${NODEDIR}/bench.log ${DESTDIR}/docker-bench-${node}.log
-    \   Execute Command   scp ${SSH_OPTS} ${node}:${NODEDIR}/bench.log.json ${DESTDIR}/docker-bench-${node}.json
-    \   SSHLibrary.Get File  ${DESTDIR}/docker-bench-${node}.log  ${REPORTDIR}/
-    \   SSHLibrary.Get File  ${DESTDIR}/docker-bench-${node}.json  ${REPORTDIR}/
+    FOR  ${node}  IN  @{nodes}
+        Start Command  ssh ${SSH_OPTS} ${node} "cd ${NODEDIR}; sudo ./docker-bench-security.sh -b -l bench.log"
+    END
+    @{tmp}=                Copy List  ${nodes}
+    Reverse List           ${tmp}
+    FOR  ${node}  IN  @{tmp}
+        Read Command Output  return_stdout=False
+        Execute Command  scp ${SSH_OPTS} ${node}:${NODEDIR}/bench.log ${DESTDIR}/docker-bench-${node}.log
+        Execute Command  scp ${SSH_OPTS} ${node}:${NODEDIR}/bench.log.json ${DESTDIR}/docker-bench-${node}.json
+        SSHLibrary.Get File  ${DESTDIR}/docker-bench-${node}.log  ${REPORTDIR}/
+        SSHLibrary.Get File  ${DESTDIR}/docker-bench-${node}.json  ${REPORTDIR}/
+    END
 
 Get Node Addresses
     ${stdout}=            Execute Command
@@ -57,11 +64,13 @@ Get Node Addresses
     Set Test Variable     @{nodes}
 
 Copy Test Software To All Nodes
-    :FOR  ${node}  IN  @{nodes}
-    \   Execute Command   ssh ${SSH_OPTS} ${node} "mkdir -p ${NODEDIR}"
-    \   Execute Command   scp ${SSH_OPTS} -rp ${DESTDIR}/. ${node}:${NODEDIR}
+    FOR  ${node}  IN  @{nodes}
+        Execute Command   ssh ${SSH_OPTS} ${node} "mkdir -p ${NODEDIR}"
+        Execute Command   scp ${SSH_OPTS} -rp ${DESTDIR}/. ${node}:${NODEDIR}
+    END
 
 Remove Test Software From Nodes
-    :FOR  ${node}  IN  @{nodes}
-    \   Execute Command   ssh ${SSH_OPTS} ${node} "rm -rf ${NODEDIR}"
+    FOR  ${node}  IN  @{nodes}
+        Execute Command   ssh ${SSH_OPTS} ${node} "rm -rf ${NODEDIR}"
+    END
     Execute Command       rm -rf ${DESTDIR}
