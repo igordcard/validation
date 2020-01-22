@@ -13,9 +13,11 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 -->
-<div id="page-content" class="content" style="padding: 25px;">
+<div>
 
-    <style>
+    <style scoped>
+@import "app/css/modal.css";
+
 .graph, .empty-graph {
     border: 1px solid #ccc;
     width: auto;
@@ -35,30 +37,7 @@ limitations under the License.
 
 div.box {
     border: 1px solid black;
-}
-
-.bluvalDetails .property {
-    width: 30%;
-    display: inline-block;
-    box-sizing: border-box;
-    text-align: left;
-}
-
-.bluvalDetails .value {
-    text-align: left;
-    padding-left: 10px;
-    width: 70%;
-    display: inline-block;
-    box-sizing: border-box;
-}
-
-.selected {
-    background-color: #337ab7;
-    font-weight: bold;
-}
-
-#page-content {
-    margin-left: 20px;
+    overflow-x: scroll;
 }
 </style>
 
@@ -401,24 +380,29 @@ div.box {
 <h2 class="heading-small"></h2>
                         <h4>
                             <a href="javascript:void(0);" ng-click="showDetails = ! showDetails">
-                                {{kw.name}}</a>
+                                {{kw.name}} (Nested depth: {{$depth = $parent.$depth && $parent.$depth + 1 || 1}})</a>
                         </h4>
-                        <div ng-show="showDetails">
-                            <p>&emsp;&emsp;&emsp;&emsp; Type:
-                                {{kw.type}}</p>
-                            <p>&emsp;&emsp;&emsp;&emsp; Library:
-                                {{kw.library}}</p>
-                            <p>&emsp;&emsp;&emsp;&emsp;
-                                Documentation: {{kw.doc}}</p>
-                            <p>&emsp;&emsp;&emsp;&emsp; Start time:
-                                {{kw.status.starttime}}</p>
-                            <p>&emsp;&emsp;&emsp;&emsp; End time:
-                                {{kw.status.endtime}}</p>
-                            <p>&emsp;&emsp;&emsp;&emsp; Status:
-                                {{kw.status.status}}</p>
+                        <div ng-show="showDetails" ng-style="{'margin-left': 50*$depth+'px'}">
+                            <p>Type: <i>
+                                {{kw.type}}</i></p>
+                            <p>Library: <i>
+                                {{kw.library}}</i></p>
+                            <p>Documentation: <i> {{kw.doc}}</i></p>
+                            <p>Start time:
+                                <i>{{kw.status.starttime}}</i></p>
+                            <p>End time:
+                                <i>{{kw.status.endtime}}</i></p>
+                            <p>Status:
+                                <i>{{kw.status.status}}</i></p>
+                            <p ng-if="kw.arguments">Arguments:
+                                <ul>
+                                    <li ng-repeat="arg in kw.arguments.arg">&emsp;&emsp;&emsp;&emsp;<i>{{arg}}</i></li>
+                                </ul>
+                            </p>
+                            <p ng-if="kw.msg">Message:
+                                <i>{{kw.msg.content}}</i></p>
                             <p></p>
-                            <p>&emsp;&emsp;&emsp;&emsp; Used Robot
-                                keywords:</p>
+                            <p ng-if="kw.kw">Used Robot keywords:</p>
    <ul ng-if="kw.kw">
     <li ng-repeat="kw in kw.kw" ng-include="'kwVal'"></li>
   </ul>
@@ -428,24 +412,29 @@ div.box {
 <h2 class="heading-small"></h2>
                         <h4>
                             <a href="javascript:void(0);" ng-click="showDetails4 = ! showDetails4">
-                                {{kw.name}}</a>
+                                {{kw.name}} (Nested depth: {{$depth = $parent.$depth && $parent.$depth + 1 || 1}})</a>
                         </h4>
-                        <div ng-show="showDetails4">
-                            <p>&emsp;&emsp;&emsp;&emsp; Type:
-                                {{kw.type}}</p>
-                            <p>&emsp;&emsp;&emsp;&emsp; Library:
-                                {{kw.library}}</p>
-                            <p>&emsp;&emsp;&emsp;&emsp;
-                                Documentation: {{kw.doc}}</p>
-                            <p>&emsp;&emsp;&emsp;&emsp; Start time:
-                                {{kw.status.starttime}}</p>
-                            <p>&emsp;&emsp;&emsp;&emsp; End time:
-                                {{kw.status.endtime}}</p>
-                            <p>&emsp;&emsp;&emsp;&emsp; Status:
-                                {{kw.status.status}}</p>
+                        <div ng-show="showDetails4" ng-style="{'margin-left': 50*$depth+'px'}">
+                            <p>Type: <i>
+                                {{kw.type}}</i></p>
+                            <p>Library: <i>
+                                {{kw.library}}</i></p>
+                            <p>Documentation: <i> {{kw.doc}}</i></p>
+                            <p>Start time:
+                                <i>{{kw.status.starttime}}</i></p>
+                            <p>End time:
+                                <i>{{kw.status.endtime}}</i></p>
+                            <p>Status:
+                                <i>{{kw.status.status}}</i></p>
+                            <p ng-if="kw.arguments">Arguments:
+                                <ul>
+                                    <li ng-repeat="arg in kw.arguments.arg">&emsp;&emsp;&emsp;&emsp;<i>{{arg}}</i></li>
+                                </ul>
+                            </p>
+                            <p ng-if="kw.msg">Message:
+                                <i>{{kw.msg.content}}</i></p>
                             <p></p>
-                            <p>&emsp;&emsp;&emsp;&emsp; Used Robot
-                                keywords:</p>
+                            <p ng-if="kw.kw">Used Robot keywords:</p>
    <ul ng-if="kw.kw">
     <li ng-repeat="kw in kw.kw" ng-include="'kwVal3'"></li>
   </ul>

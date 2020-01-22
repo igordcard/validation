@@ -1,0 +1,18 @@
+.modal {
+    background-clip: padding-box;
+    background-color: #ffffff;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    box-shadow: 0 3px 5px 1px rgba(0, 0, 0, 0.4);
+    margin: 0 auto;
+    /* margin-bottom: 10%; */
+    outline: medium none;
+    /* position: absolute; */
+    padding: 25px;
+    height: 175px;
+    overflow-y: scroll;
+    /* top: 10%; */
+    width: 1100px;
+    overflow-x: scroll;
+    z-index: -1;
+}

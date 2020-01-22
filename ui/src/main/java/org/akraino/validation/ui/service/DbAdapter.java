@@ -220,7 +220,7 @@ public class DbAdapter {
 
     public List<ValidationDbTestResult> readResultFromDb(String blueprintName, String version, String lab,
             List<String> layers, Boolean allLayers, Boolean optional, Boolean outcome)
-                    throws JsonParseException, JsonMappingException, IOException {
+            throws JsonParseException, JsonMappingException, IOException {
         synchronized (LOCK) {
             LabInfo actualLabInfo = null;
             if (lab != null) {
@@ -625,8 +625,8 @@ public class DbAdapter {
                     .equals(vNexusResult.getBlueprintInstance().getBlueprint().getBlueprintName())) {
                 LOGGER.error(EELFLoggerDelegate.errorLogger,
                         "Nexus has different data for blueprint : " + blueprint.getBlueprintName()
-                        + ". Name inconsistency : " + blueprint.getBlueprintName() + " "
-                        + vNexusResult.getBlueprintInstance().getBlueprint().getBlueprintName());
+                                + ". Name inconsistency : " + blueprint.getBlueprintName() + " "
+                                + vNexusResult.getBlueprintInstance().getBlueprint().getBlueprintName());
                 return false;
             }
         }
@@ -634,8 +634,8 @@ public class DbAdapter {
             if (!bluInst.getVersion().equals(vNexusResult.getBlueprintInstance().getVersion())) {
                 LOGGER.error(EELFLoggerDelegate.errorLogger,
                         "Nexus has different data for blueprint : " + bluInst.getBlueprint().getBlueprintName()
-                        + ", version: " + bluInst.getVersion() + ". Version inconsistency : "
-                        + bluInst.getVersion() + " " + vNexusResult.getBlueprintInstance().getVersion());
+                                + ", version: " + bluInst.getVersion() + ". Version inconsistency : "
+                                + bluInst.getVersion() + " " + vNexusResult.getBlueprintInstance().getVersion());
                 return false;
             }
         }
@@ -679,7 +679,7 @@ public class DbAdapter {
         if (vDbTimestamp.equals(vDbSubmission) || (vDbTimestamp.getSubmission() != null
                 && !jnksJobNotify.getSubmissionId().equals(vDbTimestamp.getSubmission().getSubmissionId()))) {
             LOGGER.error(EELFLoggerDelegate.errorLogger, "Received same timestamp: " + jnksJobNotify.getTimestamp()
-            + " from nexus for submission id: " + jnksJobNotify.getSubmissionId());
+                    + " from nexus for submission id: " + jnksJobNotify.getSubmissionId());
             return false;
         }
         if (!vDbSubmission.getAllLayers()) {
@@ -707,7 +707,7 @@ public class DbAdapter {
         if (!vDbSubmission.getBlueprintInstance().getBlueprint().getBlueprintName()
                 .equals(vDbTimestamp.getBlueprintInstance().getBlueprint().getBlueprintName())
                 || !vDbSubmission.getBlueprintInstance().getVersion()
-                .equals(vDbTimestamp.getBlueprintInstance().getVersion())
+                        .equals(vDbTimestamp.getBlueprintInstance().getVersion())
                 || !compareLabInfos(vDbSubmission.getLab(), vDbTimestamp.getLab())) {
             LOGGER.error(EELFLoggerDelegate.errorLogger, "No consistency exists in database records.");
             return false;

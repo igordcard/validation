@@ -259,3 +259,13 @@ All notable changes to this project will be documented in this file.
 - Validation results are ignored when there are no robot test results associated with them
 
 ### Removed
+
+## [0.4.7-SNAPSHOT] - 21 January 2020
+### Added
+- Messages and Arguments of Robot keywords are displayed
+
+### Changed
+- The correct indentation is used for displaying Robot keywords
+- Improvement of exception handling
+
+### Removed

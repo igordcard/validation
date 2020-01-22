@@ -21,6 +21,8 @@ import org.codehaus.jackson.annotate.JsonIgnoreProperties;
 import org.codehaus.jackson.annotate.JsonProperty;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 
+import com.fasterxml.jackson.databind.JsonNode;
+
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonSerialize(include = JsonSerialize.Inclusion.NON_NULL)
 public class Kw {
@@ -41,6 +43,12 @@ public class Kw {
 
     @JsonProperty("kw")
     private List<Kw> kw;
+
+    @JsonProperty("arguments")
+    private Kw.Arguments arguments;
+
+    @JsonProperty("msg")
+    private JsonNode msg;
 
     public Kw() {
 
@@ -94,6 +102,22 @@ public class Kw {
         this.kw = kw;
     }
 
+    public Kw.Arguments getArguments() {
+        return this.arguments;
+    }
+
+    public void setArguments(Kw.Arguments arguments) {
+        this.arguments = arguments;
+    }
+
+    public JsonNode getMsg() {
+        return this.msg;
+    }
+
+    public void setMsg(JsonNode msg) {
+        this.msg = msg;
+    }
+
     public class Status {
         @JsonProperty("endtime")
         private String endtime;
@@ -130,6 +154,23 @@ public class Kw {
 
         public void setStatus(String status) {
             this.status = status;
+        }
+    }
+
+    public class Arguments {
+        @JsonProperty("arg")
+        private List<String> arg;
+
+        public Arguments() {
+
+        }
+
+        public List<String> getArg() {
+            return this.arg;
+        }
+
+        public void setArg(List<String> arg) {
+            this.arg = arg;
         }
     }
 

@@ -16,8 +16,6 @@
 package org.akraino.validation.ui.service;
 
 import java.io.IOException;
-import java.security.KeyManagementException;
-import java.security.NoSuchAlgorithmException;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -45,8 +43,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
-import com.sun.jersey.api.client.ClientHandlerException;
-import com.sun.jersey.api.client.UniformInterfaceException;
 
 @Service
 @Transactional
@@ -63,9 +59,7 @@ public class IntegratedResultService {
     @Autowired
     DbAdapter dbAdapter;
 
-    public List<String> getLabsFromNexus()
-            throws JsonParseException, JsonMappingException, KeyManagementException, ClientHandlerException,
-            UniformInterfaceException, NoSuchAlgorithmException, IOException, IllegalArgumentException, ParseException {
+    public List<String> getLabsFromNexus() throws IndexOutOfBoundsException, HttpException, NullPointerException {
         List<String> labs = new ArrayList<String>();
         for (String cLabSilo : nexusService.getResource(null)) {
             for (LabInfo labInfo : dbAdapter.getLabs()) {
@@ -78,31 +72,25 @@ public class IntegratedResultService {
     }
 
     public List<String> getBlueprintNamesOfLabFromNexus(@Nonnull String lab)
-            throws JsonParseException, JsonMappingException, KeyManagementException, ClientHandlerException,
-            UniformInterfaceException, NoSuchAlgorithmException, IOException, IllegalArgumentException, ParseException {
+            throws IndexOutOfBoundsException, HttpException, NullPointerException, IllegalArgumentException {
         LabInfo labInfo = dbAdapter.getLab(lab);
         if (labInfo == null) {
             throw new IllegalArgumentException("Could not retrieve lab : " + lab.toString());
         }
         List<String> rNames = new ArrayList<String>();
-        try {
-            List<String> cNames = nexusService.getResource(dbAdapter.getLab(lab).getSilo() + "/bluval_results");
-            for (String cName : cNames) {
-                if (cName.equals("family") || cName.equals("ta") || cName.equals("job")) {
-                    continue;
-                }
-                rNames.add(cName);
+        List<String> cNames = nexusService.getResource(dbAdapter.getLab(lab).getSilo() + "/bluval_results");
+        for (String cName : cNames) {
+            if (cName.equals("family") || cName.equals("ta") || cName.equals("job")) {
+                continue;
             }
-        } catch (HttpException ex) {
-            LOGGER.warn(EELFLoggerDelegate.auditLogger,
-                    "Error when retrieving blueprint names from nexus" + UserUtils.getStackTrace(ex));
+            rNames.add(cName);
         }
+
         return rNames;
     }
 
     public List<String> getBlueprintVersionsFromNexus(@Nonnull String name, @Nonnull String lab)
-            throws JsonParseException, JsonMappingException, KeyManagementException, ClientHandlerException,
-            UniformInterfaceException, NoSuchAlgorithmException, IOException, IllegalArgumentException, ParseException {
+            throws IndexOutOfBoundsException, HttpException, NullPointerException, IllegalArgumentException {
         LabInfo labInfo = dbAdapter.getLab(lab);
         if (labInfo == null) {
             throw new IllegalArgumentException("Could not retrieve lab : " + lab.toString());
@@ -111,26 +99,20 @@ public class IntegratedResultService {
     }
 
     public List<String> getBlueprintTimeStampsFromNexus(@Nonnull String name, @Nonnull String version,
-            @Nonnull String lab) throws JsonParseException, JsonMappingException, KeyManagementException,
-    ClientHandlerException, UniformInterfaceException, NoSuchAlgorithmException, IOException, ParseException {
+            @Nonnull String lab)
+            throws IndexOutOfBoundsException, HttpException, NullPointerException, IllegalArgumentException {
         LabInfo labInfo = dbAdapter.getLab(lab);
         if (labInfo == null) {
             throw new IllegalArgumentException("Could not retrieve lab : " + lab.toString());
         }
         List<String> timestamps = new ArrayList<String>();
-        try {
-            timestamps = nexusService.getResource(labInfo.getSilo() + "/bluval_results", name, version);
-        } catch (HttpException ex) {
-            LOGGER.warn(EELFLoggerDelegate.auditLogger,
-                    "Error when retrieving blueprint names from nexus" + UserUtils.getStackTrace(ex));
-        }
+        timestamps = nexusService.getResource(labInfo.getSilo() + "/bluval_results", name, version);
         return timestamps;
     }
 
     public List<ValidationDbTestResult> getResultsFromNexus(@Nonnull String name, @Nonnull String version,
             @Nonnull String lab, int noTimestamps)
-                    throws JsonParseException, JsonMappingException, KeyManagementException, ClientHandlerException,
-                    UniformInterfaceException, NoSuchAlgorithmException, IOException, IllegalArgumentException, ParseException {
+            throws IndexOutOfBoundsException, HttpException, NullPointerException, IllegalArgumentException {
         LabInfo labInfo = dbAdapter.getLab(lab);
         if (labInfo == null) {
             throw new IllegalArgumentException("Could not retrieve lab : " + lab.toString());
@@ -139,9 +121,8 @@ public class IntegratedResultService {
     }
 
     public ValidationDbTestResult getResultFromNexus(@Nonnull String name, @Nonnull String version, @Nonnull String lab,
-            @Nonnull String timestamp) throws JsonParseException, JsonMappingException, IOException,
-    KeyManagementException, ClientHandlerException, UniformInterfaceException, NoSuchAlgorithmException,
-    NullPointerException, ParseException {
+            @Nonnull String timestamp)
+            throws IndexOutOfBoundsException, HttpException, NullPointerException, IllegalArgumentException {
         LabInfo labInfo = dbAdapter.getLab(lab);
         if (labInfo == null) {
             throw new IllegalArgumentException("Could not retrieve lab : " + lab.toString());
@@ -156,8 +137,7 @@ public class IntegratedResultService {
 
     public ValidationDbTestResult getLastResultBasedOnOutcomeFromNexus(@Nonnull String name, @Nonnull String version,
             @Nonnull String lab, Boolean allLayers, Boolean optional, boolean outcome)
-                    throws JsonParseException, JsonMappingException, KeyManagementException, ClientHandlerException,
-                    UniformInterfaceException, NoSuchAlgorithmException, NullPointerException, IOException, ParseException {
+            throws IndexOutOfBoundsException, HttpException, NullPointerException, IllegalArgumentException {
         LabInfo labInfo = dbAdapter.getLab(lab);
         if (labInfo == null) {
             throw new IllegalArgumentException("Could not retrieve lab : " + lab.toString());
@@ -173,8 +153,7 @@ public class IntegratedResultService {
 
     public ValidationDbTestResult getLastResultBasedOnOutcomeFromNexus(@Nonnull String name, @Nonnull String version,
             @Nonnull String lab, @Nonnull List<String> layers, Boolean optional, boolean outcome)
-                    throws JsonParseException, JsonMappingException, KeyManagementException, ClientHandlerException,
-                    UniformInterfaceException, NoSuchAlgorithmException, NullPointerException, IOException, ParseException {
+            throws IndexOutOfBoundsException, HttpException, NullPointerException, IllegalArgumentException {
         LabInfo labInfo = dbAdapter.getLab(lab);
         if (labInfo == null) {
             throw new IllegalArgumentException("Could not retrieve lab : " + lab.toString());
@@ -189,9 +168,8 @@ public class IntegratedResultService {
     }
 
     public List<ValidationDbTestResult> getBasedOnDateFromNexus(@Nonnull String name, @Nonnull String version,
-            @Nonnull String lab, @Nonnull Date date)
-                    throws JsonParseException, JsonMappingException, IOException, ParseException, KeyManagementException,
-                    ClientHandlerException, UniformInterfaceException, NoSuchAlgorithmException, NullPointerException {
+            @Nonnull String lab, @Nonnull Date date) throws IndexOutOfBoundsException, HttpException,
+            NullPointerException, IllegalArgumentException, ParseException {
         LabInfo labInfo = dbAdapter.getLab(lab);
         if (labInfo == null) {
             throw new IllegalArgumentException("Could not retrieve lab : " + lab.toString());
@@ -230,9 +208,8 @@ public class IntegratedResultService {
         return blueprintVersions;
     }
 
-    public ValidationDbTestResult getResults(@Nonnull String submissionId)
-            throws JsonParseException, JsonMappingException, KeyManagementException, ClientHandlerException,
-            UniformInterfaceException, NoSuchAlgorithmException, IOException, NullPointerException, ParseException {
+    public ValidationDbTestResult getResults(@Nonnull String submissionId) throws IndexOutOfBoundsException,
+            NullPointerException, JsonParseException, JsonMappingException, IOException {
         Submission submission = submissionService.getSubmission(submissionId);
         ValidationDbTestResult vDbResult = dbAdapter.readResultFromDb(submissionId);
         return vDbResult == null ? this.getResultFromNexus(
@@ -243,9 +220,8 @@ public class IntegratedResultService {
     }
 
     public ValidationDbTestResult getResult(@Nonnull String name, @Nonnull String version, @Nonnull String lab,
-            @Nonnull String timestamp)
-                    throws JsonParseException, JsonMappingException, KeyManagementException, ClientHandlerException,
-                    UniformInterfaceException, NoSuchAlgorithmException, NullPointerException, IOException, ParseException {
+            @Nonnull String timestamp) throws IndexOutOfBoundsException, NullPointerException, JsonParseException,
+            JsonMappingException, IOException {
         LabInfo actualLabInfo = dbAdapter.getLab(lab);
         if (actualLabInfo == null) {
             return null;
@@ -255,9 +231,8 @@ public class IntegratedResultService {
     }
 
     public ValidationDbTestResult getLastResultBasedOnOutcome(@Nonnull String name, @Nonnull String version,
-            @Nonnull String lab, Boolean allLayers, Boolean optional, boolean outcome)
-                    throws JsonParseException, JsonMappingException, KeyManagementException, ClientHandlerException,
-                    UniformInterfaceException, NoSuchAlgorithmException, IOException, NullPointerException, ParseException {
+            @Nonnull String lab, Boolean allLayers, Boolean optional, boolean outcome) throws IndexOutOfBoundsException,
+            NullPointerException, JsonParseException, JsonMappingException, IOException {
         LabInfo actualLabInfo = dbAdapter.getLab(lab);
         if (actualLabInfo == null) {
             return null;
@@ -287,8 +262,8 @@ public class IntegratedResultService {
 
     public ValidationDbTestResult getLastResultBasedOnOutcome(@Nonnull String name, @Nonnull String version,
             @Nonnull String lab, List<String> layers, Boolean optional, boolean outcome)
-                    throws JsonParseException, JsonMappingException, KeyManagementException, ClientHandlerException,
-                    UniformInterfaceException, NoSuchAlgorithmException, IOException, NullPointerException, ParseException {
+            throws IndexOutOfBoundsException, NullPointerException, JsonParseException, JsonMappingException,
+            IOException {
         LabInfo actualLabInfo = dbAdapter.getLab(lab);
         if (actualLabInfo == null) {
             return null;

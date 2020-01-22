@@ -314,7 +314,7 @@ form {
 
 /* dummy class used to lock the form elements of a grid - ex. bulk transaction processing */
 .alwaysEnabled {
-    
+
 }
 
 .hidden {
@@ -334,7 +334,7 @@ form {
 
 .selectedRow {
     /*background-color:#C4DFFB;*/
-    
+
 }
 
 /* Action Item styles */
