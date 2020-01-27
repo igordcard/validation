@@ -58,7 +58,9 @@ Uninstall Lynis
 
 Download Logs
     [Documentation]  Downloading logs and removing them
+    Execute Command  chmod +r /var/log/lynis.log  sudo=True
     SSHLibrary.Get File  /var/log/lynis.log  ${OUTPUT DIR}/lynis.log
     Execute Command  rm /var/log/lynis.log  sudo=True
+    Execute Command  chmod +r /var/log/lynis-report.dat  sudo=True
     SSHLibrary.Get File  /var/log/lynis-report.dat  ${OUTPUT DIR}/lynis-report.dat
     Execute Command  rm /var/log/lynis-report.dat  sudo=True
