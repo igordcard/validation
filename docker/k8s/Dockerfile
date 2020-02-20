@@ -15,7 +15,7 @@
 ##############################################################################
 
 # ref: https://docs.docker.com/develop/develop-images/dockerfile_best-practices/#use-multi-stage-builds
-FROM golang:alpine3.9 as build
+FROM golang:alpine3.10 as build
 
 # Sonobuoy supports 3 Kubernetes minor versions: the current release and 2
 # minor versions before.
@@ -53,7 +53,7 @@ RUN if [ $(uname -m) == 'aarch64' ]; then HOST_ARCH=arm64; else HOST_ARCH=amd64;
         https://storage.googleapis.com/kubernetes-release/release/stable-$K8S_VER.txt) && \
     make kubectl ginkgo && \
     make WHAT=test/e2e/e2e.test ARCH=$HOST_ARCH
-RUN go get -d github.com/heptio/sonobuoy && \
+RUN git clone https://github.com/heptio/sonobuoy /go/src/github.com/heptio/sonobuoy && \
     cd /go/src/github.com/heptio/sonobuoy && \
     git checkout $SB_TAG && \
     go install
@@ -65,8 +65,8 @@ WORKDIR /wheels
 RUN pip3 install wheel
 RUN pip3 wheel -r /wheels/requirements/pip-requirements.txt
 
-# Copy binaries in the final contaier and install robot framework
-FROM python:3.6-alpine3.9
+# Copy binaries in the final container and install robot framework
+FROM python:3.7-alpine3.10
 COPY --from=build /src/k8s.io/kubernetes/_output/bin /usr/local/bin
 COPY --from=build /go/bin/sonobuoy /bin/sonobuoy
 COPY --from=build /wheels /wheels
