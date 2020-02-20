@@ -46,6 +46,10 @@ blueprint:
             name: etcd_ha
             what: etcd_ha
             optional: "True"
+        -
+            name: kube-hunter
+            what: kube-hunter
+            optional: "True"
     openstack: &openstack_unicycle
         -
             name: tempest

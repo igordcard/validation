@@ -37,3 +37,7 @@ blueprint:
         -
             name: conformance
             what: conformance
+        -
+            name: kube-hunter
+            what: kube-hunter
+            optional: "True"

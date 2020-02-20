@@ -3,3 +3,4 @@ robotframework-httplibrary
 robotframework-jsonlibrary
 robotframework-requests
 robotframework-sshlibrary
+kube-hunter

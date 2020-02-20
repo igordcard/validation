@@ -1,7 +1,6 @@
----
 ##############################################################################
-# Copyright (c) 2019 AT&T Intellectual Property.                             #
-# Copyright (c) 2019 Nokia.                                                  #
+# Copyright (c) 2020 AT&T Intellectual Property.                             #
+# Copyright (c) 2020 Nokia.                                                  #
 #                                                                            #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may    #
 # not use this file except in compliance with the License.                   #
@@ -15,44 +14,18 @@
 # See the License for the specific language governing permissions and        #
 # limitations under the License.                                             #
 ##############################################################################
-blueprint:
-    name: rec
-    layers:
-        - hardware
-        - os
-        - docker
-        - k8s
-    # Any hardware some basic tests
-    hardware: &hardware_rec
-        -
-            name: hp_baremetal
-            what: hp_baremetal
-    os: &os_rec
-        -
-            name: ltp
-            what: ltp
-        -
-            name: cyclictest
-            what: cyclictest
-            optional: "True"
-        -
-            name: lynis
-            what: lynis
-            optional: "True"
-
-    docker: &docker_base
-        -
-            name: docker_bench
-            what: docker_bench
-    k8s: &k8s
-        -
-            name: conformance
-            what: conformance
-        -
-            name: etcd_ha
-            what: etcd_ha
-            optional: "True"
-        -
-            name: kube-hunter
-            what: kube-hunter
-            optional: "True"
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: kube-hunter
+spec:
+  template:
+    spec:
+      containers:
+      - name: kube-hunter
+        image: {{ image }}
+        command: ["kube-hunter"]
+        args: ["--pod"]
+      restartPolicy: Never
+  backoffLimit: 4

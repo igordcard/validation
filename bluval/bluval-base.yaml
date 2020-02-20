@@ -54,6 +54,9 @@ blueprint:
         -
             name: ha
             what: ha
+        -
+            name: kube-hunter
+            what: kube-hunter
     k8s_networking: &k8s_networking
         -
             name: node_connectivity

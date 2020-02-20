@@ -1,10 +1,9 @@
----
 ##############################################################################
-# Copyright (c) 2019 AT&T Intellectual Property.                             #
-# Copyright (c) 2019 Enea                                                    #
+# Copyright (c) 2020 AT&T Intellectual Property.                             #
+# Copyright (c) 2020 Nokia.                                                  #
 #                                                                            #
-# Licensed under the Apache License, Version 2.0 (the "License"); you may    #
-# not use this file except in compliance with the License.                   #
+# Licensed under the Apache License, Version 2.0 (the "License");            #
+# you maynot use this file except in compliance with the License.            #
 #                                                                            #
 # You may obtain a copy of the License at                                    #
 #       http://www.apache.org/licenses/LICENSE-2.0                           #
@@ -15,17 +14,26 @@
 # See the License for the specific language governing permissions and        #
 # limitations under the License.                                             #
 ##############################################################################
-blueprint:
-    name: demo
-    layers:
-        - k8s
 
-    k8s: &k8s
-        -
-            name: conformance
-            what: conformance
-            optional: "False"
-        -
-            name: kube-hunter
-            what: kube-hunter
-            optional: "True"
+
+*** Settings ***
+Documentation     Hunt for security weaknesses in Kubernetes cluster
+Resource          kube-hunter.resource
+
+
+*** Test Cases ***
+Cluster Remote Scanning
+    Run Cluster Scan
+    Should Discover No Vulnerabilities
+
+Node Remote Scanning
+    Run Node Scan
+    Should Discover No Vulnerabilities
+
+Inside-a-Pod Scanning
+    [Setup]  Run Keywords  Onboard Image
+    ...                    Prepare Job Manifest
+    Run Scan Within Pod
+    Should Discover No Vulnerabilities
+    [Teardown]  Run Keywords  Delete Scan Job
+    ...                       Close All Connections

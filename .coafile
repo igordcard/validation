@@ -36,7 +36,8 @@ bears = YAMLLintBear
 files = **.yaml, **.yml
 use_spaces = true
 max_line_length = 120
-ignore = tests/k8s/conformance/custom_repos.yaml
+ignore = tests/k8s/conformance/custom_repos.yaml,
+    tests/k8s/kube-hunter/job.yaml
 
 [all.Python]
 bears = PyLintBear
