@@ -32,6 +32,7 @@ RUN apt-get update && apt-get -y install \
     sqlite3 \
     debian-goodies \
     build-essential \
+    pkg-config \
     autoconf automake autotools-dev m4 \
     linux-headers-generic \
     libaio-dev libattr1-dev libcap-dev
@@ -98,7 +99,6 @@ RUN wget https://dl.google.com/go/go1.12.6.linux-amd64.tar.gz -P /root/ && \
     git -C /root/go/src/github.com/kotakanbe clone https://github.com/kotakanbe/go-cve-dictionary.git && \
     cd /root/go/src/github.com/kotakanbe/go-cve-dictionary/ && \
     make install && \
-    mkdir /opt/akraino/validation/tests/os/vuls/ && \
     for i in $(seq 2002 "$(date +"%Y")"); do go-cve-dictionary fetchnvd -http-proxy=${HTTP_PROXY} -dbpath /opt/akraino/validation/tests/os/vuls/cve.sqlite3 -years "$i"; done && \
     git -C /root/go/src/github.com/kotakanbe clone https://github.com/kotakanbe/goval-dictionary.git && \
     cd /root/go/src/github.com/kotakanbe/goval-dictionary && \
