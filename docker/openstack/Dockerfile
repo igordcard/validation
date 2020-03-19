@@ -17,7 +17,7 @@
 # ref: https://docs.docker.com/develop/develop-images/dockerfile_best-practices/#use-multi-stage-builds
 FROM python:3.6-alpine3.9 as build
 
-ARG REFSTACK_TARGET=2019.06
+ARG REFSTACK_TARGET=2019.11
 
 # Install dependencies
 COPY pip-requirements.txt /wheels/requirements/pip-requirements.txt
