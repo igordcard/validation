@@ -22,9 +22,6 @@ Library           BuiltIn
 Suite Setup       Open Connection And Log In
 Suite Teardown    Close All Connections
 
-*** Variables ***
-${LOG_PATH}       /opt/akraino/validation/tests/os/vuls
-
 *** Test Cases ***
 Run Vuls test
     Set Environment Variable  GOROOT  /root/go
@@ -33,35 +30,32 @@ Run Vuls test
     Set Environment Variable  LC_ALL  en_US.UTF-8
     Set Environment Variable  LANG  en_US.UTF-8
 
-    ${rc} =  Run And Return Rc  install -D /opt/akraino/validation/tests/os/vuls/config /root/.ssh/
+    ${rc} =  Run And Return Rc  install -D ${CURDIR}/config /root/.ssh/
     Should Be Equal As Integers  ${rc}  0
 
-    ${rc} =  Run And Return Rc  sed -i 's/HOST/${HOST}/g' config.toml
+    ${rc} =  Run And Return Rc  sed -i -e 's/HOST/${HOST}/g' -e 's/USERNAME/${USERNAME}/g' ${CURDIR}/config.toml
     Should Be Equal As Integers  ${rc}  0
 
-    ${rc} =  Run And Return Rc  sed -i 's/USERNAME/${USERNAME}/g' config.toml
-    Should Be Equal As Integers  ${rc}  0
-
-    ${rc} =  Run And Return Rc  tar xvzf db.tar.gz -C /opt/akraino/validation/tests/os/vuls/
+    ${rc} =  Run And Return Rc  tar xvzf ${CURDIR}/db.tar.gz -C ${CURDIR}
     Should Be Equal As Integers  ${rc}  0
 
     ${os} =  SSHLibrary.Execute Command   source /etc/os-release && echo $ID
 
-    ${rc} =  Run And Return Rc  vuls scan -config config.toml -ssh-config
+    ${rc} =  Run And Return Rc  vuls scan -config ${CURDIR}/config.toml -ssh-config
     Should Be Equal As Integers  ${rc}  0
 
-    Run Keyword IF  '${os}' == 'ubuntu'  Run vuls for ubuntu  ELSE IF  '${os}' == 'centos'  Run vuls for centos  ELSE  FAIL  Distro '${os}' not supported 
+    Run Keyword IF  '${os}' == 'ubuntu'  Run vuls for ubuntu  ELSE IF  '${os}' == 'centos'  Run vuls for centos  ELSE  FAIL  Distro '${os}' not supported
 
 *** Keywords ***
 Run vuls for ubuntu
     ${os_version} =  SSHLibrary.Execute Command  source /etc/os-release && echo $VERSION_ID | cut -d '.' -f1
 
-    ${rc}  ${output} =  Run And Return Rc And Output  vuls report -cvedb-sqlite3-path=${LOG_PATH}/cve.sqlite3 -ovaldb-sqlite3-path=${LOG_PATH}/oval_ubuntu_${os_version}.sqlite3
+    ${rc}  ${output} =  Run And Return Rc And Output  vuls report -config ${CURDIR}/config.toml -cvedb-sqlite3-path=${CURDIR}/cve.sqlite3 -ovaldb-sqlite3-path=${CURDIR}/oval_ubuntu_${os_version}.sqlite3
     Should Be Equal As Integers  ${rc}  0
     Append To File  ${LOG_PATH}/vuls.log  ${output}${\n}
 
 Run vuls for centos
-    ${rc}  ${output} =  Run And Return Rc And Output  vuls report -cvedb-sqlite3-path=${LOG_PATH}/cve.sqlite3 -ovaldb-sqlite3-path=${LOG_PATH}/oval_centos.sqlite3 -gostdb-sqlite3-path=${LOG_PATH}/gost_centos.sqlite3
+    ${rc}  ${output} =  Run And Return Rc And Output  vuls report -config ${CURDIR}/config.toml -cvedb-sqlite3-path=${CURDIR}/cve.sqlite3 -ovaldb-sqlite3-path=${CURDIR}/oval_centos.sqlite3 -gostdb-sqlite3-path=${CURDIR}/gost_centos.sqlite3
     Should Be Equal As Integers  ${rc}  0
     Append To File  ${LOG_PATH}/vuls.log  ${output}${\n}
 
