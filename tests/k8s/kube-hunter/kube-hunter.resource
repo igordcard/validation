@@ -92,7 +92,7 @@ Should Discover No Vulnerabilities
     Should Be True    ${STATUS}
 
 Run Scan Within Pod
-    ${result}=        Run Process  kubectl  apply  -f  job.yaml
+    ${result}=        Run Process  kubectl  apply  -f  ${CURDIR}/job.yaml
     Should Be Equal As Integers  ${result.rc}  0
     ${result}=        Run Process  kubectl  wait  --for\=condition\=complete
     ...                            --timeout\=15m  job/kube-hunter
