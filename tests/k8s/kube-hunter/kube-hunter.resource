@@ -89,7 +89,9 @@ Delete Scan Job
     Should Be Equal As Integers  ${result.rc}  0
 
 Should Discover No Vulnerabilities
-    Should Be True    ${STATUS}
+    Return From Keyword If  ${STATUS}
+    Fail                    Vulnerabilities discovered
+    ...                     non-critical
 
 Run Scan Within Pod
     ${result}=        Run Process  kubectl  apply  -f  ${CURDIR}/job.yaml

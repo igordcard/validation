@@ -64,7 +64,7 @@ def run_testcase(testcase):
 
     # run the test
     args = ["robot", "-V", str(variables_updated_file), "-d", str(results_path),
-            "-b", "debug.log", str(test_path)]
+            "-n", "non-critical", "-b", "debug.log", str(test_path)]
 
     print('Executing testcase {}'.format(name))
     print('show_stopper {}'.format(show_stopper))
