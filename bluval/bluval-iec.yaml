@@ -18,18 +18,8 @@
 blueprint:
     name: demo
     layers:
-        - k8s
         - os
-
-    k8s: &k8s
-        -
-            name: conformance
-            what: conformance
-            optional: "False"
-        -
-            name: kube-hunter
-            what: kube-hunter
-            optional: "True"
+        - k8s
 
     os: &os
         -
@@ -39,4 +29,14 @@ blueprint:
         -
             name: vuls
             what: vuls
+            optional: "False"
+
+    k8s: &k8s
+        -
+            name: conformance
+            what: conformance
+            optional: "False"
+        -
+            name: kube-hunter
+            what: kube-hunter
             optional: "False"
