@@ -1,5 +1,6 @@
 bluval/__pycache__
 docker/manifest-tool
+docker/os/db.tar.gz*
 *.sw?
 
 # Compiled class files

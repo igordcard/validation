@@ -2,3 +2,4 @@ robotframework
 robotframework-httplibrary
 robotframework-requests
 robotframework-sshlibrary
+cryptography>=2.5

@@ -57,10 +57,10 @@ RUN tar czvf /opt/akraino/ltp.tar.gz /opt/ltp
 WORKDIR /root/src
 RUN git clone https://github.com/CISOfy/lynis && tar czvf /opt/akraino/lynis-remote.tar.gz ./lynis
 
-#Fetches vuls databases
+# Fetches vuls databases (invalidate cache using unique timestamp)
 SHELL ["/bin/bash", "-c"]
 RUN if [ $(uname -m) == 'aarch64' ]; then HOST_ARCH=arm64; else HOST_ARCH=amd64; fi && \
-    wget https://dl.google.com/go/go1.12.6.linux-$HOST_ARCH.tar.gz -P /root/ && \
+    wget https://dl.google.com/go/go1.12.6.linux-$HOST_ARCH.tar.gz -P /root/ --progress=dot:giga && \
     cd /root/ && \
     tar -xzf go1.12.6.linux-$HOST_ARCH.tar.gz -C /root/ && \
     rm go1.12.6.linux-$HOST_ARCH.tar.gz && \
@@ -76,23 +76,30 @@ RUN if [ $(uname -m) == 'aarch64' ]; then HOST_ARCH=arm64; else HOST_ARCH=amd64;
     git -C /root/go/src/github.com/kotakanbe clone https://github.com/kotakanbe/go-cve-dictionary.git && \
     cd /root/go/src/github.com/kotakanbe/go-cve-dictionary/ && \
     make install && \
-    for i in $(seq 2002 "$(date +"%Y")"); do go-cve-dictionary fetchnvd -http-proxy=${HTTP_PROXY} -dbpath /opt/akraino/validation/tests/os/vuls/cve.sqlite3 -years "$i"; done && \
     git -C /root/go/src/github.com/kotakanbe clone https://github.com/kotakanbe/goval-dictionary.git && \
     cd /root/go/src/github.com/kotakanbe/goval-dictionary && \
     make install && \
-    goval-dictionary fetch-ubuntu -http-proxy=${HTTP_PROXY} -dbpath=/opt/akraino/validation/tests/os/vuls/oval_ubuntu_16.sqlite3 16 && \
-    goval-dictionary fetch-ubuntu -http-proxy=${HTTP_PROXY} -dbpath=/opt/akraino/validation/tests/os/vuls/oval_ubuntu_18.sqlite3 18 && \
-    goval-dictionary fetch-redhat -http-proxy=${HTTP_PROXY} -dbpath=/opt/akraino/validation/tests/os/vuls/oval_centos.sqlite3 7 && \
     mkdir -p /root/go/src/github.com/knqyf263 && \
     git -C /root/go/src/github.com/knqyf263 clone https://github.com/knqyf263/gost.git && \
     cd /root/go/src/github.com/knqyf263/gost && \
-    make install && \
-    gost fetch redhat --http-proxy=${HTTP_PROXY} --dbpath=/opt/akraino/validation/tests/os/vuls/gost_centos.sqlite3 && \
+    make install
+
+ADD db.tar.gz /opt/akraino/validation/tests/os/vuls/
+ADD db.tar.gz.timestamp /root/
+RUN \
+    export GOROOT=/root/go && \
+    export GOPATH=/root/go/src && \
+    export PATH=$PATH:/root/go/bin:/root/go/src/bin && \
+    for i in $(seq 2002 "$(date +"%Y")"); do go-cve-dictionary fetchnvd -quiet -http-proxy=${HTTP_PROXY} -dbpath /opt/akraino/validation/tests/os/vuls/cve.sqlite3 -years "$i"; done && \
+    goval-dictionary fetch-ubuntu -http-proxy=${HTTP_PROXY} -dbpath=/opt/akraino/validation/tests/os/vuls/oval_ubuntu_16.sqlite3 16 && \
+    goval-dictionary fetch-ubuntu -http-proxy=${HTTP_PROXY} -dbpath=/opt/akraino/validation/tests/os/vuls/oval_ubuntu_18.sqlite3 18 && \
+    goval-dictionary fetch-redhat -http-proxy=${HTTP_PROXY} -dbpath=/opt/akraino/validation/tests/os/vuls/oval_centos.sqlite3 7 && \
+    gost fetch redhat --http-proxy=${HTTP_PROXY} --dbpath=/opt/akraino/validation/tests/os/vuls/gost_centos.sqlite3 --threads=$(nproc) && \
     cd /opt/akraino/validation/tests/os/vuls && \
     tar cvzf db.tar.gz *.sqlite3 && \
     rm *.sqlite3
 
-# Copy binaries into the final container and install robot framework
+# Copy binaries into the final container and install robot framework, bluval dependencies
 FROM ubuntu:18.04
 COPY --from=build /wheels /wheels
 COPY --from=build /opt/akraino/validation /opt/akraino/validation
@@ -106,12 +113,11 @@ RUN apt-get update && apt-get -y install \
     cd /usr/bin && ln -s python3 python && \
     pip3 install -r /wheels/requirements/pip-requirements.txt \
                  -f /wheels && \
+    pip3 install -r /opt/akraino/validation/bluval/requirements.txt && \
     rm -rf /wheels && \
     rm -rf /root/.cache/pip/* && \
     rm -rf /var/cache/apt/* && \
     rm -rf /var/lib/apt/lists/*
 
-# Install bluval dependencies
-RUN pip3 install -r /opt/akraino/validation/bluval/requirements.txt
 ENV LC_ALL=C.UTF-8
 ENV LANG=C.UTF-8
