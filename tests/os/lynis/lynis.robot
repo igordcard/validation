@@ -40,6 +40,9 @@ Run Lynis Audit System
     Append To File  ${log}  ${stdout}${\n}
     Should Be Equal As Integers  ${rc}	0
 
+    ${status} =  Evaluate  "Great, no warnings" in """${stdout}"""
+    Run Keyword If  '${status}' == 'False'  FAIL  Warnings discovered
+    ...                     non-critical
 
 *** Keywords ***
 Open Connection And Log In
