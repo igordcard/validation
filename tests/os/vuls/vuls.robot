@@ -46,6 +46,10 @@ Run Vuls test
 
     Run Keyword IF  '${os}' == 'ubuntu'  Run vuls for ubuntu  ELSE IF  '${os}' == 'centos'  Run vuls for centos  ELSE  FAIL  Distro '${os}' not supported
 
+    ${status} =  Evaluate  "Total: 0" in """${LOG}"""
+    Run Keyword If  '${status}' == 'False'  FAIL  Vulnerabilities discovered
+    ...                     non-critical
+
 *** Keywords ***
 Run vuls for ubuntu
     ${os_version} =  SSHLibrary.Execute Command  source /etc/os-release && echo $VERSION_ID | cut -d '.' -f1
@@ -53,11 +57,13 @@ Run vuls for ubuntu
     ${rc}  ${output} =  Run And Return Rc And Output  vuls report -config ${CURDIR}/config.toml -cvedb-sqlite3-path=${CURDIR}/cve.sqlite3 -ovaldb-sqlite3-path=${CURDIR}/oval_ubuntu_${os_version}.sqlite3
     Should Be Equal As Integers  ${rc}  0
     Append To File  ${LOG_PATH}/vuls.log  ${output}${\n}
+    Set Global Variable  ${LOG}  ${output}
 
 Run vuls for centos
     ${rc}  ${output} =  Run And Return Rc And Output  vuls report -config ${CURDIR}/config.toml -cvedb-sqlite3-path=${CURDIR}/cve.sqlite3 -ovaldb-sqlite3-path=${CURDIR}/oval_centos.sqlite3 -gostdb-sqlite3-path=${CURDIR}/gost_centos.sqlite3
     Should Be Equal As Integers  ${rc}  0
     Append To File  ${LOG_PATH}/vuls.log  ${output}${\n}
+    Set Global Variable  ${LOG}  ${output}
 
 Open Connection And Log In
     Open Connection  ${HOST}
