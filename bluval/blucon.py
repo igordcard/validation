@@ -74,7 +74,7 @@ def invoke_docker(bluprint, layer, tag):
     if _PULL:
         pull_docker(layer, tag)
     volume_list = get_volumes('common') + get_volumes(layer)
-    cmd = ("docker run --rm" + volume_list + _SUBNET +
+    cmd = ("docker run --rm --net=host" + volume_list + _SUBNET +
            " akraino/validation:{0}-{3}"
            " /bin/sh -c"
            " 'cd /opt/akraino/validation "
