@@ -1,0 +1,19 @@
+blueprint:
+    name: rec
+    layers:
+        - os
+        - k8s
+    os: &os
+        -
+            name: lynis
+            what: lynis
+            optional: "False"
+        -
+            name: vuls
+            what: vuls
+            optional: "False"
+
+    k8s: &k8s
+        -
+            name: kube-hunter
+            what: kube-hunter
