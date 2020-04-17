@@ -1,8 +1,9 @@
 blueprint:
-    name: rec
+    name: icn
     layers:
         - os
         - k8s
+
     os: &os
         -
             name: lynis
@@ -15,5 +16,10 @@ blueprint:
 
     k8s: &k8s
         -
+            name: conformance
+            what: conformance
+            optional: "False"
+        -
             name: kube-hunter
             what: kube-hunter
+            optional: "False"
