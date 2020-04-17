@@ -68,7 +68,7 @@ def run_testcase(testcase):
 
     print('Executing testcase {}'.format(name))
     print('show_stopper {}'.format(show_stopper))
-    print('Invoking {}'.format(args))
+    print('Invoking {}'.format(args), flush=True)
     try:
         status = subprocess.call(args, shell=False)
         if status != 0 and show_stopper.lower() == "true":
