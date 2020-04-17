@@ -1,0 +1,10 @@
+# Separate results based on suite (group the messages by suite)
+start /(?:Executing testcase ).*$/
+
+# Only fail if some critical tests failed
+debug /critical test.*passed, 0 failed/
+error /critical test.*passed/
+
+# Suite/subsuite test results will be marked as info/warn
+info /PASS/
+warn /FAIL/

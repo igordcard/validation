@@ -66,7 +66,7 @@ def invoke_docker(bluprint, layer):
 
     args = [cmd]
     try:
-        print('\nInvoking {}'.format(args))
+        print('\nInvoking {}'.format(args), flush=True)
         subprocess.call(args, shell=True)
     except OSError:
         #print('Error while executing {}'.format(args))
