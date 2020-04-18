@@ -18,14 +18,17 @@
 
 if [ -z "$AKRAINO_HOME" ]
 then
-    echo "AKRAINO_HOME not available. Setting..."
-    this_file="$(readlink -f $0)"
-    bluval_dir="$(dirname $this_file)"
-    validation_dir="$(dirname $bluval_dir)"
-    parent_dir="$(dirname $validation_dir)"
-    export AKRAINO_HOME="$parent_dir"
+    echo "AKRAINO_HOME not available. Setting ..."
+    AKRAINO_HOME="$(readlink -f "$(dirname "$0")/../..")"
 fi
+
+# Allow overriding VALIDATION_DIR and/or RESULTS_DIR via env vars
+VALIDATION_DIR=${VALIDATION_DIR:-"${AKRAINO_HOME}/validation"}
+RESULTS_DIR=${RESULTS_DIR:-"${AKRAINO_HOME}/results"}
+
 echo "AKRAINO_HOME=$AKRAINO_HOME"
+echo "VALIDATION_DIR=$VALIDATION_DIR"
+echo "RESULTS_DIR=$RESULTS_DIR"
 
 if [ "$#" -eq 0 ]
 then
@@ -38,6 +41,7 @@ then
     Options:
         -l, --layer TEXT
         -n, --network TEXT
+        -t, --tag TEXT
         -o, --optional_also
         --help               Show this message and exit.'
 
@@ -45,13 +49,13 @@ then
 fi
 
 echo "Building docker image"
-image_tag=$( (git branch || echo "* local") | grep "^\*" | awk '{print $2}')
-docker build -t akraino/validation:blucon-$image_tag $AKRAINO_HOME/validation/bluval
+img="akraino/validation:blucon-$(git rev-parse --abbrev-ref HEAD || echo local)"
+docker build -t "$img" "$VALIDATION_DIR/bluval"
 
 set -x
 
 docker run --rm \
     -v /var/run/docker.sock:/var/run/docker.sock \
-    -v $AKRAINO_HOME/results:/opt/akraino/results \
-    -v $AKRAINO_HOME/validation:/opt/akraino/validation \
-    akraino/validation:blucon-$image_tag "$@"
+    -v "$RESULTS_DIR":/opt/akraino/results \
+    -v "$VALIDATION_DIR":/opt/akraino/validation \
+    "$img" "$@"

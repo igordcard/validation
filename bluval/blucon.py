@@ -53,16 +53,16 @@ def get_volumes(layer):
     return volume_list
 
 
-def invoke_docker(bluprint, layer):
+def invoke_docker(bluprint, layer, tag):
     """Start docker container for given layer
     """
     volume_list = get_volumes('common') + get_volumes(layer)
     cmd = ("docker run --rm" + volume_list + _SUBNET +
-           " akraino/validation:{0}-latest"
+           " akraino/validation:{0}-{3}"
            " /bin/sh -c"
            " 'cd /opt/akraino/validation "
            "&& python -B bluval/bluval.py -l {0} {1} {2}'"
-           .format(layer, ("-o" if _OPTIONAL_ALSO else ""), bluprint))
+           .format(layer, ("-o" if _OPTIONAL_ALSO else ""), bluprint, tag))
 
     args = [cmd]
     try:
@@ -73,7 +73,7 @@ def invoke_docker(bluprint, layer):
         raise BluvalError(OSError)
 
 
-def invoke_dockers(yaml_loc, layer, blueprint_name):
+def invoke_dockers(yaml_loc, layer, blueprint_name, tag):
     """Parses yaml file and starts docker container for one/all layers
     """
     with open(str(yaml_loc)) as yaml_file:
@@ -81,19 +81,20 @@ def invoke_dockers(yaml_loc, layer, blueprint_name):
     blueprint = yamldoc['blueprint']
     if layer is None or layer == "all":
         for each_layer in blueprint['layers']:
-            invoke_docker(blueprint_name, each_layer)
+            invoke_docker(blueprint_name, each_layer, tag)
     else:
-        invoke_docker(blueprint_name, layer)
+        invoke_docker(blueprint_name, layer, tag)
 
 
 @click.command()
 @click.argument('blueprint')
 @click.option('--layer', '-l')
 @click.option('--network', '-n')
+@click.option('--tag', '-t')
 @click.option('--optional_also', '-o', is_flag=True)
-def main(blueprint, layer, network, optional_also):
+def main(blueprint, layer, network, tag, optional_also):
     """Takes blueprint name and optional layer. Validates inputs and derives
-    yaml location from blueprint name. Invokes validate on blue print.
+    yaml location from blueprint name. Invokes validate on blueprint.
     """
     global _OPTIONAL_ALSO  # pylint: disable=global-statement
     global _SUBNET # pylint: disable=global-statement
@@ -107,8 +108,11 @@ def main(blueprint, layer, network, optional_also):
     if network is not None:
         _SUBNET = " --net=" + network
         print("Using", _SUBNET)
+    if tag is None:
+        tag = 'latest'
+    print("Using tag {}".format(tag))
     try:
-        invoke_dockers(yaml_loc, layer, blueprint)
+        invoke_dockers(yaml_loc, layer, blueprint, tag)
     except ShowStopperError as err:
         print('ShowStopperError:', err)
     except BluvalError as err:
