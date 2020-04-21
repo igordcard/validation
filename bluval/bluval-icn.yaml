@@ -2,7 +2,6 @@ blueprint:
     name: icn
     layers:
         - os
-        - k8s
 
     os: &os
         -
