@@ -16,7 +16,7 @@
 
 export WORK_DIR?=$(TAG_PRE)
 export KUBE_VERSION=1.16
-export TAG_VER?=v$(KUBE_VERSION)
+export TAG_VER=v$(KUBE_VERSION)
 
 .PHONY: .build
 .build:: .submodules_patched
