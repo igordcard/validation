@@ -29,6 +29,7 @@ import yaml
 from bluutil import BluvalError
 from bluutil import ShowStopperError
 
+_PULL = False
 _OPTIONAL_ALSO = False
 _SUBNET = ""
 
@@ -53,9 +54,25 @@ def get_volumes(layer):
     return volume_list
 
 
+def pull_docker(layer, tag):
+    """Pull docker image for given layer
+    """
+    cmd = ("docker pull akraino/validation:{0}-{1}"
+           .format(layer, tag))
+
+    args = [cmd]
+    try:
+        print('\nPulling image using {}'.format(args), flush=True)
+        subprocess.call(args, shell=True)
+    except OSError:
+        raise BluvalError(OSError)
+
+
 def invoke_docker(bluprint, layer, tag):
     """Start docker container for given layer
     """
+    if _PULL:
+        pull_docker(layer, tag)
     volume_list = get_volumes('common') + get_volumes(layer)
     cmd = ("docker run --rm" + volume_list + _SUBNET +
            " akraino/validation:{0}-{3}"
@@ -92,16 +109,22 @@ def invoke_dockers(yaml_loc, layer, blueprint_name, tag):
 @click.option('--network', '-n')
 @click.option('--tag', '-t')
 @click.option('--optional_also', '-o', is_flag=True)
-def main(blueprint, layer, network, tag, optional_also):
+@click.option('--pull', '-p', is_flag=True)
+# pylint: disable=too-many-arguments
+def main(blueprint, layer, network, tag, optional_also, pull):
     """Takes blueprint name and optional layer. Validates inputs and derives
     yaml location from blueprint name. Invokes validate on blueprint.
     """
+    global _PULL # pylint: disable=global-statement
     global _OPTIONAL_ALSO  # pylint: disable=global-statement
     global _SUBNET # pylint: disable=global-statement
     mypath = Path(__file__).absolute()
     yaml_loc = mypath.parents[0].joinpath('bluval-{}.yaml'.format(blueprint))
     if layer is not None:
         layer = layer.lower()
+    if pull:
+        _PULL = True
+        print("_PULL {}".format(_PULL))
     if optional_also:
         _OPTIONAL_ALSO = True
         print("_OPTIONAL_ALSO {}".format(_OPTIONAL_ALSO))
