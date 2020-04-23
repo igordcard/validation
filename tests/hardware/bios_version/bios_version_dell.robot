@@ -27,21 +27,22 @@ Suite Teardown    Close All Connections
 #${HOST}           localhost
 #${USERNAME}       localadmin
 #${SYSINFO}        PowerEdge R740xd
-#${BIOS_REVISION}   1.3
+#${BIOS_REVISION}  1.3
+#${BLK_DEV_REGEXP} ([sh]d[a-z]+|nvme)[0-9]+
 ${SSH_KEYFILE}     /root/.ssh/id_rsa
 ${LOG}             ${LOG_PATH}${/}${SUITE_NAME.replace(' ','_')}.log
 
 *** Test Cases ***
 Get HW Details
         [Documentation]         Verify HW details
-        Start Command           dmidecode | grep -A3 '^System Information'   sudo=True
+        Start Command           cat /sys/class/dmi/id/product_name
         ${stdout}=              Read Command Output
         Append To File          ${LOG}  ${stdout}${\n}
         Should Contain          ${stdout}               ${SYSINFO}
 
 Verify BIOS Revision
         [Documentation]         Verify BIOS Revision
-        Start Command           dmidecode | more | grep 'BIOS Revision'    sudo=True
+        Start Command           printf "BIOS Revision: %u.%u" $(sudo od -t u1 -j 20 -N 2 -A none /sys/firmware/dmi/tables/DMI)
         ${stdout}=              Read Command Output
         Append To File          ${LOG}  ${stdout}${\n}
         Should Contain          ${stdout}               BIOS Revision: ${BIOS_REVISION}
@@ -50,16 +51,15 @@ Check NUMA and CPU
         [Documentation]         NUMAs and CPU components
         ${output}=              Execute Command         lscpu
         Append To File          ${LOG}  ${output}${\n}
-        Should Contain          ${output}       CPU(s):                88
+        Should Match Regexp     ${output}               CPU\\(s\\):\\s+\\d+
 
 Verify Block Devices
         [Documentation]         Reads the sysfs filesystem
         ${output}=              Execute Command         lsblk
         Append To File          ${LOG}  ${output}${\n}
-        Should Contain          ${output}       sdg4
+        Should Match Regexp     ${output}               ${BLK_DEV_REGEXP}
 
 *** Keywords ***
 Open Connection And Log In
-  Open Connection       ${HOST}
-  Login With Public Key    ${USERNAME}  ${SSH_KEYFILE}
-
+        Open Connection         ${HOST}
+        Login With Public Key   ${USERNAME}  ${SSH_KEYFILE}
