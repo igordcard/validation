@@ -148,6 +148,8 @@ Define Images
         ${versions}=            Convert String To JSON  ${result.stdout}
         ${major}=               Get Value From Json  ${versions}  $.serverVersion.major
         ${minor}=               Get Value From Json  ${versions}  $.serverVersion.minor
+        ${major}=               Get Regexp Matches  ${major[0]}  \\d+
+        ${minor}=               Get Regexp Matches  ${minor[0]}  \\d+
         Set To Dictionary       ${SONOBUOY_IMGS['e2e']}  name=validation:kube-conformance-v${major[0]}.${minor[0]}
 
 Onboard Images
