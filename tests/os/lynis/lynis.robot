@@ -47,7 +47,7 @@ Run Lynis Audit System
 *** Keywords ***
 Open Connection And Log In
     Open Connection  ${HOST}
-    Login With Public Key  ${USERNAME}  ${SSH_KEYFILE}
+    Run Keyword IF  '${SSH_KEYFILE}' != 'None'  Login With Public Key  ${USERNAME}  ${SSH_KEYFILE}  ELSE IF  '${PASSWORD}' != 'None'  Login  ${USERNAME}  ${PASSWORD}  ELSE  FAIL
 
 Install Lynis
     [Documentation]  Install Lynis

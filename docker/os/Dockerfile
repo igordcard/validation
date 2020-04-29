@@ -31,6 +31,8 @@ RUN apt-get update && apt-get -y install \
     wget \
     golint \
     sqlite3 \
+    openssh-client \
+    sshpass \
     debian-goodies \
     build-essential \
     pkg-config \
