@@ -20,9 +20,7 @@ Library           SSHLibrary
 Library           OperatingSystem
 Library           BuiltIn
 Suite Setup       Open Connection And Log In
-Suite Teardown    Run Keywords
-...               Cleanup ssh
-...               Close All Connections
+Suite Teardown    Close All Connections
 
 *** Test Cases ***
 Run Vuls test
@@ -53,6 +51,8 @@ Run Vuls test
     ${status} =  Evaluate  "Total: 0" in """${LOG}"""
     Run Keyword If  '${status}' == 'False'  FAIL  Vulnerabilities discovered
     ...                     non-critical
+
+    Run Keyword IF  '${SSH_KEYFILE}' == 'None'  Cleanup ssh
 
 *** Keywords ***
 Run vuls for ubuntu
