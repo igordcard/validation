@@ -27,8 +27,8 @@ Suite Teardown    Run Keywords
 *** Test Cases ***
 Run Vuls test
     Set Environment Variable  GOROOT  /root/go
-    Set Environment Variable  GOPATH  /root/go/src
-    Set Environment Variable  PATH  /usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/root/go/bin:/root/go/src/bin
+    Set Environment Variable  GOPATH  /root/go/src/github.com
+    Set Environment Variable  PATH  /usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/root/go/bin:/root/go/src/github.com/bin
     Set Environment Variable  LC_ALL  en_US.UTF-8
     Set Environment Variable  LANG  en_US.UTF-8
 

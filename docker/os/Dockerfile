@@ -62,13 +62,13 @@ RUN git clone https://github.com/CISOfy/lynis && tar czvf /opt/akraino/lynis-rem
 # Fetches vuls databases (invalidate cache using unique timestamp)
 SHELL ["/bin/bash", "-c"]
 RUN if [ $(uname -m) == 'aarch64' ]; then HOST_ARCH=arm64; else HOST_ARCH=amd64; fi && \
-    wget https://dl.google.com/go/go1.12.6.linux-$HOST_ARCH.tar.gz -P /root/ --progress=dot:giga && \
+    wget https://dl.google.com/go/go1.14.linux-$HOST_ARCH.tar.gz -P /root/ --progress=dot:giga && \
     cd /root/ && \
-    tar -xzf go1.12.6.linux-$HOST_ARCH.tar.gz -C /root/ && \
-    rm go1.12.6.linux-$HOST_ARCH.tar.gz && \
+    tar -xzf go1.14.linux-$HOST_ARCH.tar.gz -C /root/ && \
+    rm go1.14.linux-$HOST_ARCH.tar.gz && \
     export GOROOT=/root/go && \
-    export GOPATH=/root/go/src && \
-    export PATH=$PATH:/root/go/bin:/root/go/src/bin && \
+    export GOPATH=/root/go/src/github.com && \
+    export PATH=$PATH:/root/go/bin:/root/go/src/github.com/bin && \
     mkdir -p /root/go/src/github.com/future-architect && \
     cd /root/go/src/github.com/future-architect && \
     git clone https://github.com/future-architect/vuls && \
@@ -90,8 +90,8 @@ ADD db.tar.gz /opt/akraino/validation/tests/os/vuls/
 ADD db.tar.gz.timestamp /root/
 RUN \
     export GOROOT=/root/go && \
-    export GOPATH=/root/go/src && \
-    export PATH=$PATH:/root/go/bin:/root/go/src/bin && \
+    export GOPATH=/root/go/src/github.com && \
+    export PATH=$PATH:/root/go/bin:/root/go/src/github.com/bin && \
     for i in $(seq 2002 "$(date +"%Y")"); do go-cve-dictionary fetchnvd -quiet -http-proxy=${HTTP_PROXY} -dbpath /opt/akraino/validation/tests/os/vuls/cve.sqlite3 -years "$i"; done && \
     goval-dictionary fetch-ubuntu -http-proxy=${HTTP_PROXY} -dbpath=/opt/akraino/validation/tests/os/vuls/oval_ubuntu_16.sqlite3 16 && \
     goval-dictionary fetch-ubuntu -http-proxy=${HTTP_PROXY} -dbpath=/opt/akraino/validation/tests/os/vuls/oval_ubuntu_18.sqlite3 18 && \
@@ -108,7 +108,7 @@ COPY --from=build /opt/akraino/validation /opt/akraino/validation
 COPY --from=build /opt/akraino/ltp.tar.gz /opt/akraino/ltp.tar.gz
 COPY --from=build /opt/akraino/lynis-remote.tar.gz /opt/akraino/lynis-remote.tar.gz
 COPY --from=build /root/go/bin /root/go/bin
-COPY --from=build /root/go/src/bin /root/go/src/bin
+COPY --from=build /root/go/src/github.com/bin /root/go/src/github.com/bin
 
 RUN apt-get update && apt-get -y install \
     python3-pip python3.6 && \
