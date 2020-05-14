@@ -109,7 +109,7 @@ def invoke_dockers(yaml_loc, layer, blueprint_name, tag):
 @click.option('--network', '-n')
 @click.option('--tag', '-t')
 @click.option('--optional_also', '-o', is_flag=True)
-@click.option('--pull', '-p', is_flag=True)
+@click.option('--pull', '-P', is_flag=True)
 # pylint: disable=too-many-arguments
 def main(blueprint, layer, network, tag, optional_also, pull):
     """Takes blueprint name and optional layer. Validates inputs and derives
