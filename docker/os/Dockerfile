@@ -31,8 +31,6 @@ RUN apt-get update && apt-get -y install \
     wget \
     golint \
     sqlite3 \
-    openssh-client \
-    sshpass \
     debian-goodies \
     build-essential \
     pkg-config \
@@ -111,6 +109,8 @@ COPY --from=build /root/go/bin /root/go/bin
 COPY --from=build /root/go/src/github.com/bin /root/go/src/github.com/bin
 
 RUN apt-get update && apt-get -y install \
+    openssh-client \
+    sshpass \
     python3-pip python3.6 && \
     cd /usr/bin && ln -s python3 python && \
     pip3 install -r /wheels/requirements/pip-requirements.txt \
