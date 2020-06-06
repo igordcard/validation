@@ -12,14 +12,14 @@ blueprint:
         -
             name: vuls
             what: vuls
-            optional: "False"
+            optional: "True"
 
     k8s: &k8s
         -
             name: conformance
             what: conformance
-            optional: "False"
+            optional: "True"
         -
             name: kube-hunter
             what: kube-hunter
-            optional: "False"
+            optional: "True"
